@@ -1,0 +1,42 @@
+# DigitalOcean App Platform spec — Go Wine Go
+#
+# Static single-page site. No build step, no dependencies to install:
+# index.html and assets/ are served directly from the repo root.
+#
+# This file is declarative. DigitalOcean does NOT apply it automatically
+# to an already-running app, so committing it cannot disturb the live
+# deployment. To adopt it explicitly:
+#
+#   doctl apps list                                   # find the app id
+#   doctl apps spec get <app-id> > .do/app.live.yaml  # diff against live first
+#   doctl apps update <app-id> --spec .do/app.yaml
+#
+# To verify a deploy after pushing:
+#
+#   doctl apps list-deployments <app-id> --format ID,Phase,Progress,Created
+#
+name: go-wine-go
+region: syd
+
+static_sites:
+  - name: web
+    github:
+      repo: counterpointagency/go-wine-go
+      branch: main
+      deploy_on_push: true
+
+    # Serve straight from the repo root — nothing is compiled.
+    source_dir: /
+    output_dir: /
+    index_document: index.html
+
+    # Single page app: unknown paths fall back to the one document.
+    error_document: index.html
+
+    routes:
+      - path: /
+
+    envs:
+      - key: NODE_ENV
+        scope: BUILD_TIME
+        value: production
