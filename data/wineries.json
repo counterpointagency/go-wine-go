@@ -1,0 +1,77 @@
+{
+  "_note": "Model A: the winery is the seller, Go Wine Go is the market. Every wine belongs to a named winery and that name is the trust signal. Fictional producers built from real Margaret River subregions; checked against trading wineries before committing. Licence numbers are placeholders in an obviously non-colliding format and must be replaced with real producer licence numbers before launch.",
+  "wineries": [
+    {
+      "slug": "wilyabrup-reach",
+      "name": "Wilyabrup Reach",
+      "subregion": "Wilyabrup",
+      "gi": "Margaret River",
+      "established": 1987,
+      "licence_number": "WA-PRD-SAMPLE-001",
+      "story": "Forty hectares on the western fall of the Wilyabrup valley, planted to cabernet in the mid eighties on gravel over granite. The old blocks are still hand pruned and the fruit is picked in three passes rather than one.",
+      "hero_image": "assets/img/region-wilyabrup.jpg",
+      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "territory_exclusions": ["6000-6005", "6100-6110"]
+    },
+    {
+      "slug": "boranup-grove",
+      "name": "Boranup Grove",
+      "subregion": "Boranup",
+      "gi": "Margaret River",
+      "established": 1996,
+      "licence_number": "WA-PRD-SAMPLE-002",
+      "story": "A small holding cut into the karri on the southern edge of the region. Cool nights and a late harvest give the reds a lift of acid that the warmer northern blocks do not get.",
+      "hero_image": "assets/img/region-boranup.jpg",
+      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "territory_exclusions": []
+    },
+    {
+      "slug": "treeton-fold",
+      "name": "Treeton Fold",
+      "subregion": "Treeton",
+      "gi": "Margaret River",
+      "established": 2004,
+      "licence_number": "WA-PRD-SAMPLE-003",
+      "story": "Twelve hectares in the fold of the Treeton valley, worked by one family without contract labour. Everything is estate grown and everything is bottled on site.",
+      "hero_image": "assets/img/region-treeton.jpg",
+      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "territory_exclusions": ["6280-6290"]
+    },
+    {
+      "slug": "karridale-bench",
+      "name": "Karridale Bench",
+      "subregion": "Karridale",
+      "gi": "Margaret River",
+      "established": 1999,
+      "licence_number": "WA-PRD-SAMPLE-004",
+      "story": "The coldest fruit in the region, grown on a bench above a spring fed dam within sight of the southern coast. Chardonnay is picked at low baume and left on lees through winter.",
+      "hero_image": "assets/img/region-karridale.jpg",
+      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "territory_exclusions": []
+    },
+    {
+      "slug": "cowaramup-bend",
+      "name": "Cowaramup Bend",
+      "subregion": "Cowaramup",
+      "gi": "Margaret River",
+      "established": 2011,
+      "licence_number": "WA-PRD-SAMPLE-005",
+      "story": "Sheep run through the rows from leaf fall to bud burst, which is how the vineyard keeps its cover crop down without a tractor. The whites are made for drinking young and priced that way.",
+      "hero_image": "assets/img/region-cowaramup.jpg",
+      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "territory_exclusions": ["6000-6005"]
+    },
+    {
+      "slug": "yallingup-spur",
+      "name": "Yallingup Spur",
+      "subregion": "Yallingup",
+      "gi": "Margaret River",
+      "established": 1992,
+      "licence_number": "WA-PRD-SAMPLE-006",
+      "story": "High on the Yallingup spur where the maritime wind runs hard enough to thicken skins and slow ripening. Riesling and cabernet from the same eight hectare block.",
+      "hero_image": "assets/img/region-yallingup.jpg",
+      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "territory_exclusions": []
+    }
+  ]
+}

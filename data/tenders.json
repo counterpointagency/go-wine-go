@@ -1,0 +1,38 @@
+{
+  "_note": "A customer posts what they want and wineries submit. The customer picks one, or none. Authored now so the Round 3B tenders page reads from structured data rather than markup. Never described as an auction and never as a bid.",
+  "tenders": [
+    {
+      "id": "T-1041",
+      "variety": "Cabernet Sauvignon",
+      "gi": "Margaret River",
+      "vintage_from": 2019,
+      "vintage_to": 2021,
+      "quantity_cases": 10,
+      "max_price_per_case": 300,
+      "closes_at": "2026-08-19",
+      "submission_count": 4
+    },
+    {
+      "id": "T-1042",
+      "variety": "Chardonnay",
+      "gi": "Margaret River",
+      "vintage_from": 2022,
+      "vintage_to": 2024,
+      "quantity_cases": 25,
+      "max_price_per_case": 195,
+      "closes_at": "2026-08-24",
+      "submission_count": 7
+    },
+    {
+      "id": "T-1043",
+      "variety": "Riesling",
+      "gi": "Margaret River",
+      "vintage_from": 2021,
+      "vintage_to": 2023,
+      "quantity_cases": 6,
+      "max_price_per_case": 165,
+      "closes_at": "2026-09-02",
+      "submission_count": 2
+    }
+  ]
+}

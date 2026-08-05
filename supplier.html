@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Dashboard, Go Wine Go</title>
+<meta name="description" content="List your wine, run a Go Deal, and upload proof of delivery to release your payment.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ═══ SHARED: ICON SPRITE ══════════════════════════════════════════
+     BYTE IDENTICAL across index.html, account.html and supplier.html.
+     Becomes a single sprite include in the WordPress theme.
+     24x24, stroke 1.25, currentColor, fill none. No emoji, no icon
+     font, no CDN.
+     ═════════════════════════════════════════════════════════════════ -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-grape" viewBox="0 0 24 24">
+    <circle cx="9" cy="10" r="2.4"/><circle cx="15" cy="10" r="2.4"/>
+    <circle cx="6.2" cy="14.6" r="2.4"/><circle cx="12" cy="14.6" r="2.4"/><circle cx="17.8" cy="14.6" r="2.4"/>
+    <circle cx="9" cy="19.2" r="2.4"/><circle cx="15" cy="19.2" r="2.4"/>
+    <path d="M12 7.6V4.2"/><path d="M12 4.2c1.9-1.9 3.9-1.7 5.2-1.1"/>
+  </symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.6 2.8H21v8.4l-9.8 9.8-8.4-8.4 9.8-9.8Z"/><circle cx="17.1" cy="6.9" r="1.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 4.5 5.9v6.2c0 4.3 3 8.3 7.5 9.4 4.5-1.1 7.5-5.1 7.5-9.4V5.9L12 2.8Z"/><path d="m8.7 12.1 2.3 2.3 4.3-4.3"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M2.5 3.5h3l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2 4.6 13.6h6.6L10.8 22l8.6-11.6h-6.6L13.2 2Z"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5l-5-5Z"/><path d="M14 2.5v5h5"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7.5 8.5 12 4l4.5 4.5"/><path d="M4 16v2.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V16"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m4.5 12.5 5 5L19.5 7"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><path d="m8 12.3 2.8 2.8 5.4-5.4"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12"/><path d="M18 6 6 18"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15"/><path d="m13.5 6.5 6 5.5-6 5.5"/></symbol>
+  <symbol id="i-exchange" viewBox="0 0 24 24"><path d="M4 9h13"/><path d="M13.5 5.5 17.5 9l-4 3.5"/><path d="M20 15H7"/><path d="M10.5 11.5 6.5 15l4 3.5"/></symbol>
+  <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><path d="m9 9 6 6"/><path d="M15 9l-6 6"/></symbol>
+  <symbol id="i-vine" viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M12 12.5c-3.4 0-5.5-2-5.5-5.5 3.4 0 5.5 2 5.5 5.5Z"/><path d="M12 10c0-3.4 2.1-5.5 5.5-5.5 0 3.4-2.1 5.5-5.5 5.5Z"/><path d="M7 21h10"/></symbol>
+</svg>
+
+<!-- ═══ SECTION: SITE HEADER ═════════════════════════════════════════
+     BYTE IDENTICAL across index.html, account.html and supplier.html.
+     Becomes get_header() in the WordPress theme.
+
+     The current page is resolved by assets/js/main.js from the URL and
+     applied with aria-current, NOT written into the markup, so these
+     bytes can never drift between pages.
+
+     Transparency: the header is solid maroon in the markup and only
+     goes transparent at scroll position zero on a page carrying
+     body[data-hero]. Solid is the safe default if JS never runs.
+     ════════════════════════════════════════════════════════════════ -->
+<header class="site-header" id="siteHeader">
+  <div class="site-header__inner">
+    <a class="site-header__logo" href="index.html" aria-label="Go Wine Go home">
+      <svg class="icon" aria-hidden="true"><use href="#i-grape"/></svg>
+      <span class="site-header__wordmark">Go Wine Go</span>
+    </a>
+
+    <nav class="site-header__nav" aria-label="Primary">
+      <a class="site-header__tab" href="index.html" data-page="index.html">Market</a>
+      <a class="site-header__tab" href="account.html" data-page="account.html">Account</a>
+      <a class="site-header__tab" href="supplier.html" data-page="supplier.html">Supplier</a>
+    </nav>
+
+    <div class="site-header__right">
+      <div class="site-header__roles" role="group" aria-label="View as">
+        <a class="site-header__role" href="index.html" data-role-for="index.html account.html"><span>Customer</span></a>
+        <a class="site-header__role" href="supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
+      </div>
+      <a class="site-header__login" href="account.html">Login</a>
+    </div>
+  </div>
+</header>
+
+<main class="page--inner" id="main">
+  <!-- ═══ SECTION: SUPPLIER ═══════════════════════════════════════
+       Moved across from the old single-file build unchanged in
+       structure and restyled only. Payment language corrected to
+       Model A: the winery is the seller, funds are held by the
+       payment provider, and uploading proof of delivery is what
+       releases them.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="supplier" id="supplierRoot" aria-labelledby="supplierTitle">
+    <div class="supplier__head">
+      <div>
+        <h1 class="supplier__title" id="supplierTitle">Supplier dashboard</h1>
+        <p class="supplier__welcome">Welcome back, <b>Wilyabrup Reach</b> · Licensed producer WA-PRD-SAMPLE-001</p>
+      </div>
+      <button class="btn btn--solid" id="listNewWine">List new wine</button>
+    </div>
+
+    <div class="supplier__stats">
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">3</p>
+        <p class="supplier__stat-lbl">Cases sold this month</p>
+      </div>
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">2</p>
+        <p class="supplier__stat-lbl">Offers awaiting response</p>
+      </div>
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">$1,020</p>
+        <p class="supplier__stat-lbl">Held, releases on delivery</p>
+      </div>
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">1</p>
+        <p class="supplier__stat-lbl">Awaiting proof of delivery</p>
+      </div>
+    </div>
+
+    <div class="supplier__panel">
+      <div class="supplier__panel-head">
+        <h2 class="supplier__panel-title">My listings</h2>
+        <span class="supplier__panel-note">1 active listing</span>
+      </div>
+      <div class="supplier__panel-body supplier__panel-body--flush supplier__panel-body--scroll">
+        <table class="supplier__table">
+          <thead>
+            <tr>
+              <th scope="col">Wine</th>
+              <th scope="col">List price</th>
+              <th scope="col">Floor price</th>
+              <th scope="col">Offers</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="listingsBody">
+            <tr>
+              <td>
+                <b>Old Vine Cabernet Sauvignon 2021</b>
+                <span class="supplier__table-sub">Wilyabrup, Margaret River · 6 bottles per case</span>
+              </td>
+              <td>$340 per case</td>
+              <td>$290 per case</td>
+              <td>3</td>
+              <td><span class="pill pill--ok">Active</span></td>
+              <td>
+                <button class="btn btn--ghost btn--sm" data-opens-godeal>Go Deal</button>
+                <button class="btn btn--quiet btn--sm" data-removes-row>Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="supplier__form" id="listWineForm">
+        <p class="supplier__form-title">List a new wine</p>
+        <div class="supplier__form-grid">
+          <div class="field">
+            <label class="field__label" for="newWineName">Wine name</label>
+            <input class="field__input" type="text" id="newWineName" placeholder="e.g. Ridge Block Cabernet">
+          </div>
+          <div class="field">
+            <label class="field__label" for="newVintage">Vintage</label>
+            <input class="field__input" type="number" id="newVintage" placeholder="2022">
+          </div>
+          <div class="field">
+            <label class="field__label" for="newVariety">Variety</label>
+            <select class="field__input" id="newVariety">
+              <option>Cabernet Sauvignon</option><option>Shiraz</option><option>Malbec</option>
+              <option>Chardonnay</option><option>Sauvignon Blanc Semillon</option><option>Riesling</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="newRegion">Subregion</label>
+            <input class="field__input" type="text" id="newRegion" placeholder="e.g. Wilyabrup, Margaret River">
+          </div>
+          <div class="field">
+            <label class="field__label" for="newCaseSize">Case size</label>
+            <select class="field__input" id="newCaseSize">
+              <option value="6">6 bottles</option>
+              <option value="12" selected>12 bottles</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="newCases">Number of cases</label>
+            <input class="field__input" type="number" id="newCases" placeholder="12">
+          </div>
+          <div class="field">
+            <label class="field__label" for="newPrice">List price ($ per case)</label>
+            <input class="field__input" type="number" id="newPrice" placeholder="240">
+          </div>
+          <div class="field">
+            <label class="field__label" for="newFloor">Floor price ($ per case)</label>
+            <input class="field__input" type="number" id="newFloor" placeholder="195">
+          </div>
+        </div>
+        <div class="supplier__form-actions">
+          <button class="btn btn--solid" id="saveListing">Save listing</button>
+          <button class="btn btn--ghost" id="cancelListing">Cancel</button>
+          <label class="supplier__check">
+            <input type="checkbox" id="autoAccept"> Auto-accept offers above floor
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="supplier__panel" id="goDealCard" hidden>
+      <div class="supplier__panel-head">
+        <h2 class="supplier__panel-title">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bolt"/></svg>
+          Go Deal engine, Old Vine Cabernet Sauvignon 2021
+        </h2>
+        <button class="btn btn--quiet btn--sm" data-closes-godeal>Close</button>
+      </div>
+      <div class="supplier__panel-body">
+        <p class="supplier__godeal-note">Set a floor below your list price. Offers at or above the floor are accepted automatically with no manual review, and as more cases are committed the price falls for everyone. The floor is never shown to buyers and is never sent to the browser.</p>
+        <div class="supplier__form-grid">
+          <div class="supplier__toggle-row">
+            <label class="supplier__check">
+              <input type="checkbox" id="goDealAuto" checked>
+              Auto-accept offers at or above the floor price
+            </label>
+            <span class="pill pill--ok supplier__toggle-state">On</span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="goDealSticker">List price</label>
+            <div class="field__prefixed"><span class="field__prefix">$</span><input type="number" id="goDealSticker" value="340"></div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="goDealFloor">Floor price (hidden from buyers)</label>
+            <div class="field__prefixed"><span class="field__prefix">$</span><input type="number" id="goDealFloor" value="290"></div>
+            <p class="field__hint" id="goDealMargin"></p>
+          </div>
+        </div>
+        <div class="supplier__form-actions">
+          <button class="btn btn--solid" id="saveGoDeal">Save Go Deal</button>
+          <button class="btn btn--ghost" data-closes-godeal>Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="supplier__panel">
+      <div class="supplier__panel-head">
+        <h2 class="supplier__panel-title">Orders and dispatch</h2>
+      </div>
+      <div class="supplier__panel-body supplier__panel-body--flush supplier__panel-body--scroll">
+        <table class="supplier__table">
+          <thead>
+            <tr>
+              <th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Wine</th>
+              <th scope="col">Cases</th><th scope="col">Sale price</th><th scope="col">Status</th><th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#001</td><td>Alex Chen</td><td>Old Vine Cabernet Sauvignon 2021</td>
+              <td>2</td><td>$680</td>
+              <td><span class="pill pill--ok">Dispatched</span></td>
+              <td><button class="btn btn--ghost btn--sm" data-pod-order="#001" data-pod-sale="680">Upload proof of delivery</button></td>
+            </tr>
+            <tr>
+              <td>#002</td><td>Sarah M.</td><td>Old Vine Cabernet Sauvignon 2021</td>
+              <td>1</td><td>$340</td>
+              <td><span class="pill pill--wait">Awaiting payment</span></td>
+              <td>None</td>
+            </tr>
+            <tr>
+              <td>#003</td><td>James T.</td><td>Old Vine Cabernet Sauvignon 2021</td>
+              <td>1</td><td>$320</td>
+              <td><span class="pill pill--ok">Delivered, awaiting proof</span></td>
+              <td><button class="btn btn--ghost btn--sm" data-pod-order="#003" data-pod-sale="320">Upload proof of delivery</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="supplier__panel" id="podPanel" hidden>
+      <div class="supplier__panel-head">
+        <h2 class="supplier__panel-title">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-doc"/></svg>
+          Proof of delivery, order <span id="podOrderId"></span>
+        </h2>
+        <button class="btn btn--quiet btn--sm" id="closePOD">Close</button>
+      </div>
+      <div class="supplier__panel-body">
+        <div id="podUploadArea">
+          <label class="supplier__drop" for="podFile">
+            <input type="file" id="podFile" class="visually-hidden">
+            <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>
+            <p class="supplier__drop-text">Drop the signed delivery confirmation here, or <b>choose a file</b></p>
+            <p class="supplier__drop-note">PDF, JPG or PNG accepted</p>
+          </label>
+        </div>
+        <div id="podResult" hidden>
+          <div class="supplier__result">
+            <div class="supplier__result-head">
+              <svg class="icon" aria-hidden="true"><use href="#i-check-circle"/></svg>
+              <p><b>Delivery confirmed</b><span>Your payment is being released</span></p>
+            </div>
+            <dl class="supplier__ledger">
+              <div class="supplier__ledger-row"><dt>Sale price</dt><dd id="podSalePrice"></dd></div>
+              <div class="supplier__ledger-row"><dt>Go Wine Go commission (8%)</dt><dd id="podCommission"></dd></div>
+              <div class="supplier__ledger-row supplier__ledger-row--net"><dt>Amount to you</dt><dd id="podNet"></dd></div>
+            </dl>
+            <p class="supplier__payout">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-shield"/></svg>
+              Funds transfer to your nominated account within two business days.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ═══ SECTION: SITE FOOTER ═════════════════════════════════════════
+     BYTE IDENTICAL across index.html, account.html and supplier.html.
+     Becomes get_footer() in the WordPress theme.
+     ════════════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__top">
+      <svg class="icon" aria-hidden="true"><use href="#i-grape"/></svg>
+      <span class="site-footer__wordmark">Go Wine Go</span>
+    </div>
+    <hr class="rule rule--on-maroon site-footer__rule">
+    <div class="site-footer__meta">
+      <p>Australia's direct-from-winery marketplace. Every wine is sold to you by the winery that made it, as the licensed producer. Go Wine Go is the marketplace, not the seller.</p>
+      <p>Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
+      <p class="site-footer__credit">Photography by <a href="https://www.russellord.com/">Russell Ord</a>.</p>
+      <p>Listings shown are samples for demonstration and are not available for sale.</p>
+      <p>Wine is sold to persons aged 18 years and over. It is against the law to sell or supply alcohol to, or to obtain alcohol on behalf of, a person under the age of 18 years. Please drink responsibly.</p>
+      <p>© 2026 Go Wine Go Pty Ltd · ABN 00 000 000 000 · Must be 18+</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ COMPONENT: TOAST ═══ -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

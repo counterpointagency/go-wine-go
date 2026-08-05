@@ -1,13 +1,23 @@
 # Go Wine Go — Project Rules
 
-Single-page prototype for an Australian direct-to-consumer wine marketplace.
+Static prototype for an Australian direct-from-winery wine marketplace.
 Autodeploy is ON. The live URL has been shared with the client.
+
+**Model A: the winery is the seller, Go Wine Go is the market.** Go Wine Go
+never holds money. Nothing says escrow, auction or bid. The full specification
+is `docs/site-spec.md` and it is the reference for Rounds 3A, 3B and 3C.
+
+As of Round 3A the build is three pages — `index.html` (home and market),
+`account.html`, `supplier.html` — over one shared `assets/css/main.css`, one
+shared `assets/js/main.js`, and hand-authored content in `data/*.json`.
 
 ---
 
 ## STANDING RULES
 
-- **Never delete anything.** Before editing `index.html`, copy it to `archive/index-vN.html`
+- **Never delete anything.** Before a round that restructures a page, copy it to
+  `archive/<page>-vN.html`. Never overwrite an existing archive — `index-v2.html`
+  is Round 2's file and stays that way. Before editing `index.html`, copy it to `archive/index-vN.html`
   and keep it in the repo as a rollback.
 - **Dropbox is read only.** Never modify or delete anything there. All optimised copies get
   written into this repo under `assets/img/`.
@@ -87,13 +97,25 @@ adjacent colour**.
 
 ### Type
 
-- **Bodoni Moda is a Didone** — its hairline strokes render lighter than their
-  colour value implies. Therefore: **display only, 32px and above, weight 500
-  minimum, never 400.**
-- **Nothing under 32px is Bodoni.** Inter takes every heading below that.
-- **No Bodoni in any UI control, label, chip, table header or button.**
+**Bodoni Moda is retired as of Round 3A.** It is a Didone: extreme stroke
+contrast, hairlines that vanish at display size, and a true italic with enough
+swash to fight the reader at ninety pixels.
+
+- **Display face is Fraunces**, variable, from Google Fonts.
+  Settings: `opsz` 100, `wght` 600, `SOFT` 0, `WONK` 0. **No italic in the H1.**
+- **Google leaves the `opsz` axis LIVE at a default of 9.** The `@100` in the
+  css2 URL only picks the file; it does not pin the axis, and
+  `font-optical-sizing: auto` would otherwise set opsz from the font-size.
+  Every display rule therefore carries
+  `font-variation-settings: var(--display-axes)`, and the audit fails the build
+  on a display rule that does not. Do not remove it thinking it is redundant.
+- **Display only, 32px and above, weight 600.** Inter takes every heading below
+  that. No display face in any UI control, label, chip, table header or button.
 - Body and UI: Inter, weights 400 and 500.
 - Google Fonts, preloaded, with `serif` and `sans-serif` system fallbacks.
+
+Alternate if Fraunces reads too soft against the photography: Newsreader, same
+role, more editorial. Flag it rather than swapping silently.
 
 ### Photography
 
@@ -178,6 +200,17 @@ node tools/layout-audit.mjs              # required — must exit 0
 node tools/contrast-audit.mjs --matrix   # adds the full N×N token matrix
 ```
 
+If you edited the header, footer or icon sprite, edit it in `index.html` and
+push it to the other two pages, then re-run the audits:
+
+```bash
+node tools/sync-shared-blocks.mjs        # index.html is the source of truth
+node tools/sync-shared-blocks.mjs --check
+```
+
+This is not a build step — the site is served exactly as it sits in the repo.
+The contrast audit fails on drift whether or not you remember to run it.
+
 **Both must pass before reporting.** No npm script, deliberately: that would
 require a root `package.json`, which is what broke the Round 2 deploy.
 
@@ -196,10 +229,16 @@ from `tools/font-metrics.json`, and asserts:
 3. every fixed or sticky element vs. the top offset of what follows it
 4. search input width vs. its own placeholder
 
-`tools/font-metrics.json` was extracted once with fontTools from the exact
-Google Fonts woff2 files the page requests, with variable axes instanced at the
-weights actually used. It is committed, so the audit runs offline and
-deterministically. **If you change a font, weight or axis, regenerate it.**
+`tools/font-metrics.json` is extracted with fontTools from the exact Google
+Fonts woff2 files the pages request, with variable axes instanced at the values
+actually rendered — Fraunces at `opsz` 100, not at Google's served default of 9.
+It is committed, so the audit runs offline and deterministically.
+
+**If you change a font, weight or axis, regenerate it:**
+
+```bash
+python3 tools/extract-font-metrics.py     # needs fonttools + brotli
+```
 
 ### Header transparency
 
@@ -208,11 +247,24 @@ hero photograph behind it. Any scroll goes solid maroon. Do not reintroduce a
 geometry-based trigger keyed to the hero's edges: that is what let the bone plate
 slide under a still-transparent header.
 
-`tools/contrast-audit.mjs` parses the `:root` block out of `index.html` and
-checks every pairing the site actually renders against the threshold that
-pairing must meet (4.5 / 7.0 / 3.0), plus structural guards: no hex outside
-`:root`, no `rgba()` literals outside `:root`, no `!important`, no inline
-`style=`, no emoji, no Bodoni under 32px or under weight 500.
+`tools/contrast-audit.mjs` parses the `:root` block out of
+`assets/css/main.css` and checks every pairing the site actually renders against
+the threshold that pairing must meet (4.5 / 7.0 / 3.0), plus structural guards
+across **all three pages**: no hex outside `:root`, no `rgba()` literals outside
+`:root`, no `!important`, no inline `style=`, no inline `on*=` handlers, no
+emoji, no "escrow", no "auction"/"bid" in shipped copy, no display type under
+32px or under weight 500, and no display rule that fails to pin `opsz`.
+
+The prose guards run over the **shipped** text with comments stripped, so a
+comment explaining why a word is banned does not itself trip the ban.
+
+> **Round 3A found the display-face guards had never actually run.** The rule
+> loop destructured `[sel, decl]` off `matchAll`, which binds `decl` to the
+> selector rather than the rule body, so no rule ever matched and all three
+> guards reported a clean 0 while checking nothing. The Bodoni floor that
+> Rounds 2 and 3 believed was enforced was not. The audit now reports
+> **"Display rules actually inspected"** and fails if that count is zero.
+> Any guard that can pass vacuously must report its own sample size.
 
 **When you add a component, add its pairing to `USED_PAIRINGS`.** The audit is
 only as good as that list — that is exactly how Round 1 passed while failing.
@@ -257,3 +309,20 @@ serving.
   height with `padding-top`; the search moved out of the plate into its own
   `finder` section; hero display size dropped to fit the capped plate.
   `tools/layout-audit.mjs` added. Archived at `archive/index-v3.html`.
+- **Round 3A** — structure, design system, home page. Built against
+  `docs/site-spec.md`. The 1,487-line single file became `index.html`,
+  `account.html` and `supplier.html` over one `assets/css/main.css` and one
+  `assets/js/main.js`, with the header, footer, icon sprite and modals sliced
+  out of `index.html` at build time so they are byte identical by construction.
+  Content moved to `data/*.json` — 6 wineries, 12 wines, 2 Go Deals, 3 tenders,
+  6 subregions. Bodoni retired for **Fraunces** at `opsz` 100 / `wght` 600.
+  Every scrim, tint and gradient deleted, including the closing band's maroon
+  wash: its copy now sits on a bone plate like the hero, and there is no
+  overlay token left in the stylesheet. "Escrow" removed everywhere and
+  replaced with Model A payment language. Nine new photographs pulled from the
+  Dropbox library. Home page rebuilt to spec 4.1: hero, trust strip, listings
+  grid, editorial band, Go Deals strip, six region tiles, closing band.
+  The layout audit now covers all three pages and both audits carry negative
+  tests. **The display-face guards were found to have never run** — see the
+  note under VERIFICATION. The three-step explainer moved off home; it is due
+  on `how-it-works.html` in Round 3B per spec 4.6.

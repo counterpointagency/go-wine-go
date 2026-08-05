@@ -1,0 +1,29 @@
+{
+  "_note": "The winery sets a list price and a hidden floor. As more cases are committed the price falls for everyone, and when the deal closes everyone pays the final price. The FLOOR IS DELIBERATELY ABSENT FROM THIS FILE. It is never exposed to the client, and this file is fetched by the browser, so the floor cannot live here at all — only the public tier ladder does. The floor is held on the supplier side (see the Go Deal engine on supplier.html).",
+  "go_deals": [
+    {
+      "wine_slug": "karri-block-shiraz-2022",
+      "list_price": 180,
+      "tiers": [
+        { "cases": 0, "price": 180 },
+        { "cases": 40, "price": 168 },
+        { "cases": 80, "price": 156 },
+        { "cases": 140, "price": 144 }
+      ],
+      "committed_cases": 64,
+      "closes_at": "2026-08-21"
+    },
+    {
+      "wine_slug": "granite-rise-riesling-2023",
+      "list_price": 160,
+      "tiers": [
+        { "cases": 0, "price": 160 },
+        { "cases": 50, "price": 150 },
+        { "cases": 100, "price": 140 },
+        { "cases": 180, "price": 128 }
+      ],
+      "committed_cases": 118,
+      "closes_at": "2026-08-28"
+    }
+  ]
+}

@@ -5,17 +5,23 @@
  * The contrast audit passed on a page that had text sitting on top of text.
  * It measures colour, not geometry. This measures geometry.
  *
- * It parses the served CSS out of index.html, resolves the value expressions
- * (clamp/min/max/calc/rem/vw/vh) at four viewports, lays out the hero copy
- * using REAL glyph advances from tools/font-metrics.json, and asserts:
+ * It parses the served CSS out of assets/css/main.css, resolves the value
+ * expressions (clamp/min/max/calc/rem/vw/vh) at four viewports, lays the
+ * hero copy out using REAL glyph advances from tools/font-metrics.json, and
+ * asserts, at 390, 834, 1280 and 1600:
  *
  *   1. header height vs. hero content top offset — clearance must not be negative
- *   2. plate width and height against their caps (34vw / 60vh)
- *   3. every fixed or sticky element vs. the top offset of what follows it
+ *   2. plate width and height against their caps (34vw / 60vh; full width below 760)
+ *   3. every fixed or sticky element vs. the top offset of what follows it,
+ *      on EVERY page, not just the one that happens to have a hero
+ *   4. search input width vs. its own placeholder
  *
- * Font metrics were extracted once with fontTools from the exact Google Fonts
- * woff2 files the page requests, variable axes instanced at the weights used.
- * That file is committed, so this runs offline and deterministically.
+ * Font metrics were extracted with tools/extract-font-metrics.py from the
+ * exact Google Fonts woff2 the pages request, with Fraunces instanced at
+ * opsz 100 — Google leaves that axis live at a default of 9, so measuring
+ * the served default would report a text cut, not the display cut that
+ * actually renders. The metrics file is committed, so this runs offline
+ * and deterministically. If you change a font, weight or axis, regenerate it.
  *
  * Exit 0 = all clearances non-negative and all caps respected. 1 = failure.
  *
@@ -27,9 +33,21 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const HTML = readFileSync(resolve(ROOT, 'index.html'), 'utf8');
+const CSS = readFileSync(resolve(ROOT, 'assets/css/main.css'), 'utf8');
 const FONTS = JSON.parse(readFileSync(resolve(ROOT, 'tools/font-metrics.json'), 'utf8'));
-const CSS = HTML.split('<style>')[1].split('</style>')[0];
+
+const DISPLAY_FACE = 'fraunces-600';
+
+/* Each page, and the first in-flow element that has to clear the fixed
+   header. index.html reserves it with the hero's padding-top; the inner
+   pages reserve it with .page--inner. */
+const PAGES = [
+  { file: 'index.html',    reserves: '.hero',       prop: 'padding-top' },
+  { file: 'account.html',  reserves: '.page--inner', prop: 'padding-top' },
+  { file: 'supplier.html', reserves: '.page--inner', prop: 'padding-top' },
+];
+for (const p of PAGES) p.html = readFileSync(resolve(ROOT, p.file), 'utf8');
+const HTML = PAGES[0].html;
 
 const VIEWPORTS = [
   { w: 390,  h: 844,  label: 'iPhone 390x844' },
@@ -46,7 +64,6 @@ function rulesFor(maxWidth) {
   // applied in source order so later declarations win — same as the cascade.
   const out = [];
   const mediaRe = /@media\s*\(([^)]*)\)\s*\{/g;
-  let idx = 0;
   const blocks = [];
   let m;
   while ((m = mediaRe.exec(clean))) {
@@ -64,10 +81,9 @@ function rulesFor(maxWidth) {
   for (const b of blocks.slice().reverse()) base = base.slice(0, b.start) + base.slice(b.end);
   out.push(base);
   for (const b of blocks) {
+    if (/prefers-reduced-motion|prefers-color-scheme/.test(b.cond)) continue;
     const mw = /max-width:\s*(\d+)px/.exec(b.cond);
     if (mw && maxWidth <= Number(mw[1])) out.push(b.body);
-    const pref = /prefers-reduced-motion|prefers-color-scheme/.test(b.cond);
-    if (pref) continue;
   }
   return out.join('\n');
 }
@@ -86,21 +102,32 @@ function declMap(css) {
   return map;
 }
 
-/* ── value resolver ─────────────────────────────────────────────── */
-const TOKENS = (() => {
+/* ── value resolver ─────────────────────────────────────────────────
+   Tokens are resolved PER VIEWPORT, because :root is itself overridden
+   inside a media query — --header-h drops from 76px to 64px below 760.
+   Reading only the base block would have measured a 76px header against
+   a 64px reality on mobile. */
+const tokenCache = new Map();
+function tokensFor(width) {
+  if (tokenCache.has(width)) return tokenCache.get(width);
   const t = {};
-  const root = clean.match(/:root\s*\{([\s\S]*?)\n\}/);
-  for (const [, k, v] of root[1].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) t[k] = v.trim();
+  for (const [, body] of rulesFor(width).matchAll(/:root\s*\{([^{}]*)\}/g)) {
+    for (const [, k, v] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) t[k] = v.trim();
+  }
+  tokenCache.set(width, t);
   return t;
-})();
+}
+/** Base tokens, for the few values that are viewport independent. */
+const TOKENS = tokensFor(99999);
 
 function resolve1(expr, vp, depth = 0) {
   if (expr == null) return NaN;
   let s = String(expr).trim();
   if (depth > 12) return NaN;
+  const tokens = tokensFor(vp.w);
   // var(--x) / var(--x, fallback)
   s = s.replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g, (_, name, fb) =>
-    TOKENS[name] !== undefined ? `(${TOKENS[name]})` : (fb !== undefined ? `(${fb})` : 'NaN'));
+    tokens[name] !== undefined ? `(${tokens[name]})` : (fb !== undefined ? `(${fb})` : 'NaN'));
   // functions, innermost first
   const fn = /(clamp|min|max|calc)\(([^()]*)\)/;
   let g;
@@ -122,7 +149,7 @@ function resolve1(expr, vp, depth = 0) {
 }
 
 function evalArith(s, vp) {
-  let e = String(s)
+  const e = String(s)
     .replace(/\bnone\b/g, '999999')
     .replace(/([\d.]+)%/g, (_, n) => (Number(n) / 100) * vp.w)
     .replace(/([\d.]+)rem/g, (_, n) => Number(n) * 16)
@@ -162,17 +189,36 @@ function lineCount(face, str, px, availPx, trackingEm = 0) {
   return lines;
 }
 
+/** Pull the live hero copy out of index.html, so the audit measures the
+    text that actually ships rather than a copy of it that can drift. */
+function heroCopy() {
+  const grab = (re, fallback) => {
+    const m = HTML.match(re);
+    return m ? m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : fallback;
+  };
+  return {
+    eyebrow: grab(/class="label hero__eyebrow">([\s\S]*?)<\/p>/, "Australia's direct-from-winery marketplace"),
+    title:   grab(/class="hero__title"[^>]*>([\s\S]*?)<\/h1>/, 'Buy direct from Australian wineries'),
+    sub:     grab(/class="hero__text">([\s\S]*?)<\/p>/, ''),
+  };
+}
+
 /* ── the audit ──────────────────────────────────────────────────── */
 const CAP_W_VW = 34, CAP_H_VH = 60;
 let failures = 0;
 const GREEN = '\x1b[32m', RED = '\x1b[31m', YEL = '\x1b[33m', OFF = '\x1b[0m';
 const tty = process.stdout.isTTY;
 const c = (col, s) => (tty ? col + s + OFF : s);
-const fail = (s) => { failures++; return c(RED, s); };
 
 console.log('\n══ GO WINE GO — LAYOUT AUDIT ════════════════════════════════════════');
-console.log('Geometry resolved from the served CSS. Hero copy laid out with real');
-console.log('glyph advances (fontTools, variable axes instanced at the used weights).\n');
+console.log('Geometry resolved from assets/css/main.css. Hero copy laid out with');
+console.log(`real glyph advances (${DISPLAY_FACE}, opsz instanced at 100).\n`);
+
+const COPY = heroCopy();
+console.log('HERO COPY READ FROM index.html');
+console.log(`  eyebrow  "${COPY.eyebrow}"`);
+console.log(`  title    "${COPY.title}"`);
+console.log(`  subline  "${COPY.sub.slice(0, 60)}…"\n`);
 
 // enumerate fixed / sticky elements once
 const baseMap = declMap(rulesFor(99999));
@@ -206,8 +252,7 @@ for (const vp of VIEWPORTS) {
   const heroImgH = R(get('.hero__media img', 'height'));
 
   // --- 2. plate box ---------------------------------------------------
-  const plateWDecl = get('.hero__plate', 'width');
-  const plateW = R(plateWDecl);
+  const plateW = R(get('.hero__plate', 'width'));
   const platePadDecl = get('.hero__plate', 'padding') || '0';
   const platePadParts = platePadDecl.split(/\s+/).map((x) => R(x));
   const padY = platePadParts[0], padX = platePadParts[1] ?? platePadParts[0];
@@ -216,32 +261,24 @@ for (const vp of VIEWPORTS) {
   // hero copy, measured
   const fsMicro = R(get('.label', 'font-size') || TOKENS['--fs-micro']);
   const trackLabel = parseFloat(TOKENS['--tracking-label']) || 0;
-  const eyebrow = "AUSTRALIA'S DIRECT-FROM-WINERY MARKETPLACE"; // .label is uppercase
-  const eyebrowLines = lineCount('inter-500', eyebrow, fsMicro, avail, trackLabel);
+  const eyebrowLines = lineCount('inter-500', COPY.eyebrow.toUpperCase(), fsMicro, avail, trackLabel);
   const eyebrowH = eyebrowLines * fsMicro * (parseFloat(TOKENS['--lh-body']) || 1.62)
                  + R(get('.hero__eyebrow', 'margin-bottom') || '0');
 
   const fsDisp = R(get('.hero__title', 'font-size'));
   const trackDisp = parseFloat(TOKENS['--tracking-display']) || 0;
-  const titleLines = lineCount('bodoni-500', 'Buy direct from\nAustralian wineries', fsDisp, avail, trackDisp);
+  const titleLines = lineCount(DISPLAY_FACE, COPY.title, fsDisp, avail, trackDisp);
   const titleH = titleLines * fsDisp * (parseFloat(TOKENS['--lh-tight']) || 1.06);
 
   const fsLead = R(get('.hero__text', 'font-size'));
-  const sub = 'Name your price by the case. The winery accepts, counters or declines, and no payment moves until you both agree.';
-  const subLines = lineCount('inter-400', sub, fsLead, avail);
+  const subLines = lineCount('inter-400', COPY.sub, fsLead, avail);
   const subH = subLines * fsLead * (parseFloat(TOKENS['--lh-body']) || 1.62)
              + R(get('.hero__text', 'margin-top') || '0');
 
-  // search only counts if it is still inside the plate
-  const searchInPlate = /hero__plate[\s\S]{0,4000}?hero__search/.test(HTML.split('</section>')[0]) &&
-                        HTML.includes('hero__plate') &&
-                        /<div class="hero__plate">[\s\S]*?<form class="hero__search"/.test(HTML);
-  let searchH = 0;
-  if (searchInPlate) {
-    searchH = R(get('.hero__search', 'margin-top') || '0')
-            + R(get('.hero__search input', 'padding') ? get('.hero__search input', 'padding').split(/\s+/)[0] : '12') * 2
-            + fsLead * 1.2;
-  }
+  // The search must NOT be on the plate. If it ever returns, count it and
+  // flag it, because it is what pushed the plate into the header before.
+  const searchInPlate = /<div class="hero__plate">[\s\S]*?<form[^>]*class="[^"]*hero__search/.test(HTML);
+  const searchH = searchInPlate ? fsLead * 1.2 + R(TOKENS['--sp-3']) * 2 : 0;
 
   const contentH = eyebrowH + titleH + subH + searchH;
   const plateH = contentH + padY * 2;
@@ -294,49 +331,66 @@ for (const r of rows) {
   const hOk = r.plateH <= r.capH + 0.5;
   r.capW = capW;
   if (!wOk || !hOk) failures++;
+  // The search living on the plate is what grew it into the header in
+  // Round 2. It is a failure in its own right, not a note: the plate can
+  // still be under its cap and the arrangement still be the banned one.
+  if (r.searchInPlate) failures++;
   const wS = `${r.plateW.toFixed(0)}px`, hS = `${r.plateH.toFixed(0)}px`;
-  console.log(`  ${r.vp.label.padEnd(20)} ${(wOk ? c(GREEN, wS.padStart(8)) : c(RED, wS.padStart(8)))} ${(r.capW.toFixed(0) + 'px').padStart(8)}  ${(hOk ? c(GREEN, hS.padStart(8)) : c(RED, hS.padStart(8)))} ${(r.capH.toFixed(0) + 'px').padStart(8)}  ${r.eyebrowLines}/${r.titleLines}/${r.subLines}${r.searchInPlate ? c(YEL, '  [search still on plate]') : ''}`);
+  console.log(`  ${r.vp.label.padEnd(20)} ${(wOk ? c(GREEN, wS.padStart(8)) : c(RED, wS.padStart(8)))} ${(r.capW.toFixed(0) + 'px').padStart(8)}  ${(hOk ? c(GREEN, hS.padStart(8)) : c(RED, hS.padStart(8)))} ${(r.capH.toFixed(0) + 'px').padStart(8)}  ${r.eyebrowLines}/${r.titleLines}/${r.subLines}${r.searchInPlate ? c(YEL, '  [search back on the plate]') : ''}`);
 }
 
-console.log('\n3. FIXED / STICKY vs WHAT FOLLOWS');
-for (const vp of VIEWPORTS) {
-  const map = declMap(rulesFor(vp.w));
-  const R = (v) => resolve1(v, vp);
-  const headerH = R(map.get('.site-header')?.height);
-  const innerPad = R((map.get('.view--inner')?.['padding-top']) || '0');
-  const ok = innerPad >= headerH;
-  if (!ok) failures++;
-  const s = `${(innerPad - headerH).toFixed(0)}px`;
-  console.log(`  ${vp.label.padEnd(20)} .site-header(fixed) -> .view--inner  clearance ${ok ? c(GREEN, s) : c(RED, s)}`);
+console.log('\n3. FIXED / STICKY vs WHAT FOLLOWS — every page');
+console.log(`  ${'PAGE'.padEnd(15)} ${'VIEWPORT'.padEnd(20)} ${'RESERVES'.padEnd(14)} ${'NEEDS'.padStart(7)} ${'HAS'.padStart(7)} ${'CLEARANCE'.padStart(10)}`);
+for (const page of PAGES) {
+  // Confirm the page really uses the selector we are about to measure,
+  // so a renamed wrapper fails loudly instead of silently passing.
+  const cls = page.reserves.replace('.', '');
+  if (!page.html.includes(cls)) {
+    failures++;
+    console.log(`  ${page.file.padEnd(15)} ${c(RED, `does not use ${page.reserves} — nothing reserves the fixed header`)}`);
+    continue;
+  }
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const R = (v) => resolve1(v, vp);
+    const headerH = R(map.get('.site-header')?.height);
+    const reserved = R(map.get(page.reserves)?.[page.prop] || '0');
+    // Below 760 the hero deliberately drops its padding: the photograph
+    // moves into flow and the plate sits under it, so the image itself
+    // is what clears the header.
+    const viaImage = page.reserves === '.hero' && vp.w <= 760;
+    const have = viaImage ? R(map.get('.hero__media img')?.height) : reserved;
+    const ok = have >= headerH;
+    if (!ok) failures++;
+    const s = `${(have - headerH).toFixed(0)}px`;
+    console.log(`  ${page.file.padEnd(15)} ${vp.label.padEnd(20)} ${(page.reserves + (viaImage ? ' img' : '')).padEnd(14)} ${(headerH.toFixed(0) + 'px').padStart(7)} ${(have.toFixed(0) + 'px').padStart(7)} ${(ok ? c(GREEN, s.padStart(10)) : c(RED, s.padStart(10)))}`);
+  }
 }
 const stickyModal = baseMap.get('.modal__head');
-console.log(`  ${'(all)'.padEnd(20)} .modal__head(sticky, top:${stickyModal?.top ?? '?'}) -> .modal__body  in flow inside .modal, cannot overlap  ${c(GREEN, 'ok')}`);
+console.log(`  ${'(all)'.padEnd(15)} ${'(all)'.padEnd(20)} .modal__body   sticky top:${stickyModal?.top ?? '?'}, in flow inside .modal, cannot overlap  ${c(GREEN, 'ok')}`);
 
 console.log('\n4. SEARCH INPUT vs ITS PLACEHOLDER');
 for (const vp of VIEWPORTS) {
   const map = declMap(rulesFor(vp.w));
   const R = (v) => resolve1(v, vp);
-  const sel = map.get('.finder__search input') ? '.finder__search input' : '.hero__search input';
+  const sel = '.finder__search input';
   const fs = R(map.get(sel)?.['font-size'] || TOKENS['--fs-sm']);
   const padDecl = (map.get(sel)?.padding || '12px 16px').split(/\s+/).map((x) => R(x));
   const padX = padDecl[1] ?? padDecl[0];
-  const ph = HTML.match(/placeholder="([^"]+)"[^>]*>\s*<button[^>]*type="submit"/s)
-          || HTML.match(/id="heroSearch"[^>]*placeholder="([^"]+)"/);
+  const ph = HTML.match(/id="finderSearch"[^>]*placeholder="([^"]+)"/);
   const text = ph ? ph[1] : 'Search winery, wine or subregion';
   const need = textWidth('inter-400', text, fs) + padX * 2;
-  // available: finder row is page width minus container padding, minus button
+
   const containerPad = R(TOKENS['--sp-5']) * 2;
   const maxW = Math.min(vp.w, R(TOKENS['--w-max'] || '1280px'));
-  // button width measured, not guessed: label + icon + gap + horizontal padding
+  // button width measured, not guessed: label + icon + gap + padding + border
   const btnFs = R(TOKENS['--fs-sm']);
   const btn = textWidth('inter-500', 'Search', btnFs)
             + R(TOKENS['--icon-sm']) + R(TOKENS['--sp-2']) + R(TOKENS['--sp-5']) * 2 + 2;
   const form = map.get('.finder__search');
   const column = (form?.['flex-direction'] || 'row') === 'column';
   const formMax = R(form?.['max-width'] || '99999px');
-  const have = form
-    ? Math.min(maxW - containerPad, formMax) - (column ? 0 : btn + R(TOKENS['--sp-2']))
-    : (R(map.get('.hero__plate')?.width) - R((map.get('.hero__plate')?.padding || '32px').split(/\s+/)[1] ?? '32') * 2) - btn;
+  const have = Math.min(maxW - containerPad, formMax) - (column ? 0 : btn + R(TOKENS['--sp-2']));
   const ok = have >= need;
   if (!ok) failures++;
   console.log(`  ${vp.label.padEnd(20)} needs ${need.toFixed(0).padStart(4)}px  has ${have.toFixed(0).padStart(4)}px  ${ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')}   "${text}"`);

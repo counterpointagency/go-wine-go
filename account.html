@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Go Wine Go, Buy Direct from Australian Wineries</title>
-<meta name="description" content="Australia's direct-from-winery marketplace. Name your price by the case. The winery is the seller, and your payment is released to them when your wine is signed for.">
+<title>My Account, Go Wine Go</title>
+<meta name="description" content="Your offers, orders and deliveries on Go Wine Go, Australia's direct-from-winery marketplace.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
-<body data-hero>
+<body>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
@@ -80,169 +80,96 @@
   </div>
 </header>
 
-<main id="main">
+<main class="page--inner" id="main">
+  <!-- ═══ SECTION: ACCOUNT ════════════════════════════════════════
+       Was the Trading view inside the old single-file build. Moved
+       across unchanged in structure and restyled only, with the
+       payment language corrected to Model A: nothing is in escrow,
+       the funds are held by the payment provider and released to the
+       winery on delivery.
 
-  <!-- ═══ SECTION: HERO ═══════════════════════════════════════════
-       Untinted photograph, full bleed. No scrim, no tint, no gradient.
-       All copy sits on a solid --bone plate, so text contrast is
-       11.59:1 by construction and the image behind it never needs
-       measuring. The hero reserves header height with padding-top, so
-       the plate cannot pass under the fixed header.
+       Spec 4.9 adds Shortlist, Tenders and Addresses to this page.
+       That is Round 3B and is deliberately not started here.
        ══════════════════════════════════════════════════════════ -->
-  <section class="hero" aria-labelledby="heroTitle">
-    <picture class="hero__media">
-      <source srcset="assets/img/hero-vineyard-dawn.webp" type="image/webp">
-      <img src="assets/img/hero-vineyard-dawn.jpg"
-           alt="Aerial view of vineyard rows and two dams at dawn, Margaret River"
-           width="2400" height="1091" loading="eager" decoding="async" fetchpriority="high">
-    </picture>
-    <div class="hero__inner">
-      <div class="hero__plate">
-        <p class="label hero__eyebrow">Australia's direct-from-winery marketplace</p>
-        <h1 class="hero__title" id="heroTitle">Buy direct from Australian wineries</h1>
-        <p class="hero__text">Name your price by the case. The winery accepts, counters or declines, and no payment moves until you both agree.</p>
-      </div>
-    </div>
-  </section>
+  <section class="account" id="accountRoot" aria-labelledby="accountTitle">
+    <h1 class="account__title" id="accountTitle">My account</h1>
+    <p class="account__welcome">Welcome back, <b>Alex Chen</b></p>
 
-  <!-- ═══ SECTION: TRUST STRIP ════════════════════════════════════ -->
-  <section class="trust" aria-label="How buying here works">
-    <ul class="trust__inner">
-      <li class="trust__item">
-        <svg class="icon" aria-hidden="true"><use href="#i-vine"/></svg>
-        Direct from the winery
-      </li>
-      <li class="trust__item">
-        <svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg>
-        Name your price
-      </li>
-      <li class="trust__item">
-        <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
-        Released on delivery
-      </li>
-      <li class="trust__item">
-        <svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg>
-        Licensed producers only
-      </li>
-    </ul>
-  </section>
-
-  <!-- ═══ SECTION: FINDER ═════════════════════════════════════════
-       The search sits on the bone below the hero, never on the plate.
-       ══════════════════════════════════════════════════════════ -->
-  <section class="finder" aria-label="Search wines">
-    <form class="finder__search" id="finderForm">
-      <label class="visually-hidden" for="finderSearch">Search wines</label>
-      <input id="finderSearch" type="search" placeholder="Search winery, wine or subregion">
-      <button class="btn btn--solid" type="submit">
-        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-search"/></svg>
-        Search
+    <div class="account__tabs" role="tablist" aria-label="Account sections">
+      <button class="account__tab is-active" role="tab" aria-selected="true" data-tab="underOffer">
+        Under offer <span class="account__badge">2</span>
       </button>
-    </form>
-  </section>
+      <button class="account__tab" role="tab" aria-selected="false" data-tab="pendingSupply">Pending supply</button>
+      <button class="account__tab" role="tab" aria-selected="false" data-tab="completed">Completed</button>
+      <button class="account__tab" role="tab" aria-selected="false" data-tab="cart">Cart</button>
+    </div>
 
-  <!-- ═══ SECTION: MARKET ═════════════════════════════════════════
-       Cards are rendered from data/wines.json by assets/js/main.js.
-       One card pattern repeated, so it maps to a single PHP loop.
-       ══════════════════════════════════════════════════════════ -->
-  <section class="market" id="market" aria-labelledby="marketTitle">
-    <div class="market__head">
-      <div>
-        <span class="market__sample">
-          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-vine"/></svg>
-          Sample listings
-        </span>
-        <h2 class="market__title" id="marketTitle">Available wines</h2>
-        <p class="market__note" id="marketNote">Loading sample listings…</p>
+    <div class="account__panel is-active" id="ap-underOffer">
+      <div class="account__row">
+        <div>
+          <p class="account__row-name">Old Vine Cabernet Sauvignon 2021, Wilyabrup Reach</p>
+          <p class="account__row-meta">Your offer $310 per case · 1 case · Wilyabrup, Margaret River</p>
+        </div>
+        <div class="account__row-actions">
+          <span class="pill pill--wait">Pending</span>
+        </div>
       </div>
-      <div class="market__filters" role="group" aria-label="Filter listings">
-        <button class="market__filter is-active" data-filter="all">All</button>
-        <button class="market__filter" data-filter="red">Red</button>
-        <button class="market__filter" data-filter="white">White</button>
-        <button class="market__filter" data-filter="buy_now">Buy now</button>
-        <button class="market__filter" data-filter="open_to_offers">Open to offers</button>
-        <button class="market__filter" data-filter="go_deal">Go Deal</button>
-      </div>
-    </div>
-    <hr class="rule market__divider">
-    <div class="market__grid" id="wineGrid"></div>
-  </section>
-
-  <!-- ═══ SECTION: EDITORIAL ══════════════════════════════════════ -->
-  <section class="editorial" aria-labelledby="editorialTitle">
-    <div class="editorial__grid">
-      <figure class="editorial__figure">
-        <picture>
-          <source srcset="assets/img/vine-old-trunk.webp" type="image/webp">
-          <img src="assets/img/vine-old-trunk.jpg"
-               alt="Gnarled old vine trunk on trellis wire in a dormant winter vineyard"
-               width="1000" height="1250" loading="lazy" decoding="async">
-        </picture>
-        <figcaption class="editorial__caption">Dormant fruiting wood, mid winter.</figcaption>
-      </figure>
-      <div>
-        <p class="label">Why direct</p>
-        <h2 class="editorial__title" id="editorialTitle">The shortest line between a vineyard and your table</h2>
-        <p class="editorial__body">Most Australian wine reaches you through three or four sets of hands, and each one takes a margin. Buying direct removes them. <b>The winery sets a price, you make an offer, and the difference stays with the two of you.</b></p>
-        <p class="editorial__body">Growers keep more of what their fruit is worth. You pay closer to what the wine actually costs to make. Nothing is bought on your behalf, held in a warehouse, or marked up before you see it.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ SECTION: GO DEALS STRIP ═════════════════════════════════
-       Rendered from data/go-deals.json. The hidden floor is never
-       shown and is not in that file at all: progress runs toward the
-       next published tier, so the bar cannot imply how far the price
-       still has to fall.
-       ══════════════════════════════════════════════════════════ -->
-  <section class="godeals" aria-labelledby="goDealsTitle">
-    <div class="godeals__head">
-      <p class="label">Live now</p>
-      <h2 class="godeals__title" id="goDealsTitle">Go Deals</h2>
-      <p class="godeals__note">The winery sets a list price. As more cases are committed the price falls for everyone, and when the deal closes everyone pays the final price, including the people who committed first.</p>
-    </div>
-    <div class="godeals__grid" id="goDealGrid"></div>
-  </section>
-
-  <!-- ═══ SECTION: REGIONS ════════════════════════════════════════
-       Rendered from data/regions.json. Copy sits below each
-       photograph on bone, never over it, so nothing here is tinted.
-       ══════════════════════════════════════════════════════════ -->
-  <section class="regions" aria-labelledby="regionsTitle">
-    <div class="regions__head">
-      <p class="label">Margaret River</p>
-      <h2 class="regions__title" id="regionsTitle">Six subregions, one drive apart</h2>
-    </div>
-    <div class="regions__grid" id="regionGrid"></div>
-  </section>
-
-  <!-- ═══ SECTION: CLOSING BAND ═══════════════════════════════════
-       Full bleed untinted photograph. The Round 2 maroon wash is
-       gone: the copy sits on a solid --bone plate, exactly like the
-       hero, so nothing is composited over the frame.
-       ══════════════════════════════════════════════════════════ -->
-  <section class="closing" aria-labelledby="closingTitle">
-    <picture class="closing__media">
-      <source srcset="assets/img/closing-vine-rows.webp" type="image/webp">
-      <img src="assets/img/closing-vine-rows.jpg"
-           alt="Late afternoon sun behind a gum treeline above rows of green vines"
-           width="1600" height="800" loading="lazy" decoding="async">
-    </picture>
-    <div class="closing__inner">
-      <div class="closing__plate">
-        <p class="label closing__eyebrow">For wineries</p>
-        <h2 class="closing__title" id="closingTitle">Sell your own wine, at your own price</h2>
-        <p class="closing__text">You stay the licensed seller. You set the list price and the floor, you choose which offers to accept, and you are paid when the customer signs for the wine.</p>
-        <div class="closing__actions">
-          <button class="btn btn--solid" id="supplyInterest">
-            Register your interest
-            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"/></svg>
-          </button>
+      <div class="account__row" id="counterOffer">
+        <div>
+          <p class="account__row-name">Cold Ridge Chardonnay 2023, Karridale Bench</p>
+          <p class="account__row-meta">Your offer $195 per case · 1 case · Karridale, Margaret River</p>
+          <p class="account__counter">
+            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-exchange"/></svg>
+            Winery countered at <b>$210 per case</b>
+          </p>
+        </div>
+        <div class="account__row-actions">
+          <span class="pill pill--wait">Countered</span>
+          <button class="btn btn--solid btn--sm" id="acceptCounter">Accept $210</button>
+          <button class="btn btn--ghost btn--sm" data-opens-offer="cold-ridge-chardonnay-2023">New offer</button>
+          <button class="btn btn--quiet btn--sm" id="archiveOffer">Archive</button>
         </div>
       </div>
     </div>
-  </section>
 
+    <div class="account__panel" id="ap-pendingSupply">
+      <div class="account__row">
+        <div>
+          <p class="account__row-name">Granite Rise Riesling 2023, Yallingup Spur</p>
+          <p class="account__row-meta">$160 per case · 1 case · Yallingup, Margaret River</p>
+          <p class="account__row-state"><span class="pill pill--ok">Payment held, releases on delivery</span></p>
+        </div>
+        <div class="account__row-actions">
+          <span class="pill pill--wait">Awaiting dispatch</span>
+        </div>
+      </div>
+      <p class="account__payment">
+        <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
+        <span>Your payment of <b>$160.00</b> is held by the payment provider. Yallingup Spur is the seller and is paid when your wine is signed for.</span>
+      </p>
+    </div>
+
+    <div class="account__panel" id="ap-completed">
+      <div class="account__row">
+        <div>
+          <p class="account__row-name">Fence Line Sauvignon Blanc Semillon 2024, Cowaramup Bend</p>
+          <p class="account__row-meta">$130 per case · 1 case · Delivered 12 Mar 2026</p>
+        </div>
+        <div class="account__row-actions">
+          <span class="pill pill--ok">Delivered</span>
+          <button class="btn btn--ghost btn--sm">Leave review</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="account__panel" id="ap-cart">
+      <div class="account__empty">
+        <svg class="icon" aria-hidden="true"><use href="#i-cart"/></svg>
+        <p>Your cart is empty.</p>
+        <a class="btn btn--solid" href="index.html">Browse wines</a>
+      </div>
+    </div>
+  </section>
 </main>
 
 <!-- ═══ SECTION: SITE FOOTER ═════════════════════════════════════════
