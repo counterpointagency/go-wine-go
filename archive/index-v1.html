@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Wine Go — Buy Direct from Australian Wineries</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --burg:    #6B1E2E;
+    --burg-dk: #4a1020;
+    --burg-lt: #8d2840;
+    --cream:   #FAF6EF;
+    --cream-dk:#F0E8D8;
+    --gold:    #C9A84C;
+    --gold-lt: #e0c070;
+    --sage:    #8FAF8A;
+    --charcoal:#2C2C2C;
+    --muted:   #7a6a5a;
+    --white:   #ffffff;
+    --radius:  10px;
+    --shadow:  0 2px 16px rgba(107,30,46,.10);
+  }
+
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--charcoal); line-height: 1.6; }
+  h1,h2,h3,h4 { font-family: 'Playfair Display', serif; }
+  button { cursor: pointer; font-family: 'Inter', sans-serif; }
+  input, select, textarea { font-family: 'Inter', sans-serif; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--burg-dk);
+    position: sticky; top: 0; z-index: 200;
+    box-shadow: 0 2px 12px rgba(0,0,0,.35);
+  }
+  .nav-inner {
+    max-width: 1280px; margin: 0 auto; padding: 0 1.5rem;
+    display: flex; align-items: center; gap: 1.5rem; height: 62px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: .6rem;
+    text-decoration: none; flex-shrink: 0;
+  }
+  .logo-icon { width: 30px; height: 30px; }
+  .logo-text { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--gold-lt); letter-spacing: .02em; }
+
+  .nav-tabs { display: flex; gap: .25rem; }
+  .nav-tab {
+    background: none; border: none; color: rgba(255,255,255,.65);
+    font-size: .88rem; font-weight: 500; padding: .45rem .9rem;
+    border-radius: 6px; transition: all .18s; position: relative;
+  }
+  .nav-tab:hover { color: var(--white); background: rgba(255,255,255,.08); }
+  .nav-tab.active { color: var(--gold-lt); }
+  .nav-tab.active::after {
+    content: ''; position: absolute; bottom: -2px; left: .9rem; right: .9rem;
+    height: 2px; background: var(--gold); border-radius: 1px;
+  }
+
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: .75rem; }
+
+  /* view-as toggle */
+  .role-toggle {
+    display: flex; background: rgba(255,255,255,.1);
+    border-radius: 6px; padding: 3px; gap: 2px;
+  }
+  .role-btn {
+    background: none; border: none; color: rgba(255,255,255,.55);
+    font-size: .78rem; font-weight: 500; padding: .3rem .7rem;
+    border-radius: 4px; transition: all .18s; white-space: nowrap;
+  }
+  .role-btn.active { background: var(--gold); color: var(--burg-dk); font-weight: 600; }
+
+  .btn-login {
+    background: none; border: 1.5px solid rgba(255,255,255,.3);
+    color: rgba(255,255,255,.8); font-size: .85rem; font-weight: 500;
+    padding: .38rem .9rem; border-radius: 6px; transition: all .18s;
+  }
+  .btn-login:hover { border-color: var(--gold-lt); color: var(--gold-lt); }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── MARKET: HERO ── */
+  .hero {
+    background: linear-gradient(135deg, var(--burg-dk) 0%, var(--burg) 60%, var(--burg-lt) 100%);
+    color: var(--white); text-align: center; padding: 4.5rem 1.5rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0; opacity: .04;
+    background: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%);
+    background-size: 20px 20px;
+  }
+  .hero-inner { position: relative; max-width: 640px; margin: 0 auto; }
+  .hero-eyebrow {
+    display: inline-block; border: 1px solid rgba(201,168,76,.5);
+    background: rgba(201,168,76,.12); color: var(--gold-lt);
+    font-size: .75rem; font-weight: 600; letter-spacing: .12em;
+    text-transform: uppercase; padding: .3rem .9rem; border-radius: 20px; margin-bottom: 1.25rem;
+  }
+  .hero h1 { font-size: clamp(2rem, 4.5vw, 3rem); line-height: 1.15; margin-bottom: .75rem; }
+  .hero h1 em { color: var(--gold-lt); font-style: normal; }
+  .hero-sub { font-size: 1.05rem; color: rgba(255,255,255,.75); margin-bottom: 2rem; }
+  .hero-search {
+    display: flex; max-width: 480px; margin: 0 auto;
+    background: var(--white); border-radius: 8px; overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  }
+  .hero-search input {
+    flex: 1; border: none; padding: .8rem 1.1rem; font-size: .95rem;
+    color: var(--charcoal); outline: none; background: transparent;
+  }
+  .hero-search button {
+    background: var(--gold); color: var(--burg-dk); border: none;
+    padding: .8rem 1.4rem; font-size: .9rem; font-weight: 600;
+    transition: background .18s;
+  }
+  .hero-search button:hover { background: var(--gold-lt); }
+
+  /* ── MARKET: GRID AREA ── */
+  .market-body { max-width: 1280px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .market-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .market-header h2 { font-size: 1.4rem; color: var(--burg-dk); }
+  .market-header p { font-size: .88rem; color: var(--muted); margin-top: .15rem; }
+
+  .filter-strip { display: flex; gap: .6rem; flex-wrap: wrap; }
+  .filter-chip {
+    background: var(--white); border: 1.5px solid var(--cream-dk);
+    color: var(--muted); font-size: .8rem; font-weight: 500;
+    padding: .3rem .85rem; border-radius: 20px; transition: all .18s;
+  }
+  .filter-chip:hover, .filter-chip.active { background: var(--burg); border-color: var(--burg); color: var(--white); }
+
+  /* ── WINE GRID ── */
+  .wine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.5rem;
+  }
+
+  /* ── WINE CARD ── */
+  .wine-card {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform .2s, box-shadow .2s;
+    position: relative;
+  }
+  .wine-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(107,30,46,.15); }
+
+  .card-stripe { height: 6px; }
+  .stripe-red    { background: linear-gradient(90deg, #6B1E2E, #a03050); }
+  .stripe-white  { background: linear-gradient(90deg, #C9A84C, #e8c870); }
+  .stripe-rose   { background: linear-gradient(90deg, #d4849a, #e8a0b8); }
+  .stripe-purple { background: linear-gradient(90deg, #5a1e7e, #8040a8); }
+  .stripe-sage   { background: linear-gradient(90deg, #5a8a54, #8FAF8A); }
+
+  .card-badge {
+    position: absolute; top: 18px; right: 12px;
+    background: var(--gold); color: var(--burg-dk);
+    font-size: .68rem; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; padding: .2rem .6rem; border-radius: 4px;
+  }
+
+  .card-body { padding: 1.1rem 1.25rem; flex: 1; display: flex; flex-direction: column; }
+  .card-winery { font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: .2rem; }
+  .card-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--burg-dk); line-height: 1.3; margin-bottom: .25rem; }
+  .card-meta { font-size: .8rem; color: var(--muted); margin-bottom: .7rem; }
+  .card-meta span + span::before { content: ' · '; }
+  .variety-chip {
+    display: inline-block; background: var(--cream-dk);
+    color: var(--burg); font-size: .72rem; font-weight: 600;
+    padding: .15rem .6rem; border-radius: 4px; margin-bottom: .9rem;
+  }
+  .card-divider { border: none; border-top: 1px solid var(--cream-dk); margin-bottom: .9rem; }
+
+  .card-footer { margin-top: auto; }
+  .card-price-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: .85rem; }
+  .price-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .price-val { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--burg); line-height: 1; }
+  .price-val span { font-size: .8rem; font-weight: 400; color: var(--muted); font-family: 'Inter', sans-serif; }
+  .case-info { font-size: .75rem; color: var(--muted); }
+
+  .card-actions { display: flex; gap: .6rem; }
+  .btn-offer {
+    flex: 1; background: var(--burg); color: var(--white); border: none;
+    padding: .6rem; font-size: .85rem; font-weight: 600; border-radius: 7px;
+    transition: background .18s;
+  }
+  .btn-offer:hover { background: var(--burg-lt); }
+  .btn-buy {
+    flex: 1; background: none; color: var(--burg); border: 1.5px solid var(--burg);
+    padding: .6rem; font-size: .85rem; font-weight: 600; border-radius: 7px;
+    transition: all .18s;
+  }
+  .btn-buy:hover { background: var(--burg); color: var(--white); }
+
+  /* ── HOW IT WORKS ── */
+  .how-section {
+    background: var(--cream-dk); border-top: 1px solid #e0d4c0; padding: 4rem 1.5rem;
+    margin-top: 3rem;
+  }
+  .how-inner { max-width: 900px; margin: 0 auto; }
+  .how-section h2 { font-size: 1.7rem; color: var(--burg-dk); text-align: center; margin-bottom: .5rem; }
+  .how-section .sec-sub { text-align: center; color: var(--muted); font-size: .95rem; margin-bottom: 2.5rem; }
+  .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+  .how-card {
+    background: var(--white); border-radius: var(--radius); padding: 1.75rem 1.5rem;
+    text-align: center; box-shadow: var(--shadow);
+  }
+  .how-num {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--burg), var(--burg-lt));
+    color: var(--white); font-size: 1.2rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; box-shadow: 0 3px 10px rgba(107,30,46,.25);
+  }
+  .how-icon { font-size: 1.75rem; margin-bottom: .6rem; display: block; }
+  .how-card h3 { font-size: 1.05rem; color: var(--burg-dk); margin-bottom: .4rem; }
+  .how-card p { font-size: .85rem; color: var(--muted); line-height: 1.55; }
+  .escrow-note {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(143,175,138,.15); border: 1px solid var(--sage);
+    color: #3a6636; font-size: .8rem; font-weight: 500;
+    padding: .3rem .8rem; border-radius: 20px; margin-top: .6rem;
+  }
+
+  /* ── SUPPLIER VIEW ── */
+  .supplier-view { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .supplier-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+  }
+  .supplier-header h2 { font-size: 1.6rem; color: var(--burg-dk); }
+  .supplier-header p { color: var(--muted); font-size: .9rem; margin-top: .2rem; }
+
+  .stat-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .stat-card {
+    background: var(--white); border-radius: var(--radius); padding: 1.1rem 1.4rem;
+    min-width: 130px; box-shadow: var(--shadow); flex: 1;
+    border-left: 4px solid var(--burg);
+  }
+  .stat-card.gold { border-left-color: var(--gold); }
+  .stat-card.sage { border-left-color: var(--sage); }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: var(--burg-dk); line-height: 1; }
+  .stat-lbl { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
+
+  .section-card {
+    background: var(--white); border-radius: var(--radius);
+    box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden;
+  }
+  .section-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.4rem; border-bottom: 1px solid var(--cream-dk);
+    background: var(--cream);
+  }
+  .section-card-header h3 { font-size: 1rem; color: var(--burg-dk); }
+  .section-card-body { padding: 1.25rem 1.4rem; }
+
+  /* table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  .data-table th {
+    background: var(--cream); padding: .6rem .85rem; text-align: left;
+    font-size: .75rem; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1.5px solid var(--cream-dk);
+  }
+  .data-table td { padding: .75rem .85rem; border-bottom: 1px solid var(--cream-dk); color: var(--charcoal); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #fdf9f4; }
+
+  .status-pill {
+    display: inline-block; font-size: .72rem; font-weight: 600;
+    padding: .2rem .65rem; border-radius: 20px;
+  }
+  .pill-active { background: rgba(143,175,138,.2); color: #3a6636; }
+  .pill-pending { background: rgba(201,168,76,.2); color: #7a5a10; }
+  .pill-inactive { background: var(--cream-dk); color: var(--muted); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: var(--burg); color: var(--white); border: none;
+    padding: .6rem 1.2rem; border-radius: 7px; font-size: .88rem;
+    font-weight: 600; transition: background .18s;
+  }
+  .btn-primary:hover { background: var(--burg-lt); }
+  .btn-gold {
+    background: var(--gold); color: var(--burg-dk); border: none;
+    padding: .6rem 1.2rem; border-radius: 7px; font-size: .88rem;
+    font-weight: 600; transition: background .18s;
+  }
+  .btn-gold:hover { background: var(--gold-lt); }
+  .btn-outline {
+    background: none; color: var(--burg); border: 1.5px solid var(--burg);
+    padding: .55rem 1.1rem; border-radius: 7px; font-size: .85rem;
+    font-weight: 600; transition: all .18s;
+  }
+  .btn-outline:hover { background: var(--burg); color: var(--white); }
+  .btn-sm { padding: .35rem .8rem; font-size: .8rem; }
+
+  /* ── TRADING VIEW ── */
+  .trading-view { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .trading-view h2 { font-size: 1.6rem; color: var(--burg-dk); margin-bottom: .3rem; }
+  .trading-tabs { display: flex; gap: .5rem; margin: 1.5rem 0 2rem; border-bottom: 2px solid var(--cream-dk); }
+  .t-tab {
+    background: none; border: none; color: var(--muted);
+    font-size: .88rem; font-weight: 500; padding: .6rem 1rem;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: all .18s;
+  }
+  .t-tab:hover { color: var(--burg); }
+  .t-tab.active { color: var(--burg); font-weight: 600; border-bottom-color: var(--burg); }
+  .t-panel { display: none; }
+  .t-panel.active { display: block; }
+
+  .offer-card {
+    background: var(--white); border-radius: var(--radius); padding: 1.2rem 1.4rem;
+    box-shadow: var(--shadow); margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .offer-card-left h4 { font-size: 1rem; color: var(--burg-dk); margin-bottom: .15rem; }
+  .offer-card-left p { font-size: .83rem; color: var(--muted); }
+  .offer-card-right { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  .counter-note { font-size: .82rem; color: #7a5a10; background: rgba(201,168,76,.15); padding: .3rem .7rem; border-radius: 6px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(20,8,12,.65); backdrop-filter: blur(3px);
+    z-index: 500; align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 14px; width: 100%; max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    animation: modalIn .25s ease;
+    max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-head {
+    background: linear-gradient(135deg, var(--burg-dk), var(--burg));
+    color: var(--white); padding: 1.25rem 1.5rem;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+    position: sticky; top: 0;
+  }
+  .modal-head h3 { font-size: 1.15rem; margin-bottom: .15rem; }
+  .modal-head p { font-size: .82rem; color: rgba(255,255,255,.65); }
+  .modal-x {
+    background: rgba(255,255,255,.15); border: none; color: var(--white);
+    width: 30px; height: 30px; border-radius: 50%; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .18s;
+  }
+  .modal-x:hover { background: rgba(255,255,255,.3); }
+  .modal-body { padding: 1.5rem; }
+
+  .detail-row { display: flex; justify-content: space-between; padding: .5rem 0; border-bottom: 1px solid var(--cream-dk); font-size: .88rem; }
+  .detail-row:last-of-type { border-bottom: none; }
+  .detail-row .dl { color: var(--muted); }
+  .detail-row .dv { font-weight: 600; color: var(--charcoal); }
+  .detail-row .dv.hl { color: var(--burg); font-size: 1rem; }
+
+  .field-group { margin: 1.1rem 0; }
+  .field-label { display: block; font-size: .82rem; font-weight: 600; color: var(--burg-dk); margin-bottom: .4rem; }
+  .field-input {
+    width: 100%; border: 1.5px solid var(--cream-dk); border-radius: 8px;
+    padding: .65rem .9rem; font-size: .95rem; color: var(--charcoal);
+    outline: none; transition: border-color .18s;
+  }
+  .field-input:focus { border-color: var(--gold); }
+
+  .input-prefix-wrap { display: flex; border: 1.5px solid var(--cream-dk); border-radius: 8px; overflow: hidden; transition: border-color .18s; }
+  .input-prefix-wrap:focus-within { border-color: var(--gold); }
+  .input-prefix { background: var(--cream-dk); padding: .65rem .85rem; font-size: .95rem; color: var(--muted); font-weight: 600; border-right: 1px solid var(--cream-dk); }
+  .input-prefix-wrap input { flex: 1; border: none; padding: .65rem .85rem; font-size: 1.05rem; font-family: 'Playfair Display', serif; outline: none; background: transparent; }
+
+  .modal-hint { font-size: .78rem; color: var(--muted); margin-top: .35rem; }
+  .modal-hint em { color: var(--gold); font-style: normal; font-weight: 600; }
+
+  .modal-step { display: none; }
+  .modal-step.active { display: block; }
+
+  .success-block { text-align: center; padding: 1rem 0 .5rem; }
+  .success-icon {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: linear-gradient(135deg, #2e6e2a, #48a844);
+    color: var(--white); font-size: 1.6rem; display: flex;
+    align-items: center; justify-content: center; margin: 0 auto 1rem;
+    box-shadow: 0 4px 14px rgba(46,110,42,.3);
+  }
+  .success-block h3 { font-size: 1.25rem; color: var(--burg-dk); margin-bottom: .4rem; }
+  .success-block p { font-size: .88rem; color: var(--muted); line-height: 1.55; }
+
+  .escrow-box {
+    background: rgba(143,175,138,.1); border: 1px solid var(--sage);
+    border-radius: 8px; padding: .9rem 1.1rem; margin-top: 1.1rem;
+    font-size: .82rem; color: #3a6636; display: flex; gap: .6rem; align-items: flex-start;
+  }
+  .escrow-box .ei { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* List Wine form inline */
+  .inline-form { background: var(--cream); border: 1.5px solid var(--cream-dk); border-radius: var(--radius); padding: 1.25rem 1.4rem; margin-top: 1.25rem; display: none; }
+  .inline-form.open { display: block; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem 1rem; }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 600;
+    background: var(--burg-dk); color: var(--white);
+    padding: .85rem 1.25rem; border-radius: 10px; font-size: .88rem;
+    box-shadow: 0 6px 20px rgba(0,0,0,.3); max-width: 300px;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity .3s, transform .3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--burg-dk); color: rgba(255,255,255,.5);
+    text-align: center; padding: 2rem 1.5rem; font-size: .82rem;
+    margin-top: 3rem;
+  }
+  footer strong { color: var(--gold-lt); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    .nav-inner { gap: .75rem; }
+    .nav-tabs .nav-tab:not(.active) { display: none; }
+    .hero h1 { font-size: 1.7rem; }
+    .wine-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .offer-card { flex-direction: column; align-items: flex-start; }
+    .stat-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#" onclick="return false">
+      <svg class="logo-icon" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="11" cy="9"  r="3.5" fill="#C9A84C" opacity=".9"/>
+        <circle cx="19" cy="9"  r="3.5" fill="#C9A84C" opacity=".9"/>
+        <circle cx="7"  cy="16" r="3.5" fill="#C9A84C" opacity=".75"/>
+        <circle cx="15" cy="16" r="3.5" fill="#C9A84C"/>
+        <circle cx="23" cy="16" r="3.5" fill="#C9A84C" opacity=".75"/>
+        <circle cx="11" cy="23" r="3.5" fill="#C9A84C" opacity=".6"/>
+        <circle cx="19" cy="23" r="3.5" fill="#C9A84C" opacity=".6"/>
+        <line x1="15" y1="5" x2="15" y2="2" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="15" y1="2" x2="19" y2="0" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-text">Go Wine Go</span>
+    </a>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('market', this)">Market</button>
+      <button class="nav-tab" onclick="switchView('trading', this)">Trading</button>
+      <button class="nav-tab" onclick="switchView('supplier', this)">Supplier</button>
+    </div>
+
+    <div class="nav-right">
+      <div class="role-toggle">
+        <button class="role-btn active" onclick="switchRole('customer', this)">Customer</button>
+        <button class="role-btn" onclick="switchRole('supplier', this)">Supplier</button>
+      </div>
+      <button class="btn-login">Login</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     VIEW: MARKET
+══════════════════════════════════════ -->
+<div class="view active" id="view-market">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">🍇 Australia's DTC Wine Marketplace</div>
+      <h1>Buy direct from<br><em>Australian wineries.</em></h1>
+      <p class="hero-sub">Make an offer. Pay less. Wine shipped direct to your door.</p>
+      <div class="hero-search">
+        <input type="text" placeholder="Search winery, wine, or region…" />
+        <button>Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grid area -->
+  <div class="market-body">
+    <div class="market-header">
+      <div>
+        <h2>Available Wines</h2>
+        <p>6 listings · All regions · Make an offer or buy at the listed price</p>
+      </div>
+      <div class="filter-strip">
+        <button class="filter-chip active">All</button>
+        <button class="filter-chip">Red</button>
+        <button class="filter-chip">White</button>
+        <button class="filter-chip">Margaret River</button>
+        <button class="filter-chip">Barossa Valley</button>
+      </div>
+    </div>
+
+    <div class="wine-grid" id="wineGrid">
+
+      <!-- Card 1: Howard Park Mad Fish Shiraz -->
+      <div class="wine-card">
+        <div class="card-stripe stripe-red"></div>
+        <span class="card-badge">Gold Medal</span>
+        <div class="card-body">
+          <div class="card-winery">Howard Park</div>
+          <div class="card-name">Mad Fish Shiraz</div>
+          <div class="card-meta">
+            <span>2022</span><span>Margaret River WA</span>
+          </div>
+          <div class="variety-chip">Shiraz</div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <div class="card-price-row">
+              <div>
+                <div class="price-label">Per Case</div>
+                <div class="price-val">$180 <span>/ 12 btls</span></div>
+              </div>
+              <div class="case-info">12 bottles</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-offer" onclick="openOfferModal(1)">Make an Offer</button>
+              <button class="btn-buy"   onclick="openBuyModal(1)">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Vasse Felix Chardonnay -->
+      <div class="wine-card">
+        <div class="card-stripe stripe-white"></div>
+        <span class="card-badge">Top 100</span>
+        <div class="card-body">
+          <div class="card-winery">Vasse Felix</div>
+          <div class="card-name">Filius Chardonnay</div>
+          <div class="card-meta">
+            <span>2023</span><span>Margaret River WA</span>
+          </div>
+          <div class="variety-chip">Chardonnay</div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <div class="card-price-row">
+              <div>
+                <div class="price-label">Per Case</div>
+                <div class="price-val">$220 <span>/ 12 btls</span></div>
+              </div>
+              <div class="case-info">12 bottles</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-offer" onclick="openOfferModal(2)">Make an Offer</button>
+              <button class="btn-buy"   onclick="openBuyModal(2)">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Yalumba Viognier -->
+      <div class="wine-card">
+        <div class="card-stripe stripe-sage"></div>
+        <div class="card-body">
+          <div class="card-winery">Yalumba</div>
+          <div class="card-name">Y Series Viognier</div>
+          <div class="card-meta">
+            <span>2023</span><span>Barossa Valley SA</span>
+          </div>
+          <div class="variety-chip">Viognier</div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <div class="card-price-row">
+              <div>
+                <div class="price-label">Per Case</div>
+                <div class="price-val">$140 <span>/ 12 btls</span></div>
+              </div>
+              <div class="case-info">12 bottles</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-offer" onclick="openOfferModal(3)">Make an Offer</button>
+              <button class="btn-buy"   onclick="openBuyModal(3)">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Torbreck Struie Shiraz -->
+      <div class="wine-card">
+        <div class="card-stripe stripe-red"></div>
+        <span class="card-badge">95 Points</span>
+        <div class="card-body">
+          <div class="card-winery">Torbreck</div>
+          <div class="card-name">The Struie Shiraz</div>
+          <div class="card-meta">
+            <span>2021</span><span>Barossa Valley SA</span>
+          </div>
+          <div class="variety-chip">Shiraz</div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <div class="card-price-row">
+              <div>
+                <div class="price-label">Per Case</div>
+                <div class="price-val">$340 <span>/ 6 btls</span></div>
+              </div>
+              <div class="case-info">6 bottles</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-offer" onclick="openOfferModal(4)">Make an Offer</button>
+              <button class="btn-buy"   onclick="openBuyModal(4)">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Cullen Malbec -->
+      <div class="wine-card">
+        <div class="card-stripe stripe-purple"></div>
+        <div class="card-body">
+          <div class="card-winery">Cullen Wines</div>
+          <div class="card-name">Mangan Malbec</div>
+          <div class="card-meta">
+            <span>2022</span><span>Margaret River WA</span>
+          </div>
+          <div class="variety-chip">Malbec</div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <div class="card-price-row">
+              <div>
+                <div class="price-label">Per Case</div>
+                <div class="price-val">$280 <span>/ 6 btls</span></div>
+              </div>
+              <div class="case-info">6 bottles</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-offer" onclick="openOfferModal(5)">Make an Offer</button>
+              <button class="btn-buy"   onclick="openBuyModal(5)">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Jim Barry Riesling -->
+      <div class="wine-card">
+        <div class="card-stripe stripe-sage"></div>
+        <span class="card-badge">Gold Medal</span>
+        <div class="card-body">
+          <div class="card-winery">Jim Barry</div>
+          <div class="card-name">Lodge Hill Riesling</div>
+          <div class="card-meta">
+            <span>2023</span><span>Clare Valley SA</span>
+          </div>
+          <div class="variety-chip">Riesling</div>
+          <hr class="card-divider">
+          <div class="card-footer">
+            <div class="card-price-row">
+              <div>
+                <div class="price-label">Per Case</div>
+                <div class="price-val">$160 <span>/ 12 btls</span></div>
+              </div>
+              <div class="case-info">12 bottles</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn-offer" onclick="openOfferModal(6)">Make an Offer</button>
+              <button class="btn-buy"   onclick="openBuyModal(6)">Buy Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /wine-grid -->
+  </div><!-- /market-body -->
+
+  <!-- How it Works -->
+  <div class="how-section">
+    <div class="how-inner">
+      <h2>How It Works</h2>
+      <p class="sec-sub">Three steps between you and great Australian wine.</p>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-num">1</div>
+          <span class="how-icon">🔍</span>
+          <h3>Browse Wines</h3>
+          <p>Discover wines listed directly by Australian wineries. Filter by region, variety, or price. No middlemen, no markups.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">2</div>
+          <span class="how-icon">🤝</span>
+          <h3>Make Your Offer</h3>
+          <p>Name your price per case. The winery can accept, counter, or decline. No payment taken until both sides agree.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">3</div>
+          <span class="how-icon">📦</span>
+          <h3>Wine Delivered</h3>
+          <p>Your payment is held securely in escrow. The winery ships direct to you. Funds release only after delivery is confirmed.
+            <br><span class="escrow-note">🔒 Escrow protected</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /view-market -->
+
+
+<!-- ══════════════════════════════════════
+     VIEW: TRADING
+══════════════════════════════════════ -->
+<div class="view" id="view-trading">
+  <div class="trading-view">
+    <h2>Trading</h2>
+    <p style="color:var(--muted);font-size:.9rem;margin-top:.2rem">Welcome back, <strong>Alex Chen</strong></p>
+
+    <div class="trading-tabs">
+      <button class="t-tab active" onclick="switchTradingTab('underOffer', this)">Under Offer <span id="offerBadge" style="background:var(--gold);color:var(--burg-dk);font-size:.7rem;font-weight:700;padding:.1rem .5rem;border-radius:10px;margin-left:.3rem">2</span></button>
+      <button class="t-tab" onclick="switchTradingTab('pendingSupply', this)">Pending Supply</button>
+      <button class="t-tab" onclick="switchTradingTab('completed', this)">Completed</button>
+      <button class="t-tab" onclick="switchTradingTab('cart', this)">Cart</button>
+    </div>
+
+    <!-- Under Offer -->
+    <div class="t-panel active" id="tp-underOffer">
+      <div id="offerList">
+        <div class="offer-card">
+          <div class="offer-card-left">
+            <h4>Mad Fish Shiraz 2022 — Howard Park</h4>
+            <p>Your offer: $155/case · 1 case · Margaret River WA</p>
+          </div>
+          <div class="offer-card-right">
+            <span class="status-pill pill-pending">Pending</span>
+          </div>
+        </div>
+        <div class="offer-card" id="counterOffer">
+          <div class="offer-card-left">
+            <h4>Filius Chardonnay 2023 — Vasse Felix</h4>
+            <p>Your offer: $195/case · 1 case · Margaret River WA</p>
+            <p class="counter-note" style="margin-top:.4rem">Winery countered: <strong>$210/case</strong></p>
+          </div>
+          <div class="offer-card-right">
+            <span class="status-pill pill-pending" style="background:rgba(201,168,76,.2);color:#7a5a10">Countered</span>
+            <button class="btn-primary btn-sm" onclick="acceptCounter()">Accept $210</button>
+            <button class="btn-outline btn-sm" onclick="openOfferModal(2)">New Offer</button>
+            <button class="btn-outline btn-sm" style="color:var(--muted);border-color:var(--cream-dk)" onclick="archiveOffer()">Archive</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Supply -->
+    <div class="t-panel" id="tp-pendingSupply">
+      <div class="offer-card">
+        <div class="offer-card-left">
+          <h4>Lodge Hill Riesling 2023 — Jim Barry</h4>
+          <p>$160/case · 1 case · Clare Valley SA</p>
+          <div style="margin-top:.5rem">
+            <span class="status-pill pill-active">Payment in Escrow</span>
+          </div>
+        </div>
+        <div class="offer-card-right">
+          <span class="status-pill pill-pending">Awaiting Dispatch</span>
+        </div>
+      </div>
+      <div class="escrow-box" style="margin-top:.5rem">
+        <span class="ei">🔒</span>
+        <div>Your payment of <strong>$160.00</strong> is held securely in escrow by Go Wine Go. Funds are released to the winery only after delivery is confirmed.</div>
+      </div>
+    </div>
+
+    <!-- Completed -->
+    <div class="t-panel" id="tp-completed">
+      <div class="offer-card">
+        <div class="offer-card-left">
+          <h4>Y Series Viognier 2023 — Yalumba</h4>
+          <p>$130/case · 1 case · Delivered 12 Mar 2026</p>
+        </div>
+        <div class="offer-card-right">
+          <span class="status-pill pill-active">Delivered</span>
+          <button class="btn-outline btn-sm">Leave Review</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart -->
+    <div class="t-panel" id="tp-cart">
+      <div style="text-align:center;padding:3rem;color:var(--muted)">
+        <div style="font-size:2.5rem;margin-bottom:.75rem">🛒</div>
+        <p style="font-size:.95rem">Your cart is empty.</p>
+        <button class="btn-primary" style="margin-top:1rem" onclick="switchView('market', document.querySelector('.nav-tab'))">Browse Wines</button>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /view-trading -->
+
+
+<!-- ══════════════════════════════════════
+     VIEW: SUPPLIER
+══════════════════════════════════════ -->
+<div class="view" id="view-supplier">
+  <div class="supplier-view">
+    <div class="supplier-header">
+      <div>
+        <h2>Supplier Dashboard</h2>
+        <p>Welcome back, <strong>Torbreck Vintners</strong></p>
+      </div>
+      <button class="btn-primary" onclick="toggleListForm()">+ List New Wine</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-lbl">Deals Sold</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-num">2</div>
+        <div class="stat-lbl">Pending Offers</div>
+      </div>
+      <div class="stat-card sage">
+        <div class="stat-num">$1,020</div>
+        <div class="stat-lbl">In Escrow</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">1</div>
+        <div class="stat-lbl">Awaiting POD</div>
+      </div>
+    </div>
+
+    <!-- My Listings -->
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>My Listings</h3>
+        <span style="font-size:.8rem;color:var(--muted)">1 active listing</span>
+      </div>
+      <div class="section-card-body" style="padding:0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Wine</th>
+              <th>Sticker Price</th>
+              <th>Floor Price</th>
+              <th>Offers Received</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="listingsBody">
+            <tr>
+              <td><strong>The Struie Shiraz 2021</strong><br><span style="font-size:.78rem;color:var(--muted)">Barossa Valley SA · 6 bottles/case</span></td>
+              <td>$340/case</td>
+              <td>$290/case</td>
+              <td>3</td>
+              <td><span class="status-pill pill-active">Active</span></td>
+              <td>
+                <button class="btn-outline btn-sm" onclick="openGoDeal()">Go Deal</button>
+                <button class="btn-outline btn-sm" style="color:var(--muted);border-color:var(--cream-dk);margin-left:.4rem" onclick="removeRow(this)">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- List Wine inline form -->
+      <div class="inline-form" id="listWineForm">
+        <h4 style="font-family:'Playfair Display',serif;color:var(--burg-dk);margin-bottom:1rem">List a New Wine</h4>
+        <div class="form-grid">
+          <div>
+            <label class="field-label">Wine Name</label>
+            <input class="field-input" type="text" placeholder="e.g. RunRig Shiraz" id="newWineName"/>
+          </div>
+          <div>
+            <label class="field-label">Vintage</label>
+            <input class="field-input" type="number" placeholder="2022" id="newVintage"/>
+          </div>
+          <div>
+            <label class="field-label">Variety</label>
+            <select class="field-input" id="newVariety">
+              <option>Shiraz</option><option>Chardonnay</option><option>Riesling</option>
+              <option>Cabernet Sauvignon</option><option>Malbec</option><option>Viognier</option><option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">GI / Region</label>
+            <input class="field-input" type="text" placeholder="e.g. Barossa Valley SA" id="newRegion"/>
+          </div>
+          <div>
+            <label class="field-label">Case Size</label>
+            <select class="field-input" id="newCaseSize">
+              <option value="6">6 bottles</option>
+              <option value="12" selected>12 bottles</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">No. of Cases</label>
+            <input class="field-input" type="number" placeholder="12" id="newCases"/>
+          </div>
+          <div>
+            <label class="field-label">Sticker Price ($/case)</label>
+            <input class="field-input" type="number" placeholder="240" id="newPrice"/>
+          </div>
+          <div>
+            <label class="field-label">Floor Price ($/case)</label>
+            <input class="field-input" type="number" placeholder="195" id="newFloor"/>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:center">
+          <button class="btn-primary" onclick="saveNewListing()">Save Listing</button>
+          <button class="btn-outline" onclick="toggleListForm()">Cancel</button>
+          <label style="font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;margin-left:.5rem">
+            <input type="checkbox" id="autoAccept" style="accent-color:var(--burg)"> Auto-accept offers above floor
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Go Deal Engine card -->
+    <div class="section-card" id="goDealCard" style="display:none">
+      <div class="section-card-header">
+        <h3>⚡ Go Deal Engine — The Struie Shiraz 2021</h3>
+        <button class="modal-x" style="background:var(--cream-dk);color:var(--charcoal)" onclick="closeGoDeal()">×</button>
+      </div>
+      <div class="section-card-body">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6">
+          Go Deal is your automated negotiation engine. Set a floor price below your sticker price.
+          Offers above the floor are automatically accepted — no manual review needed.
+        </p>
+        <div class="form-grid" style="max-width:500px">
+          <div>
+            <label class="field-label">Sticker Price</label>
+            <div class="input-prefix-wrap"><span class="input-prefix">$</span><input type="number" value="340" /></div>
+          </div>
+          <div>
+            <label class="field-label">Floor Price (hidden from buyers)</label>
+            <div class="input-prefix-wrap"><span class="input-prefix">$</span><input type="number" value="290" id="goDealFloor"/></div>
+            <p class="modal-hint" id="goDealMargin">Floor is 14.7% below sticker</p>
+          </div>
+          <div class="full" style="display:flex;align-items:center;gap:.75rem;background:var(--cream);border-radius:8px;padding:.85rem 1rem">
+            <label class="toggle-wrap" style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+              <input type="checkbox" id="goDealAuto" checked style="accent-color:var(--burg);width:16px;height:16px">
+              <span style="font-size:.88rem;font-weight:600;color:var(--burg-dk)">Auto-accept offers at or above floor price</span>
+            </label>
+            <span class="status-pill pill-active" style="margin-left:auto">ON</span>
+          </div>
+        </div>
+        <div style="margin-top:1.1rem;display:flex;gap:.75rem">
+          <button class="btn-primary" onclick="saveGoDeal()">Save Go Deal</button>
+          <button class="btn-outline" onclick="closeGoDeal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders table -->
+    <div class="section-card">
+      <div class="section-card-header">
+        <h3>Order Dashboard</h3>
+      </div>
+      <div class="section-card-body" style="padding:0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Customer</th><th>Wine</th>
+              <th>Cases</th><th>Sale Price</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#001</td><td>Alex Chen</td><td>Struie Shiraz 2021</td>
+              <td>2</td><td>$680</td>
+              <td><span class="status-pill pill-active">Dispatched</span></td>
+              <td><button class="btn-outline btn-sm" onclick="showPOD('#001', 680)">Upload POD</button></td>
+            </tr>
+            <tr>
+              <td>#002</td><td>Sarah M.</td><td>Struie Shiraz 2021</td>
+              <td>1</td><td>$340</td>
+              <td><span class="status-pill pill-pending">Awaiting Payment</span></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>#003</td><td>James T.</td><td>Struie Shiraz 2021</td>
+              <td>1</td><td>$320</td>
+              <td><span class="status-pill" style="background:rgba(143,175,138,.15);color:#3a6636">Delivered · Awaiting POD</span></td>
+              <td><button class="btn-outline btn-sm" onclick="showPOD('#003', 320)">Upload POD</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- POD upload panel -->
+    <div class="section-card" id="podPanel" style="display:none">
+      <div class="section-card-header">
+        <h3>📄 Proof of Delivery — Order <span id="podOrderId"></span></h3>
+        <button class="btn-outline btn-sm" onclick="closePOD()">Close</button>
+      </div>
+      <div class="section-card-body">
+        <div id="podUploadArea">
+          <label style="display:block;border:2px dashed var(--cream-dk);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s" id="podDropZone">
+            <input type="file" style="display:none" id="podFile" onchange="processPOD()" />
+            <div style="font-size:2rem;margin-bottom:.5rem">📎</div>
+            <p style="font-size:.9rem;color:var(--muted)">Drop delivery confirmation here or <strong style="color:var(--burg)">click to upload</strong></p>
+            <p style="font-size:.78rem;color:var(--muted);margin-top:.3rem">PDF, JPG, PNG accepted</p>
+          </label>
+        </div>
+        <div id="podResult" style="display:none">
+          <div style="background:rgba(143,175,138,.12);border:1px solid var(--sage);border-radius:10px;padding:1.25rem 1.4rem">
+            <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem">
+              <span style="font-size:1.4rem">✅</span>
+              <div>
+                <strong style="color:#3a6636;font-size:.95rem">Delivery confirmed</strong><br>
+                <span style="font-size:.8rem;color:var(--muted)">Payment is being released from escrow</span>
+              </div>
+            </div>
+            <div style="background:var(--white);border-radius:8px;padding:1rem 1.1rem;font-size:.88rem">
+              <div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--cream-dk)">
+                <span style="color:var(--muted)">Sale Price</span>
+                <span id="podSalePrice" style="font-weight:600"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--cream-dk)">
+                <span style="color:var(--muted)">Go Wine Go Commission (8%)</span>
+                <span id="podCommission" style="font-weight:600;color:var(--burg)"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:.35rem 0;font-weight:700">
+                <span>Amount to Winery</span>
+                <span id="podNet" style="color:#2e6e2a;font-size:1.05rem"></span>
+              </div>
+            </div>
+            <p style="font-size:.78rem;color:var(--muted);margin-top:.75rem">
+              🔒 Funds will be transferred to your nominated account within 2 business days.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /view-supplier -->
+
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer>
+  <strong>Go Wine Go</strong> — Australia's Direct-to-Consumer Wine Marketplace<br>
+  <span style="margin-top:.3rem;display:inline-block">© 2026 Go Wine Go Pty Ltd · ABN 00 000 000 000 · Liquor Licence #AU-DTC-2026 · Must be 18+</span>
+</footer>
+
+
+<!-- ══════════════════════════════════════
+     MODAL: OFFER
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="offerOverlay" onclick="overlayClose(event,'offerOverlay')">
+  <div class="modal">
+
+    <!-- Step 1: Form -->
+    <div class="modal-step active" id="offerStep1">
+      <div class="modal-head">
+        <div>
+          <h3>Make an Offer</h3>
+          <p>Offer what you think is fair. The winery will respond.</p>
+        </div>
+        <button class="modal-x" onclick="closeModal('offerOverlay')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-row"><span class="dl">Winery</span><span class="dv" id="mWinery"></span></div>
+        <div class="detail-row"><span class="dl">Wine</span><span class="dv" id="mWine"></span></div>
+        <div class="detail-row"><span class="dl">Region</span><span class="dv" id="mRegion"></span></div>
+        <div class="detail-row"><span class="dl">Listed Price</span><span class="dv hl" id="mPrice"></span></div>
+
+        <div class="field-group">
+          <label class="field-label">Your Offer ($/case)</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="offerAmt" placeholder="0.00" min="1" step="1" />
+          </div>
+          <p class="modal-hint" id="offerHint"></p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Quantity (cases)</label>
+          <input class="field-input" type="number" id="offerQty" value="1" min="1" />
+        </div>
+
+        <button class="btn-primary" style="width:100%;padding:.75rem;font-size:.95rem;margin-top:.5rem" onclick="submitOffer()">Submit Offer →</button>
+        <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:.65rem">No payment taken until your offer is accepted.</p>
+      </div>
+    </div>
+
+    <!-- Step 2: Sent confirmation -->
+    <div class="modal-step" id="offerStep2">
+      <div class="modal-head">
+        <div><h3>Offer Sent</h3><p id="offerConfirmSub"></p></div>
+        <button class="modal-x" onclick="closeModal('offerOverlay')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="success-block">
+          <div class="success-icon">✓</div>
+          <h3>Offer sent to <span id="confirmWinery"></span>!</h3>
+          <p>The winery will respond shortly. Check <strong>Trading → Under Offer</strong> for updates.</p>
+        </div>
+        <div style="background:var(--cream);border-radius:8px;padding:1rem 1.1rem;margin-top:1.1rem;font-size:.88rem">
+          <div class="detail-row"><span class="dl">Wine</span><span class="dv" id="confirmWine"></span></div>
+          <div class="detail-row"><span class="dl">Your Offer</span><span class="dv" id="confirmPrice"></span></div>
+          <div class="detail-row"><span class="dl">Quantity</span><span class="dv" id="confirmQty"></span></div>
+          <div class="detail-row"><span class="dl">Total Value</span><span class="dv hl" id="confirmTotal"></span></div>
+        </div>
+        <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+          <button class="btn-primary" style="flex:1" onclick="switchView('trading', document.querySelectorAll('.nav-tab')[1]);closeModal('offerOverlay')">Go to Trading</button>
+          <button class="btn-outline" style="flex:1" onclick="closeModal('offerOverlay')">Keep Browsing</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MODAL: BUY NOW (payment)
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="buyOverlay" onclick="overlayClose(event,'buyOverlay')">
+  <div class="modal">
+
+    <!-- Step 1: Payment form -->
+    <div class="modal-step active" id="buyStep1">
+      <div class="modal-head">
+        <div><h3>Buy Now</h3><p>Complete payment to place your order.</p></div>
+        <button class="modal-x" onclick="closeModal('buyOverlay')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-row"><span class="dl">Wine</span><span class="dv" id="buyWine"></span></div>
+        <div class="detail-row"><span class="dl">Price</span><span class="dv hl" id="buyPrice"></span></div>
+        <div class="detail-row"><span class="dl">Qty</span><span class="dv">1 case</span></div>
+        <div class="detail-row"><span class="dl">Total</span><span class="dv hl" id="buyTotal"></span></div>
+
+        <div class="escrow-box" style="margin:1.1rem 0">
+          <span class="ei">🔒</span>
+          <div>Your payment is held in <strong>escrow by Go Wine Go</strong> until delivery is confirmed. Funds are never released to the winery until you receive your wine.</div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Card Number</label>
+          <input class="field-input" type="text" placeholder="1234 5678 9012 3456" maxlength="19" id="cardNum" oninput="formatCard(this)"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div class="field-group">
+            <label class="field-label">Expiry</label>
+            <input class="field-input" type="text" placeholder="MM / YY" maxlength="7"/>
+          </div>
+          <div class="field-group">
+            <label class="field-label">CVC</label>
+            <input class="field-input" type="text" placeholder="123" maxlength="3"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Cardholder Name</label>
+          <input class="field-input" type="text" placeholder="Alex Chen"/>
+        </div>
+
+        <button class="btn-gold" style="width:100%;padding:.75rem;font-size:.95rem;margin-top:.25rem" id="payBtn" onclick="processBuy()">
+          Pay & Place Order — <span id="payBtnAmt"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Order confirmed -->
+    <div class="modal-step" id="buyStep2">
+      <div class="modal-head" style="background:linear-gradient(135deg,#1e4a1a,#2e6e2a)">
+        <div><h3>Order Placed!</h3><p>Your payment is secured in escrow.</p></div>
+        <button class="modal-x" onclick="closeModal('buyOverlay')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="success-block">
+          <div class="success-icon" style="background:linear-gradient(135deg,#1e4a1a,#3ea840)">✓</div>
+          <h3>Payment received</h3>
+          <p>Your order has been placed. The winery has been notified and will dispatch shortly.</p>
+        </div>
+        <div class="escrow-box" style="margin-top:1.1rem">
+          <span class="ei">🔒</span>
+          <div>Your payment is <strong>held in escrow</strong>. It will only be released to <span id="buyConfirmWinery"></span> once delivery is confirmed.</div>
+        </div>
+        <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+          <button class="btn-primary" style="flex:1" onclick="switchView('trading', document.querySelectorAll('.nav-tab')[1]);closeModal('buyOverlay')">View in Trading</button>
+          <button class="btn-outline" style="flex:1" onclick="closeModal('buyOverlay')">Keep Browsing</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+
+<script>
+// ── DATA ──
+const WINES = [
+  { id:1, winery:'Howard Park',   name:'Mad Fish Shiraz 2022',         region:'Margaret River WA', price:180, cases:12 },
+  { id:2, winery:'Vasse Felix',   name:'Filius Chardonnay 2023',       region:'Margaret River WA', price:220, cases:12 },
+  { id:3, winery:'Yalumba',       name:'Y Series Viognier 2023',       region:'Barossa Valley SA', price:140, cases:12 },
+  { id:4, winery:'Torbreck',      name:'The Struie Shiraz 2021',       region:'Barossa Valley SA', price:340, cases:6  },
+  { id:5, winery:'Cullen Wines',  name:'Mangan Malbec 2022',           region:'Margaret River WA', price:280, cases:6  },
+  { id:6, winery:'Jim Barry',     name:'Lodge Hill Riesling 2023',     region:'Clare Valley SA',   price:160, cases:12 },
+];
+
+// Floor prices for Go Deal simulation
+const FLOORS = { 1:150, 2:190, 3:110, 4:290, 5:235, 6:130 };
+
+let currentWineId = null;
+let podOrderSale  = 0;
+
+// ── VIEW ROUTING ──
+function switchView(name, tab) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (tab) tab.classList.add('active');
+}
+
+function switchRole(role, btn) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (role === 'supplier') {
+    switchView('supplier', document.querySelectorAll('.nav-tab')[2]);
+  } else {
+    switchView('market', document.querySelectorAll('.nav-tab')[0]);
+  }
+}
+
+// ── TRADING TABS ──
+function switchTradingTab(id, btn) {
+  document.querySelectorAll('.t-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.t-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tp-' + id).classList.add('active');
+}
+
+// ── FILTER CHIPS ──
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ── OFFER MODAL ──
+function openOfferModal(id) {
+  currentWineId = id;
+  const w = WINES.find(x => x.id === id);
+  document.getElementById('mWinery').textContent  = w.winery;
+  document.getElementById('mWine').textContent    = w.name;
+  document.getElementById('mRegion').textContent  = w.region;
+  document.getElementById('mPrice').textContent   = '$' + w.price + '/case';
+  document.getElementById('offerAmt').value       = '';
+  document.getElementById('offerQty').value       = '1';
+  document.getElementById('offerHint').innerHTML  =
+    'Tip: sticker is <em>$' + w.price + '</em>. Offers within 15% are usually accepted.';
+  showStep('offerStep1', 'offerStep2');
+  openModal('offerOverlay');
+}
+
+function submitOffer() {
+  const w     = WINES.find(x => x.id === currentWineId);
+  const amt   = parseFloat(document.getElementById('offerAmt').value);
+  const qty   = parseInt(document.getElementById('offerQty').value) || 1;
+
+  if (!amt || amt <= 0) { toast('Please enter a valid offer price.'); return; }
+  if (amt > w.price)    { toast('Offer is above sticker price — try Buy Now instead.'); return; }
+
+  // fill confirmation
+  document.getElementById('confirmWinery').textContent = w.winery;
+  document.getElementById('confirmWine').textContent   = w.name;
+  document.getElementById('confirmPrice').textContent  = '$' + amt.toFixed(2) + '/case';
+  document.getElementById('confirmQty').textContent    = qty + ' case' + (qty > 1 ? 's' : '');
+  document.getElementById('confirmTotal').textContent  = '$' + (amt * qty).toFixed(2);
+  document.getElementById('offerConfirmSub').textContent = w.winery + ' has received your offer.';
+
+  showStep('offerStep2', 'offerStep1');
+
+  // simulate supplier response after 3s
+  setTimeout(() => simulateResponse(currentWineId, amt), 3000);
+}
+
+function simulateResponse(wineId, amt) {
+  const w     = WINES.find(x => x.id === wineId);
+  const floor = FLOORS[wineId] || w.price * 0.85;
+
+  if (amt >= floor) {
+    toast('✓ ' + w.winery + ' accepted your offer of $' + amt + '! Proceed to payment in Trading.');
+    updateOfferStatus(w.name, 'Accepted', 'pill-active');
+  } else if (Math.random() > 0.4) {
+    toast('↔ ' + w.winery + ' countered at $' + floor + '/case. View in Trading → Under Offer.');
+    updateOfferStatus(w.name, 'Countered: $' + floor + '/case', 'pill-pending');
+  } else {
+    toast('✗ ' + w.winery + ' declined your offer. Try a higher price.');
+    updateOfferStatus(w.name, 'Declined', 'pill-inactive');
+  }
+}
+
+function updateOfferStatus(wineName, status, cls) {
+  // Update badge count
+  const badge = document.getElementById('offerBadge');
+  const n = parseInt(badge.textContent) + 1;
+  badge.textContent = n;
+  // Add new entry to offer list
+  const list = document.getElementById('offerList');
+  const div  = document.createElement('div');
+  div.className = 'offer-card';
+  div.innerHTML = `
+    <div class="offer-card-left">
+      <h4>${wineName}</h4>
+      <p>New offer submitted just now</p>
+    </div>
+    <div class="offer-card-right">
+      <span class="status-pill ${cls}">${status}</span>
+    </div>`;
+  list.appendChild(div);
+}
+
+// ── BUY NOW MODAL ──
+function openBuyModal(id) {
+  currentWineId = id;
+  const w = WINES.find(x => x.id === id);
+  document.getElementById('buyWine').textContent      = w.name;
+  document.getElementById('buyPrice').textContent     = '$' + w.price + '/case';
+  document.getElementById('buyTotal').textContent     = '$' + w.price.toFixed(2);
+  document.getElementById('payBtnAmt').textContent    = '$' + w.price.toFixed(2);
+  document.getElementById('buyConfirmWinery').textContent = w.winery;
+  document.getElementById('cardNum').value = '';
+  showStep('buyStep1', 'buyStep2');
+  openModal('buyOverlay');
+}
+
+function processBuy() {
+  const card = document.getElementById('cardNum').value.replace(/\s/g,'');
+  if (card.length < 12) { toast('Please enter a valid card number.'); return; }
+  const btn = document.getElementById('payBtn');
+  btn.textContent = 'Processing…'; btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = 'Pay & Place Order'; btn.disabled = false;
+    showStep('buyStep2', 'buyStep1');
+    toast('Order placed! View in Trading → Pending Supply.');
+  }, 1400);
+}
+
+// ── SUPPLIER: LIST WINE ──
+function toggleListForm() {
+  const form = document.getElementById('listWineForm');
+  form.classList.toggle('open');
+}
+
+function saveNewListing() {
+  const name     = document.getElementById('newWineName').value.trim();
+  const vintage  = document.getElementById('newVintage').value;
+  const variety  = document.getElementById('newVariety').value;
+  const region   = document.getElementById('newRegion').value.trim();
+  const caseSize = document.getElementById('newCaseSize').value;
+  const cases    = document.getElementById('newCases').value;
+  const price    = document.getElementById('newPrice').value;
+  const floor    = document.getElementById('newFloor').value;
+  const auto     = document.getElementById('autoAccept').checked;
+
+  if (!name || !vintage || !region || !price) { toast('Please fill in all required fields.'); return; }
+
+  const tbody = document.getElementById('listingsBody');
+  const row   = document.createElement('tr');
+  row.innerHTML = `
+    <td><strong>${name} ${vintage}</strong><br><span style="font-size:.78rem;color:var(--muted)">${region} · ${caseSize} bottles/case</span></td>
+    <td>$${price}/case</td>
+    <td>$${floor || '—'}/case</td>
+    <td>0</td>
+    <td><span class="status-pill pill-active">Active</span></td>
+    <td>
+      <button class="btn-outline btn-sm">Go Deal</button>
+      <button class="btn-outline btn-sm" style="color:var(--muted);border-color:var(--cream-dk);margin-left:.4rem" onclick="removeRow(this)">Remove</button>
+    </td>`;
+  tbody.appendChild(row);
+  toggleListForm();
+  toast('Listing saved' + (auto ? ' with auto-accept enabled' : '') + '.');
+}
+
+function removeRow(btn) {
+  if (confirm('Remove this listing?')) btn.closest('tr').remove();
+}
+
+// ── SUPPLIER: GO DEAL ──
+function openGoDeal() {
+  document.getElementById('goDealCard').style.display = '';
+  document.getElementById('goDealCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function closeGoDeal() { document.getElementById('goDealCard').style.display = 'none'; }
+function saveGoDeal()  {
+  closeGoDeal();
+  toast('Go Deal saved. Auto-accept is ' + (document.getElementById('goDealAuto').checked ? 'ON' : 'OFF') + '.');
+}
+document.getElementById('goDealFloor').addEventListener('input', function() {
+  const pct = ((340 - parseFloat(this.value || 0)) / 340 * 100).toFixed(1);
+  document.getElementById('goDealMargin').innerHTML = `Floor is <em>${pct}%</em> below sticker`;
+});
+
+// ── SUPPLIER: POD ──
+function showPOD(orderId, sale) {
+  podOrderSale = sale;
+  document.getElementById('podOrderId').textContent = orderId;
+  document.getElementById('podResult').style.display = 'none';
+  document.getElementById('podUploadArea').style.display = '';
+  document.getElementById('podPanel').style.display = '';
+  document.getElementById('podPanel').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function closePOD() { document.getElementById('podPanel').style.display = 'none'; }
+
+function processPOD() {
+  const commission = podOrderSale * 0.08;
+  const net        = podOrderSale - commission;
+  document.getElementById('podSalePrice').textContent  = '$' + podOrderSale.toFixed(2);
+  document.getElementById('podCommission').textContent = '−$' + commission.toFixed(2);
+  document.getElementById('podNet').textContent        = '$' + net.toFixed(2);
+  document.getElementById('podUploadArea').style.display = 'none';
+  document.getElementById('podResult').style.display    = '';
+  toast('POD uploaded. Payment of $' + net.toFixed(2) + ' will be released to your account.');
+}
+
+// ── TRADING: COUNTER ACTIONS ──
+function acceptCounter() {
+  const card = document.getElementById('counterOffer');
+  card.querySelector('.offer-card-right').innerHTML =
+    '<span class="status-pill pill-active">Accepted — Proceed to Payment</span>' +
+    '<button class="btn-gold btn-sm" onclick="openBuyModal(2)">Pay Now</button>';
+  toast('Counter accepted at $210/case. Proceed to payment.');
+}
+function archiveOffer() {
+  if (confirm('Archive this offer?')) {
+    document.getElementById('counterOffer').remove();
+    toast('Offer archived.');
+  }
+}
+
+// ── MODAL UTILITIES ──
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function overlayClose(e, id) { if (e.target.id === id) closeModal(id); }
+
+function showStep(show, hide) {
+  document.getElementById(show).classList.add('active');
+  document.getElementById(hide).classList.remove('active');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal('offerOverlay');
+    closeModal('buyOverlay');
+  }
+});
+
+// ── CARD FORMAT ──
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,'').slice(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 4000);
+}
+</script>
+</body>
+</html>
