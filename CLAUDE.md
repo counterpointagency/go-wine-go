@@ -147,12 +147,37 @@ Every existing function must still work after any restyle:
 
 ---
 
+## THE REPO ROOT MUST STAY BUILDABLE-FREE
+
+**This broke the Round 2 deploy.** DigitalOcean serves this app as a Static Site
+with an empty build command. It still runs buildpack detection against the repo
+root. A `package.json` at the root flipped it from the static-assets buildpack to
+the Node.js buildpack, which then tried to build a site that has no build.
+
+Hard rules:
+
+- **Never place `package.json`, `package-lock.json`, `yarn.lock`, `requirements.txt`,
+  `Gemfile`, `go.mod`, `Dockerfile` or any other buildpack manifest at the repo root.**
+- Tooling lives in `tools/` and runs directly. Use `.mjs` so Node treats it as ESM
+  with no manifest required.
+- The app spec is documentation only and lives at `docs/do-app-spec.yaml`, **not**
+  `.do/app.yaml`. DigitalOcean's GitHub Action auto-applies `.do/app.yaml`; keeping
+  it out of that path means nothing can silently reconfigure the app.
+- Adding a directory at the root is safe. Adding a *file* at the root is not, until
+  you have checked it against the list above.
+
+If tooling ever genuinely needs a manifest, do not put it at the root: move the
+served files into `site/` and set the app's `source_dir` to `/site`, so the build
+context and the tooling can never overlap again.
+
 ## VERIFICATION — RUN THIS BEFORE REPORTING
 
 ```bash
-npm run audit:contrast          # required — must exit 0
-npm run audit:contrast:matrix   # adds the full N×N token matrix
+node tools/contrast-audit.mjs            # required — must exit 0
+node tools/contrast-audit.mjs --matrix   # adds the full N×N token matrix
 ```
+
+No npm script, deliberately: that would require a root `package.json`.
 
 `tools/contrast-audit.mjs` parses the `:root` block out of `index.html` and
 checks every pairing the site actually renders against the threshold that
@@ -175,9 +200,15 @@ doctl apps logs <app-id> --type build                               # on failure
 ```
 
 `doctl` is installed via Homebrew. It needs a one-time `doctl auth init` with a
-DigitalOcean personal access token. The app spec lives at `.do/app.yaml`; it is
-declarative and is **not** auto-applied to the running app, so committing it
-cannot disturb the live site.
+DigitalOcean personal access token.
+
+The app spec at `docs/do-app-spec.yaml` is **reference only**. Deliberately not at
+`.do/app.yaml` — see the root-hygiene rule above.
+
+**A green push is not a green deploy.** Confirm the deploy phase is ACTIVE and
+then fetch the live URL and check the response body actually contains the new
+build before reporting. Round 2 was reported as shipped while Round 1 was still
+serving.
 
 ## ROUND LOG
 

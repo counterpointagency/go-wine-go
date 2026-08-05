@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Go Wine Go — Buy Direct from Australian Wineries</title>
-<meta name="description" content="Australia's direct-to-winery marketplace. Make an offer by the case. Payment held in escrow until delivery is confirmed.">
+<title>Go Wine Go, Buy Direct from Australian Wineries</title>
+<meta name="description" content="Australia's direct-from-winery marketplace. Make an offer by the case. Payment held in escrow until delivery is confirmed.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -890,9 +890,9 @@ a, button, input, select, textarea, summary, [tabindex] {
     </picture>
     <div class="hero__inner">
       <div class="hero__plate">
-        <p class="label hero__eyebrow">Australia's direct-to-winery marketplace</p>
+        <p class="label hero__eyebrow">Australia's direct-from-winery marketplace</p>
         <h1 class="hero__title" id="heroTitle">Buy direct from<br><em>Australian wineries</em></h1>
-        <p class="hero__text">Name your price by the case. The winery accepts, counters or declines — and no payment moves until you both agree.</p>
+        <p class="hero__text">Name your price by the case. The winery accepts, counters or declines, and no payment moves until you both agree.</p>
         <form class="hero__search" onsubmit="return false">
           <label class="visually-hidden" for="heroSearch">Search wines</label>
           <input id="heroSearch" type="search" placeholder="Search winery, wine or subregion">
@@ -1150,7 +1150,7 @@ a, button, input, select, textarea, summary, [tabindex] {
       <div id="offerList">
         <div class="trading__row">
           <div>
-            <p class="trading__row-name">Old Vine Cabernet Sauvignon 2021 — Wilyabrup Reach</p>
+            <p class="trading__row-name">Old Vine Cabernet Sauvignon 2021, Wilyabrup Reach</p>
             <p class="trading__row-meta">Your offer $310/case · 1 case · Wilyabrup, Margaret River WA</p>
           </div>
           <div class="trading__row-actions">
@@ -1159,7 +1159,7 @@ a, button, input, select, textarea, summary, [tabindex] {
         </div>
         <div class="trading__row" id="counterOffer">
           <div>
-            <p class="trading__row-name">Cold Ridge Chardonnay 2023 — Karridale Bench</p>
+            <p class="trading__row-name">Cold Ridge Chardonnay 2023, Karridale Bench</p>
             <p class="trading__row-meta">Your offer $195/case · 1 case · Karridale, Margaret River WA</p>
             <p class="trading__counter">
               <svg class="icon icon--sm" aria-hidden="true"><use href="#i-exchange"/></svg>
@@ -1179,7 +1179,7 @@ a, button, input, select, textarea, summary, [tabindex] {
     <div class="trading__panel" id="tp-pendingSupply">
       <div class="trading__row">
         <div>
-          <p class="trading__row-name">Granite Rise Riesling 2023 — Yallingup Spur</p>
+          <p class="trading__row-name">Granite Rise Riesling 2023, Yallingup Spur</p>
           <p class="trading__row-meta">$160/case · 1 case · Yallingup, Margaret River WA</p>
           <p class="trading__row-state"><span class="pill pill--ok">Payment in escrow</span></p>
         </div>
@@ -1196,7 +1196,7 @@ a, button, input, select, textarea, summary, [tabindex] {
     <div class="trading__panel" id="tp-completed">
       <div class="trading__row">
         <div>
-          <p class="trading__row-name">Fence Line Sauvignon Blanc Semillon 2024 — Cowaramup Bend</p>
+          <p class="trading__row-name">Fence Line Sauvignon Blanc Semillon 2024, Cowaramup Bend</p>
           <p class="trading__row-meta">$130/case · 1 case · Delivered 12 Mar 2026</p>
         </div>
         <div class="trading__row-actions">
@@ -1341,7 +1341,7 @@ a, button, input, select, textarea, summary, [tabindex] {
       <div class="supplier__panel-head">
         <h3 class="supplier__panel-title">
           <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bolt"/></svg>
-          Go Deal engine — Old Vine Cabernet Sauvignon 2021
+          Go Deal engine, Old Vine Cabernet Sauvignon 2021
         </h3>
         <button class="btn btn--quiet btn--sm" onclick="closeGoDeal()">Close</button>
       </div>
@@ -1395,7 +1395,7 @@ a, button, input, select, textarea, summary, [tabindex] {
               <td>#002</td><td>Sarah M.</td><td>Old Vine Cabernet 2021</td>
               <td>1</td><td>$340</td>
               <td><span class="pill pill--wait">Awaiting payment</span></td>
-              <td>—</td>
+              <td>None</td>
             </tr>
             <tr>
               <td>#003</td><td>James T.</td><td>Old Vine Cabernet 2021</td>
@@ -1412,7 +1412,7 @@ a, button, input, select, textarea, summary, [tabindex] {
       <div class="supplier__panel-head">
         <h3 class="supplier__panel-title">
           <svg class="icon icon--sm" aria-hidden="true"><use href="#i-doc"/></svg>
-          Proof of delivery — order <span id="podOrderId"></span>
+          Proof of delivery, order <span id="podOrderId"></span>
         </h3>
         <button class="btn btn--quiet btn--sm" onclick="closePOD()">Close</button>
       </div>
@@ -1588,7 +1588,7 @@ a, button, input, select, textarea, summary, [tabindex] {
         </div>
 
         <button class="btn btn--brass btn--block" id="payBtn" onclick="processBuy()">
-          Pay and place order — <span id="payBtnAmt"></span>
+          Pay and place order, <span id="payBtnAmt"></span>
         </button>
       </div>
     </div>
@@ -1723,7 +1723,7 @@ function submitOffer() {
   const qty = parseInt(document.getElementById('offerQty').value, 10) || 1;
 
   if (!amt || amt <= 0) { toast('Please enter a valid offer price.', 'i-x-circle'); return; }
-  if (amt > w.price)    { toast('That is above the sticker price — try Buy now instead.', 'i-x-circle'); return; }
+  if (amt > w.price)    { toast('That is above the sticker price, try Buy now instead.', 'i-x-circle'); return; }
 
   document.getElementById('confirmWinery').textContent = w.winery;
   document.getElementById('confirmWine').textContent   = w.name;
@@ -1832,7 +1832,7 @@ function saveNewListing() {
   row.querySelector('b').textContent = name + ' ' + vintage;
   row.querySelector('.supplier__table-sub').textContent = region + ' · ' + caseSize + ' bottles per case';
   row.querySelector('.js-price').textContent = '$' + price + '/case';
-  row.querySelector('.js-floor').textContent = floor ? '$' + floor + '/case' : '—';
+  row.querySelector('.js-floor').textContent = floor ? '$' + floor + '/case' : 'None';
   document.getElementById('listingsBody').appendChild(row);
 
   toggleListForm();
@@ -1896,7 +1896,7 @@ function acceptCounter() {
   const card = document.getElementById('counterOffer');
   const actions = card.querySelector('.trading__row-actions');
   actions.innerHTML =
-    '<span class="pill pill--ok">Accepted — proceed to payment</span>' +
+    '<span class="pill pill--ok">Accepted, proceed to payment</span>' +
     '<button class="btn btn--brass btn--sm" onclick="openBuyModal(4)">Pay now</button>';
   toast('Counter accepted at $210/case. Proceed to payment.', 'i-check-circle');
 }
