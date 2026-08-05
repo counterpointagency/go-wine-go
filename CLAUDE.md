@@ -174,10 +174,39 @@ context and the tooling can never overlap again.
 
 ```bash
 node tools/contrast-audit.mjs            # required — must exit 0
+node tools/layout-audit.mjs              # required — must exit 0
 node tools/contrast-audit.mjs --matrix   # adds the full N×N token matrix
 ```
 
-No npm script, deliberately: that would require a root `package.json`.
+**Both must pass before reporting.** No npm script, deliberately: that would
+require a root `package.json`, which is what broke the Round 2 deploy.
+
+### Why there are two audits
+
+Round 2 shipped with the hero headline sitting underneath the header wordmark.
+The contrast audit passed, because **it measures colour, not geometry**. Text on
+top of text is a layout failure, and no colour ratio can detect it.
+
+`tools/layout-audit.mjs` resolves the served CSS (clamp/min/max/calc/rem/vw/vh)
+at 390, 834, 1280 and 1600, lays the hero copy out using **real glyph advances**
+from `tools/font-metrics.json`, and asserts:
+
+1. header height vs. hero content top offset, clearance must not be negative
+2. plate width and height against their caps (34vw / 60vh desktop; full width below 760px)
+3. every fixed or sticky element vs. the top offset of what follows it
+4. search input width vs. its own placeholder
+
+`tools/font-metrics.json` was extracted once with fontTools from the exact
+Google Fonts woff2 files the page requests, with variable axes instanced at the
+weights actually used. It is committed, so the audit runs offline and
+deterministically. **If you change a font, weight or axis, regenerate it.**
+
+### Header transparency
+
+Transparent **only** at `window.scrollY === 0`, and only on the view that has the
+hero photograph behind it. Any scroll goes solid maroon. Do not reintroduce a
+geometry-based trigger keyed to the hero's edges: that is what let the bone plate
+slide under a still-transparent header.
 
 `tools/contrast-audit.mjs` parses the `:root` block out of `index.html` and
 checks every pairing the site actually renders against the threshold that
@@ -221,3 +250,10 @@ serving.
   a solid bone plate; two-colour focus rings; Bodoni floor raised to 32px/500;
   `tools/contrast-audit.mjs` committed so this cannot recur silently.
   Archived at `archive/index-v2.html`.
+- **Round 3** — layout fix. The header transparency trigger was keyed to the
+  hero's bottom edge while the plate was bottom-anchored inside the hero, so the
+  plate collided with the header (measured at −110px clearance at 1280 before any
+  scroll). Header is now transparent only at scroll zero; the hero reserves header
+  height with `padding-top`; the search moved out of the plate into its own
+  `finder` section; hero display size dropped to fit the capped plate.
+  `tools/layout-audit.mjs` added. Archived at `archive/index-v3.html`.

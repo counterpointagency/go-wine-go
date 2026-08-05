@@ -131,7 +131,7 @@ function guards(html) {
   const body = html.split('</style>')[1];
 
   const SIZES = {
-    '--fs-display': 44, '--fs-h2': 32, '--fs-mark': 32, '--fs-h3': 24,
+    '--fs-display': 44, '--fs-hero-title': 32, '--fs-h2': 32, '--fs-mark': 32, '--fs-h3': 24,
     '--fs-num': 24, '--fs-lead': 18, '--fs-body': 16, '--fs-sm': 14,
     '--fs-xs': 13, '--fs-micro': 12,
   };
