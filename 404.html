@@ -7,8 +7,8 @@
 <!-- Prototype on a public URL carrying invented WA producer licence numbers.
      Comes off deliberately at launch, with robots.txt. The contrast audit
      asserts both, so one cannot be removed without the other. -->
-<title>How It Works, Go Wine Go</title>
-<meta name="description" content="Who you are buying from, who holds your money, and the four ways to buy direct from an Australian winery.">
+<title>Page not found, Go Wine Go</title>
+<meta name="description" content="That page is not here.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -244,42 +244,25 @@
 </header>
 
 <main class="page--inner" id="main">
-  <!-- ═══ SECTION: HOW IT WORKS ═══════════════════════════════════
-       Spec 4.6. Who am I buying from and who has my money are
-       answered FIRST, before the mechanics, because under Model A
-       they are the two questions the whole site has to carry.
-
-       Thin-line diagrams, never photography. The diagrams are sprite
-       symbols on the same spec as every other icon — 24x24 viewBox,
-       stroke 1.25, currentColor, fill none — rendered at 72px.
+  <!-- ═══ SECTION: 404 ════════════════════════════════════════════
+       DigitalOcean serves this as the static site's error document.
+       It carries the full header, footer and age gate, so a mistyped
+       URL lands somewhere that still looks like the site and still
+       has every route out of it.
        ══════════════════════════════════════════════════════════ -->
-  <div class="page-head">
-    <p class="label">How it works</p>
-    <h1 class="page-head__title">Buying wine direct, explained</h1>
-    <p class="page-head__lead">Go Wine Go is a marketplace. The wine is sold to you by the winery that made it. Here is exactly what that means for your money and your delivery.</p>
-  </div>
-
-  <section class="hiw-answers" id="hiwRoot" aria-label="Who you are buying from and who holds your money">
-    <p class="label" id="hiwAnswersEyebrow"></p>
-    <div class="hiw-answers__grid" id="hiwAnswers"></div>
-  </section>
-
-  <section class="hiw" aria-labelledby="hiwMechTitle">
-    <div class="godeals__head">
-      <p class="label" id="hiwMechEyebrow"></p>
-      <h2 class="section-title" id="hiwMechTitle">Loading…</h2>
+  <section class="notfound" aria-labelledby="notfoundTitle">
+    <p class="label">404</p>
+    <h1 class="notfound__title" id="notfoundTitle">That page is not here</h1>
+    <p class="notfound__text">The link may be out of date, or the address may have a typo in it. Nothing is broken on your side.</p>
+    <div class="notfound__actions">
+      <a class="btn btn--solid" href="/index.html">
+        Back to the market
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </a>
+      <a class="btn btn--ghost" href="/how-it-works.html">How it works</a>
+      <a class="btn btn--ghost" href="/for-wineries.html">For wineries</a>
     </div>
-    <div class="hiw__grid" id="hiwMechanics"></div>
-  </section>
-
-  <section class="panels" aria-label="Payment and delivery">
-    <div class="panels__grid" id="hiwPanels"></div>
-  </section>
-
-  <section class="faq" aria-labelledby="hiwFaqTitle">
-    <p class="label" id="hiwFaqEyebrow"></p>
-    <h2 class="section-title" id="hiwFaqTitle">Loading…</h2>
-    <div class="faq__list" id="hiwFaq"></div>
+    <p class="notfound__hint">Looking for a particular wine? Use the search in the header.</p>
   </section>
 </main>
 

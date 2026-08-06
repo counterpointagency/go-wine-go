@@ -26,6 +26,44 @@ when the parameter is missing.
 
 ---
 
+## NOINDEX — COMES OFF DELIBERATELY
+
+This prototype sits on a public URL carrying **invented Western Australian
+producer licence numbers**, fictional wineries and sample listings. Two things
+keep it out of search results:
+
+- `robots.txt` at the repo root, `Disallow: /`
+- `<meta name="robots" content="noindex, nofollow">` in every page head
+
+`tools/contrast-audit.mjs` asserts **both**, on every page. They come off
+together, deliberately, at launch — and only once the licence numbers are real.
+Removing one without the other fails the build, and a new page cannot ship
+without either.
+
+## DEMO STATE AND RESET
+
+Round 4A put every flow on `localStorage` so a demo survives a refresh.
+Everything lives under `gwg.v<N>.*`, with the schema version in the key: bump
+`STORE_VERSION` in `assets/js/main.js` and the old keys are orphaned rather
+than read at a shape that has changed.
+
+**To clear a demo between meetings**, either:
+
+```
+https://<url>/?reset=1        # any page, wipes and reloads
+GoWineGo.reset()              # console, same thing
+GoWineGo.dump()               # console, shows what is currently held
+```
+
+Stored: `shortlist`, `offers`, `orders`, `offerStates`, `goDealCommits`,
+`tenders`, `postcode`, `ageVerified`.
+
+> **Open question for the lawyer.** Spec 8 says the age check is "persisted for
+> the session". Round 4A moved it to `localStorage` so a demo survives a
+> browser restart, which is the opposite trade-off. Confirm which one ships.
+
+---
+
 ## STANDING RULES
 
 - **Never delete anything.** Before a round that restructures a page, copy it to

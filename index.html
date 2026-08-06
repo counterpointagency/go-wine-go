@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<!-- Prototype on a public URL carrying invented WA producer licence numbers.
+     Comes off deliberately at launch, with robots.txt. The contrast audit
+     asserts both, so one cannot be removed without the other. -->
 <title>Go Wine Go, Buy Direct from Australian Wineries</title>
 <meta name="description" content="Australia's direct-from-winery marketplace. Name your price by the case. The winery is the seller, and your payment is released to them when your wine is signed for.">
 
@@ -14,7 +18,7 @@
 <!-- Age gate, spec 8. Synchronous and before first paint on purpose: if this
      ran with the rest of the JS at the end of body, an unverified visitor
      would see the market flash behind the gate. Sets a class only. -->
-<script>try{if(!sessionStorage.getItem("gwg-age-verified"))document.documentElement.classList.add("age-gate-open")}catch(e){document.documentElement.classList.add("age-gate-open")}</script>
+<script>try{if(localStorage.getItem("gwg.v1.ageVerified")!=="true")document.documentElement.classList.add("age-gate-open")}catch(e){document.documentElement.classList.add("age-gate-open")}</script>
 </head>
 <body data-hero>
 
@@ -209,6 +213,10 @@
     </nav>
 
     <div class="site-header__right">
+      <button class="site-header__search-btn" id="searchBtn" type="button"
+              aria-expanded="false" aria-controls="searchPanel" aria-label="Search wines">
+        <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+      </button>
       <div class="site-header__roles" role="group" aria-label="View as">
         <a class="site-header__role" href="/index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
         <a class="site-header__role" href="/supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
@@ -219,6 +227,19 @@
         <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
       </button>
     </div>
+
+    <!-- Absolutely positioned inside .site-header__inner, so expanding it
+         covers the nav rather than widening a bar that already has only
+         88px of slack at 834. Collapses on Escape or on blur. -->
+    <form class="site-header__search-panel" id="searchPanel" role="search" hidden>
+      <label class="visually-hidden" for="headerSearch">Search wines</label>
+      <input class="site-header__search-input" id="headerSearch" type="search"
+             placeholder="Winery, wine, variety or region" autocomplete="off">
+      <button class="btn btn--solid btn--sm" type="submit">Search</button>
+      <button class="site-header__search-close" id="searchClose" type="button" aria-label="Close search">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-close"/></svg>
+      </button>
+    </form>
   </div>
 </header>
 
@@ -238,6 +259,16 @@
         <svg class="icon" aria-hidden="true"><use href="#i-close"/></svg>
       </button>
     </div>
+    <form class="mobile-menu__search" id="menuSearchForm" role="search">
+      <label class="visually-hidden" for="menuSearch">Search wines</label>
+      <input class="mobile-menu__search-input" id="menuSearch" type="search"
+             placeholder="Winery, wine, variety or region" autocomplete="off">
+      <button class="btn btn--solid" type="submit">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-search"/></svg>
+        Search
+      </button>
+    </form>
+
     <nav class="mobile-menu__nav" aria-label="All pages">
       <p class="label mobile-menu__group">Buy wine</p>
       <a class="mobile-menu__link" href="/index.html" data-page="index.html">Market</a>
@@ -310,20 +341,6 @@
     </ul>
   </section>
 
-  <!-- ═══ SECTION: FINDER ═════════════════════════════════════════
-       The search sits on the bone below the hero, never on the plate.
-       ══════════════════════════════════════════════════════════ -->
-  <section class="finder" aria-label="Search wines">
-    <form class="finder__search" id="finderForm">
-      <label class="visually-hidden" for="finderSearch">Search wines</label>
-      <input id="finderSearch" type="search" placeholder="Search winery, wine or subregion">
-      <button class="btn btn--solid" type="submit">
-        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-search"/></svg>
-        Search
-      </button>
-    </form>
-  </section>
-
   <!-- ═══ SECTION: MARKET ═════════════════════════════════════════
        Cards are rendered from data/wines.json by assets/js/main.js.
        One card pattern repeated, so it maps to a single PHP loop.
@@ -338,15 +355,32 @@
         <h2 class="market__title" id="marketTitle">Available wines</h2>
         <p class="market__note" id="marketNote">Loading sample listings…</p>
       </div>
-      <div class="market__filters" role="group" aria-label="Filter listings">
-        <button class="market__filter is-active" data-filter="all">All</button>
-        <button class="market__filter" data-filter="red">Red</button>
-        <button class="market__filter" data-filter="white">White</button>
-        <button class="market__filter" data-filter="buy_now">Buy now</button>
-        <button class="market__filter" data-filter="open_to_offers">Open to offers</button>
-        <button class="market__filter" data-filter="go_deal">Go Deal</button>
+      <div class="market__controls">
+        <div class="market__filters" role="group" aria-label="Filter listings">
+          <button class="market__filter is-active" data-filter="all">All</button>
+          <button class="market__filter" data-filter="red">Red</button>
+          <button class="market__filter" data-filter="white">White</button>
+          <button class="market__filter" data-filter="buy_now">Buy now</button>
+          <button class="market__filter" data-filter="open_to_offers">Open to offers</button>
+          <button class="market__filter" data-filter="go_deal">Go Deal</button>
+        </div>
+
+        <!-- Territory. A winery sets postcodes it will not sell into, and a
+             customer inside one never sees the listing. The postcode is kept
+             in local storage so it survives a refresh. -->
+        <div class="market__postcode">
+          <label class="market__postcode-label" for="marketPostcode">Deliver to</label>
+          <input class="market__postcode-input" id="marketPostcode" type="text"
+                 inputmode="numeric" maxlength="4" placeholder="6285"
+                 autocomplete="postal-code">
+          <button class="btn btn--quiet btn--sm" id="marketPostcodeClear" type="button">Clear</button>
+        </div>
       </div>
     </div>
+
+    <p class="market__state" id="marketSearch" role="status" hidden></p>
+    <p class="market__excluded" id="marketExcluded" role="status" hidden></p>
+
     <hr class="rule market__divider">
     <div class="market__grid" id="wineGrid"></div>
   </section>

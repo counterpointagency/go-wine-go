@@ -55,6 +55,9 @@ const PAGES = [
   { file: 'legal/privacy.html',             reserves: '.page--inner', prop: 'padding-top' },
   { file: 'legal/delivery.html',            reserves: '.page--inner', prop: 'padding-top' },
   { file: 'legal/responsible-service.html', reserves: '.page--inner', prop: 'padding-top' },
+  // The error document. Reachable by mistyping a URL, never by a link, so
+  // it is excluded from the menu-coverage assertion below.
+  { file: '404.html', reserves: '.page--inner', prop: 'padding-top', notInMenu: true },
 ];
 
 /* Every plate that sits OVER a photograph, with its width cap and the
@@ -732,6 +735,7 @@ for (const w of MOBILE_NAV_WIDTHS) {
 // ...and the drawer it opens has to actually reach every page.
 const menuHrefs = [...HTML.matchAll(/class="mobile-menu__link"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
 const missingFromMenu = PAGES
+  .filter((p) => !p.notInMenu)
   .map((p) => '/' + p.file)
   .filter((href) => !menuHrefs.includes(href));
 if (!menuHrefs.length) {
@@ -741,7 +745,7 @@ if (!menuHrefs.length) {
   failures++;
   console.log(`  ${c(RED, 'MISSING from the menu:')} ${missingFromMenu.join(', ')}`);
 } else {
-  console.log(`  ${'(menu)'.padStart(6)}  reaches all ${PAGES.length} pages ${c(GREEN, 'ok')}`);
+  console.log(`  ${'(menu)'.padStart(6)}  reaches all ${PAGES.filter((p) => !p.notInMenu).length} linked pages ${c(GREEN, 'ok')}`);
 }
 
 
@@ -886,31 +890,73 @@ for (const vp of VIEWPORTS) {
 }
 if (!licenceChecks) { failures++; console.log(c(RED, '  licence check ran on nothing')); }
 
-console.log('\n13. SEARCH INPUT vs ITS PLACEHOLDER');
+/* ── 13. the search field, in both places it now lives ─────────────
+   Round 4A removed the home-page finder band and moved search into the
+   header (above 760) and the mobile drawer (below it). The old check
+   silently fell back to a default selector and a default placeholder when
+   the finder disappeared, and went on reporting a number for a thing that
+   was not on the page. Every value here is read from the stylesheet and
+   the markup, and a missing selector is a failure. */
+console.log('\n13. SEARCH FIELD vs ITS PLACEHOLDER');
+console.log(`  ${'SURFACE'.padEnd(14)} ${'VIEWPORT'.padEnd(20)} ${'NEEDS'.padStart(7)} ${'HAS'.padStart(7)}  RESULT`);
+
+const headerPh = (HTML.match(/id="headerSearch"[^>]*placeholder="([^"]+)"/s)
+               || HTML.match(/placeholder="([^"]+)"[^>]*id="headerSearch"/s) || [])[1];
+const drawerPh = (HTML.match(/id="menuSearch"[^>]*placeholder="([^"]+)"/s)
+               || HTML.match(/placeholder="([^"]+)"[^>]*id="menuSearch"/s) || [])[1];
+if (!headerPh || !drawerPh) {
+  failures++;
+  console.log(c(RED, '  could not read the search placeholders from index.html'));
+}
+
 for (const vp of VIEWPORTS) {
   const map = declMap(rulesFor(vp.w));
   const R = (v) => resolve1(v, vp);
-  const sel = '.finder__search input';
-  const fs = R(map.get(sel)?.['font-size'] || TOKENS['--fs-sm']);
-  const padDecl = (map.get(sel)?.padding || '12px 16px').split(/\s+/).map((x) => R(x));
-  const padX = padDecl[1] ?? padDecl[0];
-  const ph = HTML.match(/id="finderSearch"[^>]*placeholder="([^"]+)"/);
-  const text = ph ? ph[1] : 'Search winery, wine or subregion';
-  const need = textWidth('inter-400', text, fs) + padX * 2;
+  const T = (t) => R(tokensFor(vp.w)[t] ?? t);
 
-  const containerPad = R(TOKENS['--sp-5']) * 2;
-  const maxW = Math.min(vp.w, R(TOKENS['--w-max'] || '1280px'));
-  // button width measured, not guessed: label + icon + gap + padding + border
-  const btnFs = R(TOKENS['--fs-sm']);
-  const btn = textWidth('inter-500', 'Search', btnFs)
-            + R(TOKENS['--icon-sm']) + R(TOKENS['--sp-2']) + R(TOKENS['--sp-5']) * 2 + 2;
-  const form = map.get('.finder__search');
-  const column = (form?.['flex-direction'] || 'row') === 'column';
-  const formMax = R(form?.['max-width'] || '99999px');
-  const have = Math.min(maxW - containerPad, formMax) - (column ? 0 : btn + R(TOKENS['--sp-2']));
-  const ok = have >= need;
-  if (!ok) failures++;
-  console.log(`  ${vp.label.padEnd(20)} needs ${need.toFixed(0).padStart(4)}px  has ${have.toFixed(0).padStart(4)}px  ${ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')}   "${text}"`);
+  /* ── header: the panel is absolutely positioned inside
+        .site-header__inner, inset by --sp-5 on both sides. It shares its
+        row with a submit button and a close button. ── */
+  const panel = map.get('.site-header__search-panel');
+  const input = map.get('.site-header__search-input');
+  const close = map.get('.site-header__search-close');
+  const btnShown = (map.get('.site-header__search-btn')?.display || 'none') !== 'none';
+  if (!panel || !input || !close) {
+    failures++;
+    console.log(`  ${'header'.padEnd(14)} ${vp.label.padEnd(20)} ${c(RED, 'search panel selectors not found in the stylesheet')}`);
+  } else if (btnShown) {
+    const innerW = Math.min(vp.w, R(TOKENS['--w-max']));
+    const panelW = innerW - R(panel.left) - R(panel.right);
+    const gap = R(panel.gap);
+    const submitW = textWidth('inter-500', 'Search', T('--fs-sm'))
+                  + T('--sp-3') * 2 + 2;                 // .btn--sm padding
+    const closeW = R(close.width);
+    const padX = (input.padding || '').split(/\s+/).map((x) => R(x))[1] ?? 0;
+    const have = panelW - submitW - closeW - gap * 2;
+    const need = textWidth('inter-400', headerPh || '', R(input['font-size'])) + padX * 2 + 2;
+    const ok = have >= need;
+    if (!ok) failures++;
+    console.log(`  ${'header'.padEnd(14)} ${vp.label.padEnd(20)} ${(need.toFixed(0) + 'px').padStart(7)} ${(have.toFixed(0) + 'px').padStart(7)}  ` +
+      (ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')) + `   "${headerPh}"`);
+  } else {
+    console.log(`  ${'header'.padEnd(14)} ${vp.label.padEnd(20)} ${'—'.padStart(7)} ${'—'.padStart(7)}  ${c(GREEN, 'in the drawer')}`);
+  }
+
+  /* ── drawer: a full-width field inside .mobile-menu__panel ── */
+  const dPanel = map.get('.mobile-menu__panel');
+  const dInput = map.get('.mobile-menu__search-input');
+  if (!dPanel || !dInput) {
+    failures++;
+    console.log(`  ${'drawer'.padEnd(14)} ${vp.label.padEnd(20)} ${c(RED, 'drawer search selectors not found in the stylesheet')}`);
+  } else {
+    const have = R(dPanel.width) - padXOf(map, '.mobile-menu__panel', vp) * 2;
+    const padX = (dInput.padding || '').split(/\s+/).map((x) => R(x))[1] ?? 0;
+    const need = textWidth('inter-400', drawerPh || '', R(dInput['font-size'])) + padX * 2 + 2;
+    const ok = have >= need;
+    if (!ok) failures++;
+    console.log(`  ${'drawer'.padEnd(14)} ${vp.label.padEnd(20)} ${(need.toFixed(0) + 'px').padStart(7)} ${(have.toFixed(0) + 'px').padStart(7)}  ` +
+      (ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')) + `   "${drawerPh}"`);
+  }
 }
 
 console.log('\n─────────────────────────────────────────────────────────────────────');

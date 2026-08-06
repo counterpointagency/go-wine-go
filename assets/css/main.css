@@ -304,6 +304,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 }
 .site-header--transparent { background: none; color: var(--maroon-deep); }
 .site-header__inner {
+  position: relative;                  /* the search panel overlays this box */
   max-width: var(--w-max); height: 100%; margin: 0 auto;
   padding: 0 var(--sp-5);
   display: flex; align-items: center; gap: var(--sp-5);
@@ -420,20 +421,6 @@ a, button, input, select, textarea, summary, [tabindex] {
 .trust__item .icon { color: var(--eucalypt); }
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION: FINDER   (search, on the bone below the hero)
-   ═══════════════════════════════════════════════════════════════ */
-.finder { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-6) var(--sp-5) 0; }
-.finder__search { display: flex; gap: var(--sp-2); max-width: 620px; }
-.finder__search input {
-  flex: 1; min-width: 0;
-  background: var(--surface); color: var(--ink);
-  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
-  padding: var(--sp-3) var(--sp-4);
-  font-size: var(--fs-sm);
-}
-.finder__search input::placeholder { color: var(--ink-soft); }
-
-/* ═══════════════════════════════════════════════════════════════
    SECTION: MARKET
    ═══════════════════════════════════════════════════════════════ */
 .market { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-8) var(--sp-5) var(--sp-7); }
@@ -457,7 +444,34 @@ a, button, input, select, textarea, summary, [tabindex] {
   border: var(--bw) solid var(--stone); border-radius: var(--r-pill);
   padding: var(--sp-1) var(--sp-3); margin-bottom: var(--sp-3);
 }
-.market__filters { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.market__controls { display: grid; gap: var(--sp-4); justify-items: end; }
+.market__filters { display: flex; gap: var(--sp-2); flex-wrap: wrap; justify-content: flex-end; }
+
+/* Territory control. Persisted, and it removes listings rather than
+   greying them, so a customer cannot tell which winery excluded them. */
+.market__postcode { display: flex; align-items: center; gap: var(--sp-3); }
+.market__postcode-label { font-size: var(--fs-sm); color: var(--ink-soft); white-space: nowrap; }
+.market__postcode-input {
+  width: 7ch; min-width: 0;
+  background: var(--surface); color: var(--ink);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-body); text-align: center;
+}
+.market__postcode-input::placeholder { color: var(--ink-soft); }
+
+.market__state, .market__excluded {
+  display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  background: var(--surface); padding: var(--sp-4) var(--sp-5);
+  margin-bottom: var(--sp-4); font-size: var(--fs-body); color: var(--ink);
+}
+.market__state[hidden], .market__excluded[hidden] { display: none; }
+.market__state .icon { color: var(--brass-text); }
+.market__state b { font-weight: 500; }
+.market__excluded { border-left: var(--bw-thick) solid var(--clay); }
+.market__excluded .icon { color: var(--clay); }
+.market__excluded b { font-weight: 500; }
+.market__state .btn { margin-left: auto; }
 .market__filter {
   font-size: var(--fs-xs); color: var(--ink-soft);
   padding: var(--sp-2) var(--sp-4);
@@ -471,7 +485,18 @@ a, button, input, select, textarea, summary, [tabindex] {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: var(--sp-5);
 }
-.market__empty { color: var(--ink-soft); font-size: var(--fs-sm); padding: var(--sp-6) 0; }
+/* A real empty state, not a toast. */
+.market__empty {
+  grid-column: 1 / -1; text-align: center;
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  padding: var(--sp-9) var(--sp-5); color: var(--ink-soft);
+}
+.market__empty .icon { margin: 0 auto var(--sp-4); color: var(--ink-soft); }
+.market__empty-title {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); margin-bottom: var(--sp-3);
+}
+.market__empty-text { font-size: var(--fs-body); margin-bottom: var(--sp-5); max-width: 46ch; margin-left: auto; margin-right: auto; }
 
 /* One card pattern, repeated. Maps to a single PHP loop.
    No photography: the library has no bottle shots, and inventing one is
@@ -526,6 +551,8 @@ a, button, input, select, textarea, summary, [tabindex] {
 .wine-card__tax { font-size: var(--fs-micro); color: var(--ink-soft); margin-bottom: var(--sp-4); }
 .wine-card__actions { display: flex; gap: var(--sp-2); }
 .wine-card__actions .btn { flex: 1; }
+.wine-card__save { flex: 0 0 auto; min-width: 44px; }
+.wine-card__save.is-on { background: var(--surface); color: var(--eucalypt); border-color: var(--eucalypt); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: EDITORIAL
@@ -984,6 +1011,19 @@ a, button, input, select, textarea, summary, [tabindex] {
 .wine__stock { font-size: var(--fs-sm); color: var(--ink); margin-top: var(--sp-4); }
 .wine__stock b { font-weight: 500; }
 .wine__actions { display: grid; gap: var(--sp-3); margin-top: var(--sp-5); }
+/* A direct link to a wine excluded from the saved postcode. The page is
+   not missing, so this is a state on the page, never a 404. */
+.wine__blocked {
+  display: flex; gap: var(--sp-4); align-items: flex-start;
+  border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--clay);
+  border-radius: var(--r-md); background: var(--surface); padding: var(--sp-5);
+}
+.wine__blocked .icon { color: var(--clay); }
+.wine__blocked-title {
+  font-family: var(--font-body); font-size: var(--fs-body); font-weight: 500;
+  color: var(--maroon); margin-bottom: var(--sp-2);
+}
+.wine__blocked-text { font-size: var(--fs-body); color: var(--ink-soft); margin-bottom: var(--sp-4); }
 .wine__seller {
   font-size: var(--fs-body); color: var(--ink-soft);
   border-top: var(--bw) solid var(--stone);
@@ -1295,6 +1335,49 @@ a, button, input, select, textarea, summary, [tabindex] {
    open, is trapped while open, Escape closes it, and focus returns
    to the button that opened it.
    ═══════════════════════════════════════════════════════════════ */
+/* Search lives in the bar above 760 and in the drawer below it. The
+   collapsed control is one icon button; expanded, the field is absolutely
+   positioned over .site-header__inner and contributes NO layout width,
+   because the bar has only 88px of slack at 834 and 23px at 390. */
+.site-header__search-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; color: inherit;
+  border: var(--bw) solid currentColor; border-radius: var(--r-sm);
+  transition: opacity var(--t-fast);
+}
+.site-header__search-btn:hover { opacity: .75; }
+.site-header__search-panel {
+  position: absolute; right: var(--sp-5); left: var(--sp-5);
+  top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; gap: var(--sp-2);
+  background: var(--maroon);
+  padding: var(--sp-2) 0;
+}
+.site-header__search-panel[hidden] { display: none; }
+.site-header--transparent .site-header__search-panel { background: var(--bone); }
+.site-header__search-input {
+  flex: 1; min-width: 0;
+  background: var(--bone); color: var(--ink);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-sm);
+}
+.site-header__search-input::placeholder { color: var(--ink-soft); }
+.site-header__search-close {
+  color: inherit; width: 40px; height: 40px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: var(--bw) solid currentColor; border-radius: var(--r-sm);
+}
+.site-header--transparent .site-header__search-close { color: var(--maroon-deep); }
+
+.mobile-menu__search { display: grid; gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.mobile-menu__search-input {
+  width: 100%; min-width: 0;
+  background: var(--bone); color: var(--ink);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-body);
+}
+.mobile-menu__search-input::placeholder { color: var(--ink-soft); }
+
 .site-header__menu-btn {
   display: none;                       /* only below 760 — see RESPONSIVE */
   align-items: center; justify-content: center;
@@ -1571,6 +1654,25 @@ html.age-gate-open body { overflow: hidden; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   SECTION: 404
+   ═══════════════════════════════════════════════════════════════ */
+.notfound { max-width: var(--w-narrow); margin: 0 auto; padding: var(--sp-9) var(--sp-5); }
+.notfound__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+  margin-top: var(--sp-3);
+}
+.notfound__text { font-size: var(--fs-lead); color: var(--ink-soft); margin-top: var(--sp-4); max-width: 56ch; }
+.notfound__actions { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-6); }
+.notfound__hint {
+  font-size: var(--fs-body); color: var(--ink-soft);
+  border-top: var(--bw) solid var(--stone);
+  margin-top: var(--sp-7); padding-top: var(--sp-5); max-width: 56ch;
+}
+
+/* ═══════════════════════════════════════════════════════════════
    SECTION: SITE FOOTER
    Markup is byte identical across all three pages — get_footer().
    ═══════════════════════════════════════════════════════════════ */
@@ -1723,6 +1825,8 @@ html.age-gate-open body { overflow: hidden; }
      and that what is left still fits the bar. */
   .site-header__nav { display: none; }
   .site-header__login { display: none; }
+  /* Below 760 search is in the drawer, so the bar sheds this too. */
+  .site-header__search-btn { display: none; }
   .site-header__menu-btn { display: inline-flex; }
   .site-header__inner { gap: var(--sp-3); }
   /* Mobile: the plate drops below the photograph and goes full width.
@@ -1744,8 +1848,14 @@ html.age-gate-open body { overflow: hidden; }
     border-bottom: var(--bw) solid var(--stone);
   }
   .trust__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
-  .finder__search { flex-direction: column; max-width: none; }
   .market__head { flex-direction: column; align-items: flex-start; }
+  /* Three controls will not share 294px: "Make an offer" alone needs 143px
+     and the row leaves it 117px once the shortlist toggle is in. Stack them
+     rather than let the label wrap inside its own button. */
+  .wine-card__actions { flex-direction: column; }
+  .wine-card__save { width: 100%; }
+  .market__controls { justify-items: start; width: 100%; }
+  .market__filters { justify-content: flex-start; }
   .market__grid { grid-template-columns: minmax(0, 1fr); }
   .godeals__grid { grid-template-columns: minmax(0, 1fr); }
   .regions__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

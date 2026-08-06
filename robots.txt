@@ -1,0 +1,12 @@
+# Go Wine Go — prototype, not for indexing.
+#
+# This site carries invented Western Australian producer licence numbers,
+# fictional wineries and sample listings on a public URL. None of it should
+# appear in a search result, and a fake licence number least of all.
+#
+# This file comes off DELIBERATELY, at launch, together with the noindex
+# meta tag on every page. tools/contrast-audit.mjs asserts both are present
+# on all thirteen pages, so removing one without the other fails the build.
+
+User-agent: *
+Disallow: /

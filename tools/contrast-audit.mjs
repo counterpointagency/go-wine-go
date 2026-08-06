@@ -40,7 +40,7 @@ const HTML_FILES = [
   'tenders.html', 'how-it-works.html', 'account.html',
   'for-wineries.html', 'supplier.html',
   'legal/terms.html', 'legal/privacy.html', 'legal/delivery.html',
-  'legal/responsible-service.html',
+  'legal/responsible-service.html', '404.html',
 ];
 
 /* Files the CUSTOMER-facing pages fetch. A Go Deal floor must never
@@ -318,6 +318,23 @@ function guards() {
   const gateScriptMissing = HTML_FILES.filter(
     (f) => !/classList\.add\("age-gate-open"\)/.test(HTML[f]));
 
+  /* NOINDEX. This prototype sits on a public URL carrying invented WA
+     producer licence numbers, fictional wineries and sample listings. Both
+     the meta tag and robots.txt come off DELIBERATELY at launch, together —
+     asserting both here means one cannot be removed without the other, and
+     a new page cannot ship without either. */
+  const noindexMissing = HTML_FILES.filter(
+    (f) => !/<meta\s+name="robots"\s+content="noindex,\s*nofollow">/.test(HTML[f]));
+  let robotsBad = [];
+  try {
+    const robots = readFileSync(resolve(ROOT, 'robots.txt'), 'utf8');
+    const rules = robots.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
+    if (!/User-agent:\s*\*/i.test(rules)) robotsBad.push('robots.txt has no User-agent: *');
+    if (!/Disallow:\s*\/\s*$/m.test(rules)) robotsBad.push('robots.txt does not Disallow: /');
+  } catch (e) {
+    robotsBad.push('robots.txt is missing');
+  }
+
   const sharedDrift = [];
   const BLOCKS = [
     ['header',  '<!-- ═══ SECTION: SITE HEADER', '</header>\n'],
@@ -378,6 +395,9 @@ function guards() {
       `${refs.size} references`],
     ['Sprite symbols defined but never referenced', unusedSymbols.length, 0, unusedSymbols,
       `${symbols.length} symbols`],
+    ['noindex meta on every page', noindexMissing.length, 0, noindexMissing,
+      `${HTML_FILES.length} page heads`],
+    ['robots.txt disallows everything', robotsBad.length, 0, robotsBad, '1 file'],
     ['Age gate open-script on every page', gateScriptMissing.length, 0, gateScriptMissing,
       `${HTML_FILES.length} page heads`],
     ['Go Deal floor in buyer-facing data', floorLeaks.length, 0, floorLeaks,

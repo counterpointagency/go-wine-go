@@ -138,6 +138,146 @@ function picture(base, alt, w, h, eager) {
 /** Rendered wherever a price appears, per spec 8. */
 const wetNote = () => POLICY ? POLICY.wet_note : '';
 
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: STORE
+   Everything a demo does has to survive a refresh, or a meeting turns
+   into a re-enactment. All state lives under one namespace with the
+   schema version in the key, so bumping STORE_VERSION orphans the old
+   keys instead of trying to read a shape that has changed.
+
+   Base content still comes from data/*.json. This holds only what the
+   USER changed on top of it — offers made, orders placed, cases
+   committed, tenders posted, wines shortlisted, the delivery postcode
+   and the age check. Layering deltas rather than seeding a copy means
+   editing the JSON still shows up.
+
+   RESET, for clearing a demo between meetings:
+     · open any page with ?reset=1
+     · or run GoWineGo.reset() in the console
+   Both wipe every gwg.* key and reload.
+   ═══════════════════════════════════════════════════════════════ */
+const STORE_NS = 'gwg';
+const STORE_VERSION = 1;
+const storeKey = (name) => `${STORE_NS}.v${STORE_VERSION}.${name}`;
+
+const Store = {
+  available() {
+    try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; }
+    catch (e) { return false; }
+  },
+  get(name, fallback) {
+    try {
+      const raw = localStorage.getItem(storeKey(name));
+      return raw === null ? fallback : JSON.parse(raw);
+    } catch (e) { return fallback; }
+  },
+  set(name, value) {
+    try { localStorage.setItem(storeKey(name), JSON.stringify(value)); return true; }
+    catch (e) { return false; }        // private mode, or quota
+  },
+  /** Wipe every key this app owns, at any schema version. */
+  reset() {
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith(STORE_NS + '.'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch (e) { /* nothing to clear */ }
+  },
+  /** What is currently held, for eyeballing a demo's state. */
+  dump() {
+    const out = {};
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith(STORE_NS + '.'))
+        .forEach((k) => { out[k] = JSON.parse(localStorage.getItem(k)); });
+    } catch (e) { /* ignore */ }
+    return out;
+  },
+};
+
+/* A schema bump orphans old keys rather than reading a changed shape. */
+(function migrateStore() {
+  try {
+    const seen = localStorage.getItem(STORE_NS + '.schema');
+    if (seen !== String(STORE_VERSION)) {
+      Store.reset();
+      localStorage.setItem(STORE_NS + '.schema', String(STORE_VERSION));
+    }
+  } catch (e) { /* storage unavailable; the app still runs, just forgets */ }
+})();
+
+/* ?reset=1 on any page clears the demo and reloads to the same page. */
+(function resetFromUrl() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has('reset')) return;
+  Store.reset();
+  try { localStorage.setItem(STORE_NS + '.schema', String(STORE_VERSION)); } catch (e) { /* ignore */ }
+  params.delete('reset');
+  location.replace(location.pathname + (params.toString() ? '?' + params : ''));
+})();
+
+window.GoWineGo = {
+  reset() { Store.reset(); location.reload(); },
+  dump: () => Store.dump(),
+  version: STORE_VERSION,
+};
+
+/* ── the user's layer over the base data ─────────────────────────── */
+const userOffers   = () => Store.get('offers', []);
+const userOrders   = () => Store.get('orders', []);
+const userTenders  = () => Store.get('tenders', []);
+const offerStates  = () => Store.get('offerStates', {});   // id -> status override
+const goDealCommits = () => Store.get('goDealCommits', {}); // wine_slug -> extra cases
+
+/* The shortlist starts from data/account.json and is then owned by the
+   store. Seeded lazily, because only some pages render a shortlist. */
+let SHORTLIST_SEED = [];
+let shortlistSeeded = null;
+function seedShortlist() {
+  if (!shortlistSeeded) {
+    shortlistSeeded = (async () => {
+      const acct = await loadJSON('account');
+      SHORTLIST_SEED = acct ? acct.customer.shortlist : [];
+      return true;
+    })();
+  }
+  return shortlistSeeded;
+}
+
+function shortlist() {
+  const stored = Store.get('shortlist', null);
+  return stored === null ? null : stored;                  // null = not yet touched
+}
+function setShortlist(list) { Store.set('shortlist', list); }
+
+function isShortlisted(slug, seed) {
+  const s = shortlist();
+  return (s === null ? (seed || []) : s).includes(slug);
+}
+function toggleShortlist(slug, seed) {
+  const current = shortlist() === null ? (seed || []).slice() : shortlist().slice();
+  const i = current.indexOf(slug);
+  if (i === -1) current.push(slug); else current.splice(i, 1);
+  setShortlist(current);
+  return i === -1;
+}
+
+/** An ISO date N days from today, for defaults on a posted tender. */
+function isoInDays(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Today at midnight, so an expiry on today's date has not passed yet. */
+function today() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function isPast(iso) {
+  if (!iso) return false;
+  const [y, m, d] = String(iso).split('-').map(Number);
+  return new Date(y, m - 1, d) < today();
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SHARED: DIALOG BEHAVIOUR
    One focus trap, used by the mobile menu and the age gate. Both are
@@ -296,6 +436,18 @@ function submitOffer() {
   $('#confirmTotal').textContent  = money(amt * qty);
   $('#offerConfirmSub').textContent = winery + ' has received your offer.';
 
+  const mine = userOffers();
+  Store.set('offers', [{
+    id: 'OF-' + (3000 + mine.length + 1),
+    wine_slug: w.slug,
+    quantity: qty,
+    price_per_case: amt,
+    counter_price_per_case: null,
+    status: 'sent',
+    placed_at: isoInDays(0),
+    expires_at: isoInDays(7),
+  }, ...mine]);
+
   showStep('offerStep2', 'offerStep1');
   setTimeout(() => simulateResponse(w, amt), 3000);
 }
@@ -348,6 +500,23 @@ function processBuy() {
   setTimeout(() => {
     btn.replaceChildren(...label.childNodes);
     btn.disabled = false;
+    const w = wineBySlug(currentWineSlug);
+    if (w) {
+      const mine = userOrders();
+      Store.set('orders', [{
+        id: 'ORD-' + (2000 + mine.length + 1),
+        wine_slug: w.slug,
+        quantity: 1,
+        price_paid: w.list_price_per_case,
+        payment_state: 'held',
+        dispatch_state: 'awaiting_dispatch',
+        pod_state: 'pending',
+        carrier: null,
+        tracking_reference: null,
+        placed_at: isoInDays(0),
+        delivered_at: null,
+      }, ...mine]);
+    }
     showStep('buyStep2', 'buyStep1');
     toast('Order placed. Track it in your account.', 'i-check-circle');
   }, 1400);
@@ -369,6 +538,26 @@ const STATE_LABEL = {
   open_to_offers: ['Open to offers', 'pill--wait'],
   go_deal:        ['Go Deal live',   'pill--ok'],
 };
+
+/* Shortlist is Winescape's term for saved wines. The toggle writes
+   straight to the store, so it survives a refresh. */
+function shortlistButton(slug) {
+  const btn = el('button', 'btn btn--quiet wine-card__save');
+  const paint = () => {
+    const on = isShortlisted(slug, SHORTLIST_SEED);
+    btn.classList.toggle('is-on', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? 'Remove from shortlist' : 'Add to shortlist');
+    btn.replaceChildren(icon(on ? 'i-check' : 'i-plus', true));
+  };
+  btn.addEventListener('click', () => {
+    const added = toggleShortlist(slug, SHORTLIST_SEED);
+    paint();
+    toast(added ? 'Added to your shortlist.' : 'Removed from your shortlist.', added ? 'i-check-circle' : 'i-check');
+  });
+  paint();
+  return btn;
+}
 
 function wineCard(w) {
   const card = el('article', 'wine-card');
@@ -412,6 +601,7 @@ function wineCard(w) {
   foot.appendChild(el('p', 'wine-card__tax', wetNote()));
 
   const actions = el('div', 'wine-card__actions');
+  actions.appendChild(shortlistButton(w.slug));
   if (w.state === 'buy_now') {
     const buy = el('button', 'btn btn--solid', 'Buy now');
     buy.addEventListener('click', () => openBuyModal(w.slug));
@@ -436,35 +626,109 @@ function wineCard(w) {
   if (!grid) return;
 
   if (!(await catalogue())) { dataError(grid, 'the sample listings'); return; }
+  await seedShortlist();
 
   const featured = WINES.filter((w) => w.featured);
   const note = $('#marketNote');
+  const term = searchQuery().toLowerCase();
+  let chip = 'all';
 
-  function render(filter) {
-    const shown = featured.filter((w) =>
-      filter === 'all' ||
-      (filter === 'red' || filter === 'white' ? w.colour === filter : w.state === filter));
+  /* ── the search state, so a filtered view says so and can be undone ── */
+  const banner = $('#marketSearch');
+  if (banner) {
+    if (term) {
+      banner.replaceChildren();
+      banner.appendChild(icon('i-search', true));
+      const label = el('span');
+      label.appendChild(document.createTextNode('Showing results for '));
+      label.appendChild(el('b', null, '“' + searchQuery() + '”'));
+      banner.appendChild(label);
+      const clear = el('a', 'btn btn--quiet btn--sm', 'Clear search');
+      clear.href = '/index.html#market';
+      banner.appendChild(clear);
+      banner.hidden = false;
+    } else {
+      banner.hidden = true;
+    }
+  }
+
+  /* ── the postcode control, persisted ── */
+  const pcInput = $('#marketPostcode');
+  if (pcInput) {
+    pcInput.value = postcode();
+    const apply = () => { setPostcode(pcInput.value); render(); };
+    pcInput.addEventListener('change', apply);
+    pcInput.addEventListener('blur', apply);
+    const clearPc = $('#marketPostcodeClear');
+    if (clearPc) clearPc.addEventListener('click', () => {
+      pcInput.value = ''; setPostcode(''); render();
+    });
+  }
+
+  function render() {
+    const byChip = featured.filter((w) =>
+      chip === 'all' ||
+      (chip === 'red' || chip === 'white' ? w.colour === chip : w.state === chip));
+    const bySearch = term ? byChip.filter((w) => wineMatches(w, term)) : byChip;
+
+    // Territory: excluded listings are REMOVED, never greyed. A customer in
+    // an excluded postcode must not be able to tell which winery excluded it.
+    const pc = postcode();
+    const blocked = pc ? bySearch.filter((w) => wineExcluded(w, pc)) : [];
+    const shown = pc ? bySearch.filter((w) => !wineExcluded(w, pc)) : bySearch;
 
     if (!shown.length) {
-      grid.replaceChildren(el('p', 'market__empty', 'No sample listings match that filter.'));
+      const empty = el('div', 'market__empty');
+      empty.appendChild(icon('i-search'));
+      empty.appendChild(el('p', 'market__empty-title',
+        term ? 'Nothing matches “' + searchQuery() + '”'
+             : 'No sample listings match that filter.'));
+      empty.appendChild(el('p', 'market__empty-text',
+        blocked.length
+          ? 'Every listing that matched is unavailable to postcode ' + pc + '.'
+          : 'Try a winery, a variety like cabernet, or a subregion like Wilyabrup.'));
+      const back = el('a', 'btn btn--ghost', term ? 'Clear search' : 'Show all listings');
+      back.href = '/index.html#market';
+      back.addEventListener('click', () => { chip = 'all'; });
+      empty.appendChild(back);
+      grid.replaceChildren(empty);
     } else {
       grid.replaceChildren(...shown.map(wineCard));
     }
+
     if (note) {
       note.textContent = shown.length + ' of ' + featured.length +
         ' sample listings · Margaret River · Make an offer or buy at the listed price';
     }
+    // States how many are withheld, and never which winery withheld them.
+    const excl = $('#marketExcluded');
+    if (excl) {
+      if (blocked.length) {
+        excl.replaceChildren();
+        excl.appendChild(icon('i-alert', true));
+        const line = el('span');
+        line.appendChild(el('b', null, String(blocked.length)));
+        line.appendChild(document.createTextNode(
+          (blocked.length === 1 ? ' listing is' : ' listings are') +
+          ' not available for delivery to ' + pc + '.'));
+        excl.appendChild(line);
+        excl.hidden = false;
+      } else {
+        excl.hidden = true;
+      }
+    }
   }
 
-  $$('.market__filter').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      $$('.market__filter').forEach((c) => c.classList.remove('is-active'));
-      chip.classList.add('is-active');
-      render(chip.dataset.filter);
+  $$('.market__filter').forEach((c) => {
+    c.addEventListener('click', () => {
+      $$('.market__filter').forEach((x) => x.classList.remove('is-active'));
+      c.classList.add('is-active');
+      chip = c.dataset.filter;
+      render();
     });
   });
 
-  render('all');
+  render();
 })();
 
 /* ═══════════════════════════════════════════════════════════════
@@ -477,11 +741,14 @@ function wineCard(w) {
    Progress runs toward the next PUBLISHED tier, so the bar can never
    imply how far the price still has to fall.
    ═══════════════════════════════════════════════════════════════ */
-function goDealCard(deal, w) {
-  const reached = deal.tiers.filter((t) => t.cases <= deal.committed_cases).pop() || deal.tiers[0];
-  const next    = deal.tiers.find((t) => t.cases > deal.committed_cases) || null;
+function goDealCard(deal, w, onCommit) {
+  // Cases this visitor has committed sit on top of the base figure and are
+  // held in the store, so the bar stays where they left it after a refresh.
+  const committed = deal.committed_cases + (goDealCommits()[w.slug] || 0);
+  const reached = deal.tiers.filter((t) => t.cases <= committed).pop() || deal.tiers[0];
+  const next    = deal.tiers.find((t) => t.cases > committed) || null;
   const span    = next ? next.cases - reached.cases : 0;
-  const pct     = next ? Math.round(((deal.committed_cases - reached.cases) / span) * 100) : 100;
+  const pct     = next ? Math.round(((committed - reached.cases) / span) * 100) : 100;
 
   const card = el('article', 'godeal');
 
@@ -514,17 +781,17 @@ function goDealCard(deal, w) {
   card.appendChild(track);
 
   const stats = el('div', 'godeal__stats');
-  const committed = el('span');
-  committed.appendChild(el('b', null, String(deal.committed_cases)));
-  committed.appendChild(document.createTextNode(' cases committed'));
-  stats.appendChild(committed);
+  const committedLine = el('span');
+  committedLine.appendChild(el('b', null, String(committed)));
+  committedLine.appendChild(document.createTextNode(' cases committed'));
+  stats.appendChild(committedLine);
   stats.appendChild(el('span', null, pct + '% to the next price'));
   card.appendChild(stats);
 
   const nextLine = el('p', 'godeal__next');
   if (next) {
     nextLine.appendChild(document.createTextNode(
-      (next.cases - deal.committed_cases) + ' more cases and the price drops to '));
+      (next.cases - committed) + ' more cases and the price drops to '));
     nextLine.appendChild(el('b', null, round(next.price) + ' per case'));
     nextLine.appendChild(document.createTextNode(' for everyone.'));
   } else {
@@ -536,7 +803,16 @@ function goDealCard(deal, w) {
 
   const foot = el('div', 'godeal__foot');
   const join = el('button', 'btn btn--solid', 'Commit a case');
-  join.addEventListener('click', () => openBuyModal(w.slug));
+  join.addEventListener('click', () => {
+    const commits = goDealCommits();
+    commits[w.slug] = (commits[w.slug] || 0) + 1;
+    Store.set('goDealCommits', commits);
+    const now = deal.committed_cases + commits[w.slug];
+    const tier = deal.tiers.filter((t) => t.cases <= now).pop() || deal.tiers[0];
+    toast(`One case committed. ${now} cases in, everyone pays ` +
+          `${round(tier.price)} per case if it closes here.`, 'i-check-circle');
+    if (onCommit) onCommit();
+  });
   foot.appendChild(join);
   foot.appendChild(el('span', 'godeal__closes', 'Closes ' + auDate(deal.closes_at)));
   card.appendChild(foot);
@@ -551,11 +827,13 @@ function goDealCard(deal, w) {
   const [dealData, ok] = await Promise.all([loadJSON('go-deals'), catalogue()]);
   if (!dealData || !ok) { dataError(grid, 'the live Go Deals'); return; }
 
-  const cards = dealData.go_deals
-    .map((deal) => { const w = wineBySlug(deal.wine_slug); return w ? goDealCard(deal, w) : null; })
-    .filter(Boolean);
-
-  grid.replaceChildren(...cards);
+  const paint = () => {
+    const cards = dealData.go_deals
+      .map((deal) => { const w = wineBySlug(deal.wine_slug); return w ? goDealCard(deal, w, paint) : null; })
+      .filter(Boolean);
+    grid.replaceChildren(...cards);
+  };
+  paint();
 })();
 
 /* ═══════════════════════════════════════════════════════════════
@@ -600,22 +878,96 @@ function goDealCard(deal, w) {
 })();
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION: FINDER  (search, home page only)
+   SHARED: SEARCH
+   One control, three surfaces: the header bar above 760, the mobile
+   drawer below it, and the market view where results land. Searching
+   from anywhere navigates to the market with ?q=, so the result is a
+   real URL that can be shared, bookmarked and reloaded.
+
+   Matches across wines and wineries on winery name, wine name,
+   variety and subregion.
    ═══════════════════════════════════════════════════════════════ */
-(function finderSection() {
-  const form = $('#finderForm');
-  if (!form) return;
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const q = $('#finderSearch').value.trim();
-    toast(q ? 'Search is not wired up in this prototype: "' + q + '"'
-            : 'Enter a winery, wine or subregion to search.', 'i-search');
+const searchQuery = () => (new URLSearchParams(location.search).get('q') || '').trim();
+
+function goSearch(q) {
+  const term = String(q || '').trim();
+  location.href = '/index.html' + (term ? '?q=' + encodeURIComponent(term) : '') + '#market';
+}
+
+/** Does this wine match the term, on any of the four declared fields? */
+function wineMatches(w, term) {
+  const winery = WINERIES[w.winery_slug];
+  const haystack = [
+    winery ? winery.name : '',
+    winery ? winery.subregion : '',
+    w.name, w.variety, w.subregion, String(w.vintage),
+  ].join(' ').toLowerCase();
+  return term.split(/\s+/).filter(Boolean).every((t) => haystack.includes(t));
+}
+
+(function headerSearch() {
+  const btn = $('#searchBtn');
+  const panel = $('#searchPanel');
+  const input = $('#headerSearch');
+  const close = $('#searchClose');
+  if (!btn || !panel || !input) return;
+
+  const collapse = () => {
+    panel.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    btn.focus();
+  };
+  btn.addEventListener('click', () => {
+    panel.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    input.value = searchQuery();
+    input.focus();
+    input.select();
+  });
+  if (close) close.addEventListener('click', collapse);
+  panel.addEventListener('submit', (e) => { e.preventDefault(); goSearch(input.value); });
+  panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); collapse(); } });
+  // Collapse on blur, but only once focus has genuinely left the panel.
+  panel.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (!panel.hidden && !panel.contains(document.activeElement)) {
+        panel.hidden = true;
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    }, 0);
   });
 })();
 
-/* The closing band's supply-side call to action is a plain anchor to
-   /for-wineries.html now that the page exists. It needed no JS, so the
-   Round 3A placeholder handler is gone rather than left inert. */
+(function drawerSearch() {
+  const form = $('#menuSearchForm');
+  if (!form) return;
+  form.addEventListener('submit', (e) => { e.preventDefault(); goSearch($('#menuSearch').value); });
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: TERRITORY
+   For Wineries promises that a winery can exclude postcodes and that
+   a customer inside one never sees the listing. This is where that
+   promise is kept: excluded wines are removed from the market, not
+   greyed out, and the count says how many without naming anyone.
+   Exclusions are ranges in data/wineries.json.
+   ═══════════════════════════════════════════════════════════════ */
+const postcode = () => Store.get('postcode', '');
+const setPostcode = (pc) => Store.set('postcode', String(pc || '').trim());
+
+function excludesPostcode(winery, pc) {
+  const n = parseInt(String(pc).trim(), 10);
+  if (!n || !winery || !winery.territory_exclusions) return false;
+  return winery.territory_exclusions.some((range) => {
+    const [lo, hi] = String(range).split('-').map(Number);
+    return n >= lo && n <= (hi === undefined ? lo : hi);
+  });
+}
+
+/** True when this wine cannot be delivered to the saved postcode. */
+function wineExcluded(w, pc) {
+  return excludesPostcode(WINERIES[w.winery_slug], pc || postcode());
+}
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: ACCOUNT  (account.html only, spec 4.9)
@@ -646,6 +998,12 @@ const DISPATCH_STEPS = [
 function offerRow(offer) {
   const w = wineBySlug(offer.wine_slug);
   if (!w) return null;
+  // An offer past its expires_at is expired regardless of the status it was
+  // authored with, and a stored override beats both.
+  const override = offerStates()[offer.id];
+  let status = override || offer.status;
+  if ((status === 'sent' || status === 'countered') && isPast(offer.expires_at)) status = 'expired';
+  offer = { ...offer, status };
   const [label, pillClass] = OFFER_STATE[offer.status] || OFFER_STATE.sent;
 
   const row = el('div', 'account__row');
@@ -691,6 +1049,9 @@ function offerRow(offer) {
     const archive = el('button', 'btn btn--quiet btn--sm', 'Archive');
     archive.addEventListener('click', () => {
       if (!confirm('Archive this offer?')) return;
+      const states = offerStates();
+      states[offer.id] = 'expired';
+      Store.set('offerStates', states);
       row.remove();
       toast('Offer archived.', 'i-check');
     });
@@ -826,22 +1187,28 @@ function addressCard(addr) {
   if (slCount) slCount.textContent = String(shortlist.length);
 
   /* ── My Offers ─────────────────────────────────────────────── */
-  const rows = offerData.offers.map(offerRow).filter(Boolean);
+  const rows = [...userOffers(), ...offerData.offers].map(offerRow).filter(Boolean);
   $('#acOffers', root).replaceChildren(...(rows.length
     ? rows
     : [el('p', 'account__panel-note', 'You have no offers open.')]));
-  const openCount = offerData.offers.filter((o) => o.status === 'sent' || o.status === 'countered').length;
+  const openCount = [...userOffers(), ...offerData.offers]
+    .filter((o) => {
+      const st = offerStates()[o.id] || o.status;
+      if (isPast(o.expires_at)) return false;
+      return st === 'sent' || st === 'countered';
+    }).length;
   const badge = $('#acOfferBadge', root);
   if (badge) badge.textContent = String(openCount);
 
   /* ── Orders ────────────────────────────────────────────────── */
-  const orders = orderData.orders.map(orderCard).filter(Boolean);
+  const orders = [...userOrders(), ...orderData.orders].map(orderCard).filter(Boolean);
   $('#acOrders', root).replaceChildren(...(orders.length
     ? orders
     : [el('p', 'account__panel-note', 'You have no orders yet.')]));
 
   /* ── Tenders I have posted ─────────────────────────────────── */
-  const mine = tenderData.tenders.filter((t) => c.my_tenders.includes(t.id));
+  const mine = [...userTenders(),
+                ...tenderData.tenders.filter((t) => c.my_tenders.includes(t.id))];
   $('#acTenders', root).replaceChildren(...(mine.length
     ? mine.map((t) => tenderCard(t, true))
     : [el('p', 'account__panel-note', 'You have not posted a tender yet.')]));
@@ -990,11 +1357,48 @@ function tenderCard(t, mine) {
     document.createTextNode(' cases available'));
 
   const actions = $('#wineActions', root);
+
+  /* Territory. A direct link to an excluded wine must say so plainly — the
+     page is not missing, it is undeliverable to the saved postcode. It must
+     NOT name the winery as the one excluding, so the copy talks about the
+     postcode, and the wine's identity above stays fully readable. */
+  const pc = postcode();
+  if (wineExcluded(w, pc)) {
+    const blocked = el('div', 'wine__blocked');
+    blocked.appendChild(icon('i-alert'));
+    const body = el('div');
+    body.appendChild(el('p', 'wine__blocked-title', 'Not available to ' + pc));
+    body.appendChild(el('p', 'wine__blocked-text',
+      'This wine cannot be delivered to postcode ' + pc + '. Change the delivery ' +
+      'postcode on the market to see what is available to you.'));
+    const back = el('a', 'btn btn--ghost', 'Back to the market');
+    back.href = '/index.html#market';
+    body.appendChild(back);
+    blocked.appendChild(body);
+    actions.replaceChildren(blocked);
+    $('#wineStock', root).textContent = '';
+  } else {
   const buy = el('button', 'btn btn--solid btn--block', 'Buy now');
   buy.addEventListener('click', () => openBuyModal(w.slug));
   const offer = el('button', 'btn btn--ghost btn--block', 'Make an offer');
   offer.addEventListener('click', () => openOfferModal(w.slug));
-  actions.replaceChildren(buy, offer);
+  const save = el('button', 'btn btn--quiet btn--block');
+  const paintSave = () => {
+    const on = isShortlisted(w.slug, SHORTLIST_SEED);
+    save.classList.toggle('is-on', on);
+    save.setAttribute('aria-pressed', on ? 'true' : 'false');
+    save.replaceChildren(icon(on ? 'i-check' : 'i-plus', true),
+      el('span', null, on ? 'On your shortlist' : 'Add to shortlist'));
+  };
+  save.addEventListener('click', () => {
+    const added = toggleShortlist(w.slug, SHORTLIST_SEED);
+    paintSave();
+    toast(added ? 'Added to your shortlist.' : 'Removed from your shortlist.',
+      added ? 'i-check-circle' : 'i-check');
+  });
+  await seedShortlist();
+  paintSave();
+  actions.replaceChildren(buy, offer, save);
 
   if (deal) {
     const reached = deal.tiers.filter((t) => t.cases <= deal.committed_cases).pop() || deal.tiers[0];
@@ -1002,6 +1406,7 @@ function tenderCard(t, mine) {
       `Go Deal live, ${round(reached.price)} per case`);
     go.href = '/go-deals.html';
     actions.appendChild(go);
+  }
   }
 
   // Seller identification on every wine, per spec 8.
@@ -1125,19 +1530,21 @@ function tenderCard(t, mine) {
     explainer.replaceChildren(...mechanic.lines.map((l) => el('li', null, l)));
   }
 
-  const cards = dealData.go_deals
-    .map((deal) => { const w = wineBySlug(deal.wine_slug); return w ? goDealCard(deal, w) : null; })
-    .filter(Boolean);
+  const paint = () => {
+    const cards = dealData.go_deals
+      .map((deal) => { const w = wineBySlug(deal.wine_slug); return w ? goDealCard(deal, w, paint) : null; })
+      .filter(Boolean);
+    grid.replaceChildren(...(cards.length
+      ? cards
+      : [el('p', 'market__empty', 'No Go Deals are running right now.')]));
+    const count = $('#goDealCount');
+    if (count) {
+      count.textContent = cards.length === 1
+        ? 'One Go Deal is running now' : `${cards.length} Go Deals are running now`;
+    }
+  };
+  paint();
 
-  grid.replaceChildren(...(cards.length
-    ? cards
-    : [el('p', 'market__empty', 'No Go Deals are running right now.')]));
-
-  const count = $('#goDealCount');
-  if (count) {
-    count.textContent = cards.length === 1
-      ? 'One Go Deal is running now' : `${cards.length} Go Deals are running now`;
-  }
 })();
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1166,26 +1573,53 @@ function tenderCard(t, mine) {
     }));
   }
 
-  list.replaceChildren(...(data.tenders.length
-    ? data.tenders.map((t) => tenderCard(t, false))
-    : [el('p', 'market__empty', 'No tenders are open right now.')]));
-
-  const count = $('#tenderCount');
-  if (count) count.textContent = String(data.tenders.length);
+  // Base tenders plus any this visitor has posted, newest first.
+  const paint = () => {
+    const all = [...userTenders(), ...data.tenders];
+    list.replaceChildren(...(all.length
+      ? all.map((t) => tenderCard(t, userTenders().some((u) => u.id === t.id)))
+      : [el('p', 'market__empty', 'No tenders are open right now.')]));
+    const count = $('#tenderCount');
+    if (count) count.textContent = String(all.length);
+  };
+  paint();
 
   const form = $('#tenderForm');
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const variety = $('#tVariety').value;
-      const qty = $('#tQuantity').value;
-      const max = $('#tMaxPrice').value;
+      const region = $('#tRegion').value;
+      const from = parseInt($('#tFrom').value, 10);
+      const to = parseInt($('#tTo').value, 10);
+      const qty = parseInt($('#tQuantity').value, 10);
+      const max = parseInt($('#tMaxPrice').value, 10);
+      const closes = $('#tCloses').value;
       if (!qty || !max) {
         toast('Enter how many cases you want and your maximum price per case.', 'i-x-circle');
         return;
       }
-      toast(`Tender posted: ${qty} cases of ${variety} up to $${max} per case. ` +
-            'Wineries can now submit. This prototype does not send it anywhere.', 'i-check-circle');
+      if (from && to && to < from) {
+        toast('The vintage range runs backwards. Check the years.', 'i-x-circle');
+        return;
+      }
+      const mine = userTenders();
+      const tender = {
+        id: 'T-' + (2000 + mine.length + 1),
+        variety,
+        gi: region.startsWith('Any') ? 'Margaret River' : region,
+        vintage_from: from || 2019,
+        vintage_to: to || 2024,
+        quantity_cases: qty,
+        max_price_per_case: max,
+        closes_at: closes || isoInDays(21),
+        submission_count: 0,
+        posted_by_me: true,
+      };
+      Store.set('tenders', [tender, ...mine]);
+      paint();
+      toast(`Tender ${tender.id} posted. It is in your account, and wineries ` +
+            'can submit against it.', 'i-check-circle');
       form.reset();
     });
   }
@@ -1314,14 +1748,12 @@ function diagram(id) {
    this session has not been verified, so the gate is covering the
    page before this code runs.
    ═══════════════════════════════════════════════════════════════ */
-const AGE_KEY = 'gwg-age-verified';
-
-function sessionGet(key) {
-  try { return sessionStorage.getItem(key); } catch (e) { return null; }
-}
-function sessionSet(key, value) {
-  try { sessionStorage.setItem(key, value); } catch (e) { /* private mode */ }
-}
+/* NOTE, and it needs a decision before launch. Spec 8 says the age check is
+   "persisted for the session". Round 4A moved it to localStorage so a demo
+   survives a browser restart, which is the opposite trade-off. The <head>
+   script reads the same key. Flagged in CLAUDE.md; confirm with the liquor
+   licensing lawyer which one ships. */
+const AGE_KEY = 'gwg.v1.ageVerified';
 
 /** Whole years between a date of birth and today. */
 function yearsSince(y, m, d) {
@@ -1392,7 +1824,7 @@ function yearsSince(y, m, d) {
       return;
     }
 
-    sessionSet(AGE_KEY, '1');
+    Store.set('ageVerified', true);
     release();
     restore();
     html.classList.remove('age-gate-open');
