@@ -109,7 +109,7 @@
 "instancedAt": {
 "opsz": 100
 },
-"source": "6NUu8FyLNQOQZAnv9bYEvDiIdE9Ea92uemAk_WBq",
+"source": "assets/fonts/fraunces.woff2",
 "unitsPerEm": 2000,
 "variable": true
 },
@@ -220,10 +220,12 @@
 "98": 0.6123,
 "99": 0.5713
 },
-"instancedAt": null,
-"source": "UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduK",
+"instancedAt": {
+"wght": 400
+},
+"source": "assets/fonts/inter.woff2",
 "unitsPerEm": 2048,
-"variable": false
+"variable": true
 },
 "inter-500": {
 "advances": {
@@ -332,9 +334,11 @@
 "98": 0.6182,
 "99": 0.5771
 },
-"instancedAt": null,
-"source": "UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduK",
+"instancedAt": {
+"wght": 500
+},
+"source": "assets/fonts/inter.woff2",
 "unitsPerEm": 2048,
-"variable": false
+"variable": true
 }
 }

@@ -1,4 +1,41 @@
 @charset "UTF-8";
+
+/* ═══════════════════════════════════════════════════════════════════
+   FONTS — SELF HOSTED
+   Round 4B took these off Google Fonts. That removed two preconnects and
+   a render-blocking stylesheet request to a third-party origin, and it
+   needs no build step: the woff2 files are committed and served from the
+   same host as everything else.
+
+   Both are VARIABLE. Inter carries a live wght axis 100–900, so one file
+   serves 400 and 500 — Google was already serving the identical file for
+   both weights. Fraunces has wght, SOFT and WONK instanced out but leaves
+   opsz LIVE at a default of 9, which is why every display rule pins
+   `font-variation-settings: var(--display-axes)` and the audit fails any
+   rule that does not.
+
+   LATIN SUBSET ONLY. The site is English with Australian place names.
+   Anything outside latin falls back to the system stack.
+
+   Regenerate tools/font-metrics.json if either file changes:
+     python3 tools/extract-font-metrics.py
+   ═══════════════════════════════════════════════════════════════════ */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/assets/fonts/fraunces.woff2') format('woff2-variations'),
+       url('/assets/fonts/fraunces.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/assets/fonts/inter.woff2') format('woff2-variations'),
+       url('/assets/fonts/inter.woff2') format('woff2');
+}
 /* ═══════════════════════════════════════════════════════════════════
    GO WINE GO — SHARED STYLESHEET
    One stylesheet for index.html, account.html and supplier.html.
@@ -1783,6 +1820,21 @@ html.age-gate-open body { overflow: hidden; }
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
+/* THE HEADER BREAKPOINT IS 900, NOT 760.
+   The bar is a fixed 76px row that cannot wrap, so it sheds content by
+   media query. At 834 the full bar left only 36px of slack — the
+   second-tightest number on the site, and one word of copy away from
+   overflowing. The full nav now renders only where it has room to breathe:
+   above 900 there is 100px+ of slack at every width, and at or below it the
+   drawer carries every destination including search.
+   tools/layout-audit.mjs measures this at 390, 760 and 900. */
+@media (max-width: 900px) {
+  .site-header__nav { display: none; }
+  .site-header__login { display: none; }
+  .site-header__search-btn { display: none; }   /* search moves to the drawer */
+  .site-header__menu-btn { display: inline-flex; }
+}
+
 @media (max-width: 1100px) {
   .trust__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   /* The listings table carries eight columns since territory exclusions were
@@ -1818,16 +1870,6 @@ html.age-gate-open body { overflow: hidden; }
      a phone even though it reads fine on a pointer device. */
   .btn--sm { padding: var(--sp-3) var(--sp-4); }
   .market__filter { padding: var(--sp-3) var(--sp-4); }
-  /* The bar cannot wrap, so below 760 it sheds the nav and the account
-     link and shows the menu button instead. The drawer carries every
-     destination, which is why shedding them here is safe.
-     tools/layout-audit.mjs asserts a reachable nav control at 390 and 760
-     and that what is left still fits the bar. */
-  .site-header__nav { display: none; }
-  .site-header__login { display: none; }
-  /* Below 760 search is in the drawer, so the bar sheds this too. */
-  .site-header__search-btn { display: none; }
-  .site-header__menu-btn { display: inline-flex; }
   .site-header__inner { gap: var(--sp-3); }
   /* Mobile: the plate drops below the photograph and goes full width.
      The image height is reduced rather than the frame being cropped

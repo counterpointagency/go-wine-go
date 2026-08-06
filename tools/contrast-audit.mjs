@@ -34,7 +34,19 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
    stylesheet. The structural guards run over ALL of them, so a hardcoded
    colour cannot hide in the page that happens not to be checked. */
 const CSS_FILE = 'assets/css/main.css';
-const JS_FILE = 'assets/js/main.js';
+/* Round 4B split main.js into a shared core plus per-page ES modules.
+   The guards read ALL of them, so a banned word or an emoji cannot hide in
+   whichever module happens not to be checked. */
+const JS_FILES = [
+  'assets/js/core.js', 'assets/js/modals.js',
+  'assets/js/ui/cards.js', 'assets/js/ui/godeal.js',
+  'assets/js/ui/tender.js', 'assets/js/ui/panels.js',
+  'assets/js/pages/home.js', 'assets/js/pages/wine.js', 'assets/js/pages/winery.js',
+  'assets/js/pages/go-deals.js', 'assets/js/pages/tenders.js',
+  'assets/js/pages/how-it-works.js', 'assets/js/pages/account.js',
+  'assets/js/pages/for-wineries.js', 'assets/js/pages/supplier.js',
+  'assets/js/pages/legal.js', 'assets/js/pages/notfound.js',
+];
 const HTML_FILES = [
   'index.html', 'wine.html', 'winery.html', 'go-deals.html',
   'tenders.html', 'how-it-works.html', 'account.html',
@@ -52,7 +64,7 @@ const BUYER_DATA = [
 ];
 
 const CSS = readFileSync(resolve(ROOT, CSS_FILE), 'utf8');
-const JS = readFileSync(resolve(ROOT, JS_FILE), 'utf8');
+const JS = JS_FILES.map((f) => readFileSync(resolve(ROOT, f), 'utf8')).join('\n');
 const HTML = Object.fromEntries(
   HTML_FILES.map((f) => [f, readFileSync(resolve(ROOT, f), 'utf8')]),
 );
@@ -306,7 +318,7 @@ function guards() {
 
   /* The age gate is opened by a synchronous <head> script that adds
      .age-gate-open to <html> before first paint. Without it the gate never
-     opens AND assets/js/main.js removes it as already-verified, so the site
+     opens AND assets/js/core.js removes it as already-verified, so the site
      is reachable with no age check at all — silently, on whichever pages
      happen to be missing the line.
 
@@ -333,6 +345,105 @@ function guards() {
     if (!/Disallow:\s*\/\s*$/m.test(rules)) robotsBad.push('robots.txt does not Disallow: /');
   } catch (e) {
     robotsBad.push('robots.txt is missing');
+  }
+
+  /* Every page loads exactly ONE entry module, and it has to exist. A page
+     that loads none renders nothing; a page that loads two runs the shared
+     core twice. */
+  const entryProblems = [];
+  for (const f of HTML_FILES) {
+    const tags = [...HTML[f].matchAll(/<script[^>]*type="module"[^>]*src="([^"]+)"/g)].map((m) => m[1]);
+    if (tags.length !== 1) { entryProblems.push(`${f} loads ${tags.length} module entry points`); continue; }
+    const rel = tags[0].replace(/^\//, '');
+    try { readFileSync(resolve(ROOT, rel), 'utf8'); }
+    catch (e) { entryProblems.push(`${f} loads ${tags[0]}, which does not exist`); }
+  }
+
+  /* ── ACCESSIBILITY, statically checkable ────────────────────────────
+     None of this replaces a screen reader. It checks the things that are
+     true or false in the markup: landmarks, one h1, heading order, an
+     accessible name on every icon-only control, a label on every input,
+     and aria-live where a region updates without a page change. What it
+     cannot check is stated plainly in CLAUDE.md. */
+  const a11y = { landmarks: [], headings: [], names: [], labels: [], live: [] };
+  let a11yControls = 0, a11yInputs = 0, a11yHeadings = 0;
+
+  for (const f of HTML_FILES) {
+    const body = stripHtmlComments(HTML[f]);
+
+    // one <main>, one <h1>, a skip link, and a footer
+    if ((body.match(/<main\b/g) || []).length !== 1) a11y.landmarks.push(`${f}: not exactly one <main>`);
+    if ((body.match(/<footer\b/g) || []).length !== 1) a11y.landmarks.push(`${f}: not exactly one <footer>`);
+    if (!/class="skip-link"/.test(body)) a11y.landmarks.push(`${f}: no skip link`);
+    if (!/<nav\b/.test(body)) a11y.landmarks.push(`${f}: no <nav>`);
+
+    // heading order must not skip a level
+    const levels = [...body.matchAll(/<h([1-6])\b/g)].map((m) => Number(m[1]));
+    a11yHeadings += levels.length;
+    const h1s = levels.filter((n) => n === 1).length;
+    if (h1s !== 1) a11y.headings.push(`${f}: ${h1s} <h1>`);
+    for (let i = 1; i < levels.length; i++) {
+      if (levels[i] > levels[i - 1] + 1) {
+        a11y.headings.push(`${f}: h${levels[i - 1]} jumps straight to h${levels[i]}`);
+        break;
+      }
+    }
+
+    // every icon-only control needs an accessible name
+    for (const m of body.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)) {
+      a11yControls++;
+      const attrs = m[1], inner = m[2];
+      const text = inner.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '').trim();
+      const named = /aria-label="[^"]+"/.test(attrs) || /aria-labelledby="[^"]+"/.test(attrs);
+      if (!text && !named) a11y.names.push(`${f}: icon-only <button${attrs.slice(0, 46)}> has no accessible name`);
+    }
+    for (const m of body.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)) {
+      const attrs = m[1], inner = m[2];
+      if (!/href=/.test(attrs)) continue;
+      a11yControls++;
+      const text = inner.replace(/<svg[\s\S]*?<\/svg>/g, '').replace(/<[^>]+>/g, '').trim();
+      const named = /aria-label="[^"]+"/.test(attrs) || /aria-labelledby="[^"]+"/.test(attrs);
+      if (!text && !named) a11y.names.push(`${f}: icon-only <a${attrs.slice(0, 46)}> has no accessible name`);
+    }
+
+    // every input/select needs a label, aria-label or aria-labelledby
+    for (const m of body.matchAll(/<(input|select|textarea)\b([^>]*)>/g)) {
+      const attrs = m[2];
+      if (/type="(hidden|submit|button)"/.test(attrs)) continue;
+      a11yInputs++;
+      const id = (attrs.match(/id="([\w-]+)"/) || [])[1];
+      const explicit = id && new RegExp(`<label[^>]*for="${id}"`).test(body);
+      // An input nested inside its own <label> is implicitly labelled, which
+      // is just as valid as for=. The checkboxes on supplier.html are wrapped
+      // that way, and a check that only looks for for= calls them nameless.
+      const implicit = new RegExp(`<label\\b[^>]*>(?:(?!</label>)[\\s\\S])*?${
+        id ? `id="${id}"` : '<input'}`).test(body);
+      const labelled = explicit || implicit;
+      if (!labelled && !/aria-label="[^"]+"/.test(attrs) && !/aria-labelledby="[^"]+"/.test(attrs)) {
+        a11y.labels.push(`${f}: <${m[1]} ${id ? '#' + id : attrs.slice(0, 40)}> has no label`);
+      }
+    }
+  }
+
+  /* Reduced motion. The CSS query collapses the transition tokens, but it
+     cannot reach scrollIntoView({behavior:'smooth'}) — that is a JS argument.
+     Anything that scrolls must go through core's reveal(). */
+  const rawSmooth = JS_FILES.filter((f) =>
+    /behavior:\s*'smooth'/.test(stripLineComments(stripBlockComments(
+      readFileSync(resolve(ROOT, f), 'utf8')))) && !f.endsWith('core.js'));
+  const motionOk = /prefers-reduced-motion: reduce/.test(stripBlockComments(CSS))
+                && /matchMedia\('\(prefers-reduced-motion: reduce\)'\)/.test(JS);
+
+  /* Regions that change without a page load must announce themselves. */
+  const LIVE = [
+    ['index.html', 'toast', /id="toast"[^>]*role="status"[^>]*aria-live="polite"/],
+    ['index.html', 'search result state', /id="marketSearch"[^>]*role="status"/],
+    ['index.html', 'territory exclusion count', /id="marketExcluded"[^>]*role="status"/],
+    ['index.html', 'age gate error', /id="ageGateError"[^>]*role="alert"/],
+    ['index.html', 'Banned Drinker Register notice', /id="buyBdr"[^>]*role="status"/],
+  ];
+  for (const [file, what, re_] of LIVE) {
+    if (!re_.test(stripHtmlComments(HTML[file]))) a11y.live.push(`${file}: ${what} is not announced`);
   }
 
   const sharedDrift = [];
@@ -395,6 +506,21 @@ function guards() {
       `${refs.size} references`],
     ['Sprite symbols defined but never referenced', unusedSymbols.length, 0, unusedSymbols,
       `${symbols.length} symbols`],
+    ['a11y: landmarks, main, footer, nav, skip link', a11y.landmarks.length, 0, a11y.landmarks,
+      `${HTML_FILES.length} pages`],
+    ['a11y: one h1 and no skipped heading level', a11y.headings.length, 0, a11y.headings,
+      `${a11yHeadings} headings across ${HTML_FILES.length} pages`],
+    ['a11y: every control has an accessible name', a11y.names.length, 0, a11y.names,
+      `${a11yControls} buttons and links`],
+    ['a11y: every input has a label', a11y.labels.length, 0, a11y.labels,
+      `${a11yInputs} inputs`],
+    ['a11y: live regions announce', a11y.live.length, 0, a11y.live, `${LIVE.length} regions`],
+    ['a11y: reduced motion honoured in CSS and JS', (motionOk ? 0 : 1) + rawSmooth.length, 0,
+      [...rawSmooth.map((f) => `${f} scrolls smoothly without checking the preference`),
+       ...(motionOk ? [] : ['no prefers-reduced-motion handling found'])],
+      `${JS_FILES.length} modules + the stylesheet`],
+    ['Every page loads exactly one entry module', entryProblems.length, 0, entryProblems,
+      `${HTML_FILES.length} pages, ${JS_FILES.length} modules`],
     ['noindex meta on every page', noindexMissing.length, 0, noindexMissing,
       `${HTML_FILES.length} page heads`],
     ['robots.txt disallows everything', robotsBad.length, 0, robotsBad, '1 file'],

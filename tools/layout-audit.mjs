@@ -77,7 +77,11 @@ const PLATES = [
    navigation control has to exist in their place or the site has no
    route on a phone at all. This is the check that would have caught
    Rounds 3A and 3B shipping with no mobile menu. */
-const MOBILE_NAV_WIDTHS = [390, 760];
+const MOBILE_NAV_WIDTHS = [390, 760, 900];
+
+/* Where the full bar renders it must clear its content by this much. A bar
+   that merely fits is one word of copy from overflowing. */
+const HEADER_SLACK_TARGET = 100;
 
 
 /* ── FORM CONTEXTS ──────────────────────────────────────────────────
@@ -192,6 +196,7 @@ const HTML = PAGES[0].html;
 
 const VIEWPORTS = [
   { w: 390,  h: 844,  label: 'iPhone 390x844' },
+  { w: 901,  h: 1000, label: 'Just over 901x1000' },
   { w: 834,  h: 1194, label: 'iPad 834x1194' },
   { w: 1280, h: 800,  label: 'Laptop 1280x800' },
   { w: 1600, h: 1000, label: 'Desktop 1600x1000' },
@@ -669,7 +674,8 @@ for (const plate of PLATES) {
    Go Deals, Tenders and How It Works shipped. The header is a fixed
    76px bar with no wrap, so overflowing it pushes content out of the
    viewport rather than reflowing. Measured with real glyph advances. */
-console.log('\n6. HEADER CONTENT vs AVAILABLE WIDTH');
+console.log(`\n6. HEADER CONTENT vs AVAILABLE WIDTH  (full bar needs ${HEADER_SLACK_TARGET}px headroom)`);
+let headerChecks = 0;
 console.log(`  ${'VIEWPORT'.padEnd(20)} ${'NEEDS'.padStart(8)} ${'HAS'.padStart(8)} ${'SLACK'.padStart(8)}  CONTENT`);
 const navLabels = [...HTML.matchAll(/class="site-header__tab"[^>]*>([^<]+)</g)].map((m) => m[1].trim());
 const roleLabels = [...HTML.matchAll(/class="site-header__role"[^>]*><span>([^<]+)<\/span>/g)].map((m) => m[1].trim());
@@ -689,9 +695,15 @@ for (const vp of VIEWPORTS) {
   // The COLLAPSED search control is a real button in the bar and takes real
   // width. Only the expanded panel is absolutely positioned and free.
   const searchBtn = map.get('.site-header__search-btn');
-  if (!searchBtn) { failures++; console.log(c(RED, '  .site-header__search-btn not found in the stylesheet')); }
+  const menuBtn = map.get('.site-header__menu-btn');
+  for (const [sel, node] of [['.site-header__search-btn', searchBtn], ['.site-header__menu-btn', menuBtn]]) {
+    if (!node) { failures++; console.log(c(RED, `  ${sel} not found in the stylesheet`)); }
+  }
   const searchShown = (searchBtn?.display || 'none') !== 'none';
   const searchW = searchShown ? R(searchBtn.width) + R(TOKENS['--sp-3']) : 0;
+  // The menu button is a real flex item too, and was never being counted.
+  const menuShown = (menuBtn?.display || 'none') !== 'none';
+  const menuW = menuShown ? R(menuBtn.width) + R(TOKENS['--sp-3']) : 0;
 
   const logo = R(TOKENS['--icon']) + R(TOKENS['--sp-2'])
              + textWidth(DISPLAY_FACE, wordmark, R(TOKENS['--fs-mark']),
@@ -702,22 +714,35 @@ for (const vp of VIEWPORTS) {
   const roles = rolesHidden ? 0 : roleLabels.reduce((sum, label) =>
     sum + textWidth('inter-400', label, R(TOKENS['--fs-xs'])) + R(TOKENS['--sp-3']) * 2, 0)
     + 4 + 2;                                            // pill padding + border
-  const login = textWidth('inter-500', loginLabel, R(TOKENS['--fs-sm']))
-              + R(TOKENS['--sp-4']) * 2 + 2;
+  // The account link is hidden below the header breakpoint too. Counting a
+  // control that is not rendered inflates the need and hides real slack —
+  // the same mistake as not counting one that is.
+  const loginEl = map.get('.site-header__login');
+  if (!loginEl) { failures++; console.log(c(RED, '  .site-header__login not found in the stylesheet')); }
+  const loginShown = (loginEl?.display || 'inline-block') !== 'none';
+  const login = loginShown
+    ? textWidth('inter-500', loginLabel, R(TOKENS['--fs-sm'])) + R(TOKENS['--sp-4']) * 2 + 2
+    : 0;
   const gaps = R(TOKENS['--sp-5']) * (navHidden ? 1 : 2)
              + (rolesHidden ? 0 : R(TOKENS['--sp-3']));
 
-  const need = logo + nav + roles + login + gaps + searchW;
+  const need = logo + nav + roles + login + gaps + searchW + menuW;
   const have = Math.min(vp.w, R(TOKENS['--w-max'])) - R(TOKENS['--sp-5']) * 2;
-  const ok = have >= need;
+  // Where the FULL bar renders it must have room to breathe, not merely fit.
+  // 36px of slack at 834 is what sent the breakpoint to 900 in Round 4B; a
+  // headroom target is what stops it eroding back one word at a time.
+  const target = navHidden ? 0 : HEADER_SLACK_TARGET;
+  const ok = have - need >= target;
   if (!ok) failures++;
+  headerChecks++;
   const s = `${(have - need).toFixed(0)}px`;
   const parts = [
     navHidden ? 'nav hidden' : `nav: ${navLabels.join(' / ')}`,
     rolesHidden ? 'roles hidden' : roleLabels.join('/'),
-    loginLabel,
+    loginShown ? loginLabel : 'account in drawer',
     searchShown ? 'search' : 'search in drawer',
-  ].join(', ');
+    menuShown ? 'menu' : null,
+  ].filter(Boolean).join(', ');
   console.log(`  ${vp.label.padEnd(20)} ${(need.toFixed(0) + 'px').padStart(8)} ${(have.toFixed(0) + 'px').padStart(8)} ${(ok ? c(GREEN, s.padStart(8)) : c(RED, s.padStart(8)))}  ${parts}`);
 }
 
@@ -727,6 +752,9 @@ for (const vp of VIEWPORTS) {
    only route through the site on a phone. Nothing measured that,
    because every individual element was correctly sized — the failure
    was an ABSENCE. This asserts the presence. */
+if (!headerChecks) { failures++; console.log(c(RED, '  header check inspected nothing')); }
+else console.log(`  ${headerChecks} widths inspected`);
+
 console.log('\n7. NAVIGATION REACHABLE ON A PHONE');
 console.log(`  ${'WIDTH'.padStart(6)}  ${'HEADER NAV'.padEnd(12)} ${'MENU BUTTON'.padEnd(12)} RESULT`);
 for (const w of MOBILE_NAV_WIDTHS) {

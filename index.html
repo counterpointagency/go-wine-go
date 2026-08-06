@@ -10,10 +10,12 @@
 <title>Go Wine Go, Buy Direct from Australian Wineries</title>
 <meta name="description" content="Australia's direct-from-winery marketplace. Name your price by the case. The winery is the seller, and your payment is released to them when your wine is signed for.">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
+<!-- Self-hosted, so there is no third-party origin to connect to and no
+     render-blocking stylesheet from one. Preloaded because the stylesheet
+     that declares them is itself a blocking request, and without this the
+     browser would not learn about the fonts until it had parsed the CSS. -->
+<link rel="preload" href="/assets/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/main.css">
 <!-- Age gate, spec 8. Synchronous and before first paint on purpose: if this
      ran with the rest of the JS at the end of body, an unverified visitor
@@ -142,15 +144,22 @@
      ════════════════════════════════════════════════════════════════ -->
 <div class="age-gate" id="ageGate">
   <picture class="age-gate__media">
-    <source srcset="/assets/img/hero-vineyard-dawn.webp" type="image/webp">
-    <img src="/assets/img/hero-vineyard-dawn.jpg"
+    <source srcset="/assets/img/hero-vineyard-dawn.avif 2400w, /assets/img/hero-vineyard-dawn-1200.avif 1200w, /assets/img/hero-vineyard-dawn-600.avif 600w"
+              sizes="100vw" type="image/avif">
+      <source srcset="/assets/img/hero-vineyard-dawn.webp 2400w, /assets/img/hero-vineyard-dawn-1200.webp 1200w, /assets/img/hero-vineyard-dawn-600.webp 600w"
+              sizes="100vw" type="image/webp">
+    <img srcset="/assets/img/hero-vineyard-dawn.jpg 2400w, /assets/img/hero-vineyard-dawn-1200.jpg 1200w, /assets/img/hero-vineyard-dawn-600.jpg 600w"
+           sizes="100vw"
+           src="/assets/img/hero-vineyard-dawn.jpg"
          alt="Aerial view of vineyard rows and two dams at dawn, Margaret River"
          width="2400" height="1091" decoding="async">
   </picture>
   <div class="age-gate__plate" role="dialog" aria-modal="true"
        aria-labelledby="ageGateTitle" aria-describedby="ageGateNote">
     <p class="label age-gate__eyebrow" id="ageGateEyebrow">Before you come in</p>
-    <h1 class="age-gate__title" id="ageGateTitle">Do you meet the legal drinking age?</h1>
+    <!-- h2, not h1: this is a dialog title, and the page underneath has its
+         own h1. aria-labelledby points the dialog at it either way. -->
+    <h2 class="age-gate__title" id="ageGateTitle">Do you meet the legal drinking age?</h2>
     <p class="age-gate__note" id="ageGateNote"></p>
 
     <form id="ageGateForm" novalidate>
@@ -305,8 +314,13 @@
        ══════════════════════════════════════════════════════════ -->
   <section class="hero" aria-labelledby="heroTitle">
     <picture class="hero__media">
-      <source srcset="/assets/img/hero-vineyard-dawn.webp" type="image/webp">
-      <img src="/assets/img/hero-vineyard-dawn.jpg"
+      <source srcset="/assets/img/hero-vineyard-dawn.avif 2400w, /assets/img/hero-vineyard-dawn-1200.avif 1200w, /assets/img/hero-vineyard-dawn-600.avif 600w"
+              sizes="100vw" type="image/avif">
+      <source srcset="/assets/img/hero-vineyard-dawn.webp 2400w, /assets/img/hero-vineyard-dawn-1200.webp 1200w, /assets/img/hero-vineyard-dawn-600.webp 600w"
+              sizes="100vw" type="image/webp">
+      <img srcset="/assets/img/hero-vineyard-dawn.jpg 2400w, /assets/img/hero-vineyard-dawn-1200.jpg 1200w, /assets/img/hero-vineyard-dawn-600.jpg 600w"
+           sizes="100vw"
+           src="/assets/img/hero-vineyard-dawn.jpg"
            alt="Aerial view of vineyard rows and two dams at dawn, Margaret River"
            width="2400" height="1091" loading="eager" decoding="async" fetchpriority="high">
     </picture>
@@ -390,8 +404,13 @@
     <div class="editorial__grid">
       <figure class="editorial__figure">
         <picture>
-          <source srcset="/assets/img/vine-old-trunk.webp" type="image/webp">
-          <img src="/assets/img/vine-old-trunk.jpg"
+          <source srcset="/assets/img/vine-old-trunk.avif 1000w, /assets/img/vine-old-trunk-500.avif 500w"
+              sizes="(max-width: 900px) 100vw, 40vw" type="image/avif">
+      <source srcset="/assets/img/vine-old-trunk.webp 1000w, /assets/img/vine-old-trunk-500.webp 500w"
+              sizes="(max-width: 900px) 100vw, 40vw" type="image/webp">
+          <img srcset="/assets/img/vine-old-trunk.jpg 1000w, /assets/img/vine-old-trunk-500.jpg 500w"
+           sizes="(max-width: 900px) 100vw, 40vw"
+           src="/assets/img/vine-old-trunk.jpg"
                alt="Gnarled old vine trunk on trellis wire in a dormant winter vineyard"
                width="1000" height="1250" loading="lazy" decoding="async">
         </picture>
@@ -444,8 +463,13 @@
        ══════════════════════════════════════════════════════════ -->
   <section class="closing" aria-labelledby="closingTitle">
     <picture class="closing__media">
-      <source srcset="/assets/img/closing-vine-rows.webp" type="image/webp">
-      <img src="/assets/img/closing-vine-rows.jpg"
+      <source srcset="/assets/img/closing-vine-rows.avif 1600w, /assets/img/closing-vine-rows-800.avif 800w, /assets/img/closing-vine-rows-400.avif 400w"
+              sizes="100vw" type="image/avif">
+      <source srcset="/assets/img/closing-vine-rows.webp 1600w, /assets/img/closing-vine-rows-800.webp 800w, /assets/img/closing-vine-rows-400.webp 400w"
+              sizes="100vw" type="image/webp">
+      <img srcset="/assets/img/closing-vine-rows.jpg 1600w, /assets/img/closing-vine-rows-800.jpg 800w, /assets/img/closing-vine-rows-400.jpg 400w"
+           sizes="100vw"
+           src="/assets/img/closing-vine-rows.jpg"
            alt="Late afternoon sun behind a gum treeline above rows of green vines"
            width="1600" height="800" loading="lazy" decoding="async">
     </picture>
@@ -685,6 +709,6 @@
 <!-- ═══ COMPONENT: TOAST ═══ -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/assets/js/main.js"></script>
+<script type="module" src="/assets/js/pages/home.js"></script>
 </body>
 </html>
