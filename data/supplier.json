@@ -1,0 +1,136 @@
+{
+  "_note": "Spec 4.8, the signed-in supplier view for one winery. NEW file. Everything here is the SUPPLIER's own side of the market: their floor prices, their incoming offers, their payouts.",
+
+  "_warning_floor_prices": "floor_price and the Go Deal floor appear in THIS file and in no other. They are the winery's private auto-accept threshold and a buyer must never see one. In the live product this file is an AUTHENTICATED endpoint scoped to the signed-in winery, not a static asset — a static prototype cannot enforce that, so tools/contrast-audit.mjs instead asserts that no floor ever leaks into the files the customer-facing pages fetch. Do not move a floor into wines.json, go-deals.json or any other buyer-facing file.",
+
+  "winery_slug": "wilyabrup-reach",
+
+  "stats": [
+    { "value": "34", "label": "Cases sold this month" },
+    { "value": "3", "label": "Offers awaiting response" },
+    { "value": "1", "label": "Go Deals live" },
+    { "value": "2", "label": "Awaiting proof of delivery" }
+  ],
+
+  "listings": [
+    {
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "floor_price": 290,
+      "auto_accept": true,
+      "open_offers": 3,
+      "listing_state": "active"
+    },
+    {
+      "wine_slug": "gravel-block-cabernet-franc-2022",
+      "floor_price": 215,
+      "auto_accept": false,
+      "open_offers": 1,
+      "listing_state": "active"
+    }
+  ],
+
+  "offers_inbox": [
+    {
+      "id": "IN-8814",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "customer": "Alex C.",
+      "quantity": 1,
+      "price_per_case": 310,
+      "expires_at": "2026-08-11",
+      "status": "awaiting"
+    },
+    {
+      "id": "IN-8815",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "customer": "Priya N.",
+      "quantity": 4,
+      "price_per_case": 285,
+      "expires_at": "2026-08-10",
+      "status": "awaiting"
+    },
+    {
+      "id": "IN-8817",
+      "wine_slug": "gravel-block-cabernet-franc-2022",
+      "customer": "Tom W.",
+      "quantity": 2,
+      "price_per_case": 198,
+      "expires_at": "2026-08-09",
+      "status": "awaiting"
+    },
+    {
+      "id": "IN-8802",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "customer": "Marta S.",
+      "quantity": 2,
+      "price_per_case": 300,
+      "expires_at": "2026-08-02",
+      "status": "accepted"
+    }
+  ],
+
+  "go_deal": {
+    "wine_slug": "old-vine-cabernet-sauvignon-2021",
+    "live": true,
+    "list_price": 340,
+    "floor_price": 290,
+    "committed_cases": 26,
+    "closes_at": "2026-08-25",
+    "tiers": [
+      { "cases": 0, "price": 340 },
+      { "cases": 20, "price": 322 },
+      { "cases": 50, "price": 308 },
+      { "cases": 90, "price": 296 }
+    ]
+  },
+
+  "orders": [
+    {
+      "id": "#001",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "customer": "Alex Chen",
+      "quantity": 2,
+      "sale_price": 680,
+      "dispatch_state": "dispatched",
+      "pod_state": "pending"
+    },
+    {
+      "id": "#002",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "customer": "Sarah M.",
+      "quantity": 1,
+      "sale_price": 340,
+      "dispatch_state": "awaiting_payment",
+      "pod_state": "pending"
+    },
+    {
+      "id": "#003",
+      "wine_slug": "gravel-block-cabernet-franc-2022",
+      "customer": "James T.",
+      "quantity": 1,
+      "sale_price": 320,
+      "dispatch_state": "delivered",
+      "pod_state": "pending"
+    },
+    {
+      "id": "#004",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "customer": "Priya N.",
+      "quantity": 3,
+      "sale_price": 960,
+      "dispatch_state": "delivered",
+      "pod_state": "received"
+    }
+  ],
+
+  "payouts": {
+    "commission_rate": 0.08,
+    "released": [
+      { "order_id": "#004", "amount": 960, "released_at": "2026-08-02" },
+      { "order_id": "#996", "amount": 680, "released_at": "2026-07-24" }
+    ],
+    "pending": [
+      { "order_id": "#001", "amount": 680, "reason": "Awaiting proof of delivery" },
+      { "order_id": "#003", "amount": 320, "reason": "Awaiting proof of delivery" }
+    ]
+  }
+}

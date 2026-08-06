@@ -1,5 +1,5 @@
 {
-  "_note": "Compliance and payment language, authored ONCE and read by every page that shows it. wine.html, how-it-works.html, winery.html, account.html and the buy modal all render from here, so the wording cannot drift between surfaces — which is the whole risk with a compliance line. The compliance_line and seller_line templates take {winery} and {licence}. Spec 8 items not in this file (age gate, Banned Drinker Register notice, legal stubs) belong to Round 3C.",
+  "_note": "Compliance and payment language, authored ONCE and read by every page that shows it. The compliance_line and seller_line templates take {winery} and {licence}. Spec 8 is explicit that these are interface requirements, not legal advice, and every one of them needs confirming with a liquor licensing lawyer before launch.",
 
   "payment": {
     "heading": "How payment works",
@@ -26,5 +26,34 @@
 
   "seller_line": "Sold to you by {winery}, licensed producer, licence number {licence}.",
 
-  "compliance_line": "This wine is sold to you by {winery}, licensed producer, licence number {licence}. Go Wine Go is the marketplace, not the seller."
+  "compliance_line": "This wine is sold to you by {winery}, licensed producer, licence number {licence}. Go Wine Go is the marketplace, not the seller.",
+
+  "responsible_service": "Wine is sold to persons aged 18 years and over. It is against the law to sell or supply alcohol to, or to obtain alcohol on behalf of, a person under the age of 18 years. Please drink responsibly.",
+
+  "age_gate": {
+    "eyebrow": "Before you come in",
+    "title": "Do you meet the legal drinking age?",
+    "note": "Australian law requires us to confirm your age before showing you wine for sale. Enter your date of birth to continue. We use it once, to check, and it is not stored on our servers.",
+    "legend": "Your date of birth",
+    "submit": "Enter the market",
+    "error_incomplete": "Enter your full date of birth, including the year.",
+    "error_invalid": "That date does not exist. Check the day and month.",
+    "error_future": "That date is in the future.",
+    "error_underage": "You must be 18 or over to buy wine in Australia. You cannot enter this site.",
+    "exit": "You must be 18 or over to enter."
+  },
+
+  "banned_drinker_register": {
+    "heading": "Banned Drinker Register",
+    "notice": "This delivery postcode is in a region covered by Western Australia's Banned Drinker Register. Before this order can be dispatched, the winery must check the register and sight photo identification on delivery. Delivery may be refused.",
+    "regions": [
+      { "name": "Kimberley", "postcodes": ["6725-6743", "6765", "6770"] },
+      { "name": "Pilbara", "postcodes": ["6710-6722", "6751", "6753"] },
+      { "name": "Goldfields Electorate", "postcodes": ["6429-6438", "6440-6443"] },
+      { "name": "Carnarvon and Gascoyne Junction", "postcodes": ["6701", "6705"] }
+    ],
+    "source_note": "INDICATIVE POSTCODE RANGES ONLY. These are a working placeholder for the prototype. They must be confirmed against the current Banned Drinker Register determination, and against the Director of Liquor Licensing's mapped areas, before launch."
+  },
+
+  "legal_draft_notice": "This page is a structural draft. It sets out the headings a published document needs and it is not a binding agreement. Nothing here has been settled by a lawyer, no clause should be relied on, and every section must be drafted and reviewed by a liquor licensing lawyer before this site takes a real order."
 }

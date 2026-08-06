@@ -1,0 +1,108 @@
+{
+  "_note": "Spec 4.7, the supply-side pitch. Commercially the most important page on the site, because supply is the gate. NEW file: this page is entirely editorial and spec 5 models entities, not argument. Every figure in the maths section is ILLUSTRATIVE and labelled as such on the page — it is a worked example of a margin structure, not a quote, and the commission rate is the only number that describes the actual product.",
+
+  "hero": {
+    "eyebrow": "For wineries",
+    "title": "Sell your own wine, at your own price, to the people drinking it",
+    "lead": "You already grow it, make it and bottle it. On Go Wine Go you also sell it — as the licensed seller, at a price you set, to a customer whose name you know."
+  },
+
+  "maths": {
+    "eyebrow": "The maths",
+    "title": "What a case is actually worth to you",
+    "note": "Illustrative only. A worked example on a $240 case of 12, using indicative trade margins. Your own numbers will differ and nothing here is a quote.",
+    "columns": ["Through the trade", "Direct on Go Wine Go"],
+    "rows": [
+      { "label": "What the customer pays", "trade": "$240", "direct": "$240" },
+      { "label": "Retail margin", "trade": "−$72", "direct": "—" },
+      { "label": "Distributor margin", "trade": "−$36", "direct": "—" },
+      { "label": "Freight and handling", "trade": "−$12", "direct": "−$18" },
+      { "label": "Marketplace commission", "trade": "—", "direct": "−$19" },
+      { "label": "What you keep", "trade": "$120", "direct": "$203", "is_total": true }
+    ],
+    "footnote": "The difference is not a discount you have to fund. It is the margin that currently sits with two intermediaries between you and the person drinking the wine."
+  },
+
+  "territory": {
+    "eyebrow": "Territory protection",
+    "title": "You decide which postcodes you will not sell into",
+    "diagram": "i-dia-territory",
+    "lead": "This is the part most wineries ask about first, so it is worth being plain. Selling direct does not mean selling over the top of the people who already stock you.",
+    "points": [
+      "You set a postcode exclusion list on your profile, and you can change it whenever you like.",
+      "A customer in an excluded postcode never sees your listing. Not greyed out, not 'unavailable' — it does not appear in their market at all.",
+      "So an on-premise account or a retailer in your protected territory keeps its territory, and the customer there keeps buying from them.",
+      "The exclusions are yours. Go Wine Go does not set them, cannot override them, and does not surface which wineries exclude which postcodes."
+    ],
+    "example": "A winery with a strong Perth CBD retail account excludes 6000 to 6005. Its wines sell direct everywhere else in the country and are invisible in the city block that account works."
+  },
+
+  "paid": {
+    "eyebrow": "How you get paid",
+    "title": "You are the seller, so you are the one who gets paid",
+    "items": [
+      {
+        "name": "You remain the licensed seller",
+        "text": "The sale is yours, made under your own producer's licence. Go Wine Go never takes title to the wine and is never the seller of record.",
+        "icon": "i-doc"
+      },
+      {
+        "name": "The customer is charged directly",
+        "text": "Payment is taken at checkout and held by the payment provider. Go Wine Go does not hold your money at any point.",
+        "icon": "i-shield"
+      },
+      {
+        "name": "You invoice the customer",
+        "text": "The tax invoice is yours to the customer, in your name, with your ABN and licence number on it.",
+        "icon": "i-doc"
+      },
+      {
+        "name": "Funds release on delivery",
+        "text": "Upload proof of delivery and the funds release. Money moves when the case is signed for, not before and not weeks after.",
+        "icon": "i-box"
+      }
+    ]
+  },
+
+  "cost": {
+    "eyebrow": "What it costs",
+    "title": "Commission on a sale, and nothing else",
+    "items": [
+      { "value": "8%", "label": "Commission on the sale price, deducted when funds release" },
+      { "value": "$0", "label": "To list a wine, however many you list" },
+      { "value": "$0", "label": "Monthly fee, subscription or minimum volume" },
+      { "value": "$0", "label": "To run a Go Deal or receive a tender submission" }
+    ],
+    "note": "If nothing sells, you pay nothing. The commission rate is the one number on this page that is not illustrative."
+  },
+
+  "winescape": {
+    "eyebrow": "Already on Winescape",
+    "title": "Your login already works",
+    "text": "Go Wine Go runs on the same account as your Winescape bottled-wine trading. You do not create a second company profile or re-enter your licence details.",
+    "steps": [
+      "Sign in with your existing Winescape credentials.",
+      "Ask your Company Administrator to grant you the DTC role.",
+      "Your company profile, licence details and bank account carry across.",
+      "List a wine and you are trading direct."
+    ]
+  },
+
+  "requirements": {
+    "eyebrow": "Requirements",
+    "title": "What you need before you can list",
+    "items": [
+      "A current producer's licence in the state you dispatch from.",
+      "The ability to pick, pack and dispatch by the case rather than the bottle.",
+      "Access to temperature-controlled freight to the states you sell into.",
+      "Someone who can respond to an offer inside the expiry window, usually 72 hours."
+    ]
+  },
+
+  "register": {
+    "eyebrow": "Register interest",
+    "title": "Tell us about your winery",
+    "note": "This prototype does not send anything anywhere. In the live product this starts the licence check.",
+    "success": "Thanks. In the live product this would start your licence check and someone would come back to you within two business days."
+  }
+}

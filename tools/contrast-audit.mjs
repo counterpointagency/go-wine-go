@@ -37,7 +37,18 @@ const CSS_FILE = 'assets/css/main.css';
 const JS_FILE = 'assets/js/main.js';
 const HTML_FILES = [
   'index.html', 'wine.html', 'winery.html', 'go-deals.html',
-  'tenders.html', 'how-it-works.html', 'account.html', 'supplier.html',
+  'tenders.html', 'how-it-works.html', 'account.html',
+  'for-wineries.html', 'supplier.html',
+  'legal/terms.html', 'legal/privacy.html', 'legal/delivery.html',
+  'legal/responsible-service.html',
+];
+
+/* Files the CUSTOMER-facing pages fetch. A Go Deal floor must never
+   appear in one of these — see the floor guard below. */
+const BUYER_DATA = [
+  'wines', 'wineries', 'go-deals', 'tenders', 'regions',
+  'policy', 'offers', 'orders', 'account', 'how-it-works',
+  'for-wineries', 'legal',
 ];
 
 const CSS = readFileSync(resolve(ROOT, CSS_FILE), 'utf8');
@@ -48,13 +59,9 @@ const HTML = Object.fromEntries(
 
 /* Content lives in /data, and it names icons and images, so the guards
    have to see it too. */
-const DATA_FILES = [
-  'wines', 'wineries', 'go-deals', 'tenders', 'regions',
-  'policy', 'offers', 'orders', 'account', 'how-it-works',
-];
-const DATA = DATA_FILES
-  .map((f) => readFileSync(resolve(ROOT, 'data', f + '.json'), 'utf8'))
-  .join('\n');
+const DATA_FILES = [...BUYER_DATA, 'supplier'];
+const readData = (f) => readFileSync(resolve(ROOT, 'data', f + '.json'), 'utf8');
+const DATA = DATA_FILES.map(readData).join('\n');
 
 /* ── colour maths ──────────────────────────────────────────────── */
 const srgb = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
@@ -280,11 +287,29 @@ function guards() {
   const missingSymbols = [...refs].filter((r) => !symbols.includes(r)).sort();
   const unusedSymbols = symbols.filter((s) => !refs.has(s));
 
+  /* The winery's floor price is its private auto-accept threshold. It lives
+     in data/supplier.json and must never reach a file a buyer-facing page
+     fetches. A static prototype cannot enforce auth, so this enforces the
+     thing that actually matters: that no floor leaks into buyer data. */
+  const floorLeaks = BUYER_DATA.filter((f) => {
+    const body = readData(f).replace(/"_[\w]*"\s*:\s*"[^"]*"/g, '');   // ignore _note prose
+    return /"[\w]*floor[\w]*"\s*:/i.test(body);
+  }).map((f) => `data/${f}.json contains a floor field`);
+
+  /* The responsible-service line is STATIC markup on purpose, so it survives
+     a JS failure. That only works if it cannot drift from policy.json. */
+  const policy = JSON.parse(readData('policy'));
+  const rsDrift = HTML_FILES.filter((f) => {
+    const m = HTML[f].match(/id="footerResponsibleService">([^<]*)</);
+    return !m || m[1].trim() !== policy.responsible_service.trim();
+  }).map((f) => `${f} footer line differs from policy.responsible_service`);
+
   const sharedDrift = [];
   const BLOCKS = [
-    ['header', '<!-- ═══ SECTION: SITE HEADER', '</header>\n'],
-    ['footer', '<!-- ═══ SECTION: SITE FOOTER', '</footer>\n'],
-    ['sprite', '<!-- ═══ SHARED: ICON SPRITE', '</svg>\n'],
+    ['header',  '<!-- ═══ SECTION: SITE HEADER', '</header>\n'],
+    ['footer',  '<!-- ═══ SECTION: SITE FOOTER', '</footer>\n'],
+    ['sprite',  '<!-- ═══ SHARED: ICON SPRITE', '</svg>\n'],
+    ['agegate', '<!-- ═══ SHARED: AGE GATE', '</div>\n</div>\n'],
   ];
   for (const [label, open_, close] of BLOCKS) {
     const src = HTML['index.html'];
@@ -333,12 +358,16 @@ function guards() {
     ['Display rules not pinning opsz', displayNoAxes.length, 0, displayNoAxes,
       `${displayRulesChecked} display rules`],
     ['--display-axes pins opsz 100', opszPinned ? 0 : 1, 0, null, '1 token'],
-    ['Header/footer/sprite byte identical across pages', sharedDrift.length, 0, sharedDrift,
-      `3 blocks x ${HTML_FILES.length} pages`],
+    ['Header/footer/sprite/age gate byte identical', sharedDrift.length, 0, sharedDrift,
+      `4 blocks x ${HTML_FILES.length} pages`],
     ['Sprite symbols referenced but not defined', missingSymbols.length, 0, missingSymbols,
       `${refs.size} references`],
     ['Sprite symbols defined but never referenced', unusedSymbols.length, 0, unusedSymbols,
       `${symbols.length} symbols`],
+    ['Go Deal floor in buyer-facing data', floorLeaks.length, 0, floorLeaks,
+      `${BUYER_DATA.length} buyer-facing data files`],
+    ['Footer responsible-service line matches policy.json', rsDrift.length, 0, rsDrift,
+      `${HTML_FILES.length} page footers`],
   ];
 }
 

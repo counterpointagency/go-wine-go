@@ -48,7 +48,7 @@ function icon(id, small) {
     renders a stated error rather than an empty section. */
 async function loadJSON(name) {
   try {
-    const res = await fetch('data/' + name + '.json', { cache: 'no-cache' });
+    const res = await fetch('/data/' + name + '.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
     return await res.json();
   } catch (err) {
@@ -73,6 +73,10 @@ let WINERIES = {};
 let POLICY = null;
 const wineBySlug = (slug) => WINES.find((w) => w.slug === slug);
 const winesOf = (winerySlug) => WINES.filter((w) => w.winery_slug === winerySlug);
+
+/* supplierSection owns the proof-of-delivery panel, but supplierData
+   renders the buttons that open it, so the wiring is shared. */
+let wirePodButtons = null;
 
 let cataloguePromise = null;
 function catalogue() {
@@ -135,6 +139,47 @@ function picture(base, alt, w, h, eager) {
 const wetNote = () => POLICY ? POLICY.wet_note : '';
 
 /* ═══════════════════════════════════════════════════════════════
+   SHARED: DIALOG BEHAVIOUR
+   One focus trap, used by the mobile menu and the age gate. Both are
+   modal, so both need the same three things and neither should
+   reimplement them:
+     · focus moves into the dialog on open and back to the opener on close
+     · Tab and Shift+Tab cycle inside it and cannot escape
+     · the rest of the document is marked inert, so a screen reader
+       cannot wander out of a dialog it is supposed to be held in
+   ═══════════════════════════════════════════════════════════════ */
+const FOCUSABLE = [
+  'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+  'select:not([disabled])', 'textarea:not([disabled])', '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+function focusableIn(root) {
+  return $$(FOCUSABLE, root).filter((n) => n.offsetParent !== null || n === document.activeElement);
+}
+
+/** Mark everything outside the dialog inert, so assistive technology
+    cannot reach the page behind it. Returns an undo function. */
+function isolate(dialogRoot) {
+  const siblings = $$('body > *').filter((n) => n !== dialogRoot && n.tagName !== 'SCRIPT');
+  siblings.forEach((n) => { n.inert = true; n.setAttribute('aria-hidden', 'true'); });
+  return () => siblings.forEach((n) => { n.inert = false; n.removeAttribute('aria-hidden'); });
+}
+
+function trapFocus(dialogRoot, onEscape) {
+  const onKey = (e) => {
+    if (e.key === 'Escape' && onEscape) { e.preventDefault(); onEscape(); return; }
+    if (e.key !== 'Tab') return;
+    const items = focusableIn(dialogRoot);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  document.addEventListener('keydown', onKey, true);
+  return () => document.removeEventListener('keydown', onKey, true);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    SECTION: SITE HEADER
    Transparent ONLY at scroll position zero, and only on a page that
    has a hero photograph behind it (body[data-hero]). Any scroll at
@@ -160,7 +205,7 @@ const wetNote = () => POLICY ? POLICY.wet_note : '';
   // The header and footer markup are byte identical across all three
   // pages so they map onto get_header() / get_footer(). That means the
   // current page cannot be marked up statically — it is resolved here.
-  const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const page = (location.pathname.split('/').pop() || '/index.html').toLowerCase();
   // data-page can list several pages, so a detail page marks its parent
   // section: wine.html and winery.html both light up Market.
   $$('[data-page]', header).forEach((link) => {
@@ -336,13 +381,13 @@ function wineCard(w) {
   // name is never dead text on a card.
   const producer = el('p', 'label wine-card__producer');
   const producerLink = el('a', 'wine-card__producer-link', wineryName(w));
-  producerLink.href = `winery.html?slug=${encodeURIComponent(w.winery_slug)}`;
+  producerLink.href = `/winery.html?slug=${encodeURIComponent(w.winery_slug)}`;
   producer.appendChild(producerLink);
   body.appendChild(producer);
 
   const name = el('h3', 'wine-card__name');
   const nameLink = el('a', 'wine-card__name-link', w.name);
-  nameLink.href = `wine.html?slug=${encodeURIComponent(w.slug)}`;
+  nameLink.href = `/wine.html?slug=${encodeURIComponent(w.slug)}`;
   name.appendChild(nameLink);
   body.appendChild(name);
 
@@ -527,7 +572,7 @@ function goDealCard(deal, w) {
 
   grid.replaceChildren(...data.regions.map((r) => {
     const tile = el('a', 'region-tile');
-    tile.href = 'index.html#market';
+    tile.href = '/index.html#market';
 
     const picture = document.createElement('picture');
     const source = document.createElement('source');
@@ -568,20 +613,9 @@ function goDealCard(deal, w) {
   });
 })();
 
-/* ═══════════════════════════════════════════════════════════════
-   SECTION: CLOSING BAND  (home page only)
-   The supply-side call to action points at For Wineries, which is a
-   Round 3C page. Rather than ship a link that 404s on a URL the
-   client already has, the button states plainly that it is not built
-   yet. Replace this handler with href="for-wineries.html" in 3C.
-   ═══════════════════════════════════════════════════════════════ */
-(function closingSection() {
-  const btn = $('#supplyInterest');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    toast('The For Wineries page and its register-interest form are built in Round 3C.', 'i-vine');
-  });
-})();
+/* The closing band's supply-side call to action is a plain anchor to
+   /for-wineries.html now that the page exists. It needed no JS, so the
+   Round 3A placeholder handler is gone rather than left inert. */
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: ACCOUNT  (account.html only, spec 4.9)
@@ -744,6 +778,12 @@ function addressCard(addr) {
     });
   card.appendChild(lines);
   if (addr.instructions) card.appendChild(el('p', 'account__address-note', addr.instructions));
+
+  // Spec 8: flag a saved address that sits inside a Banned Drinker
+  // Register region, so it is known before checkout rather than at it.
+  const bdr = el('p', 'bdr');
+  card.appendChild(bdr);
+  renderBdr(bdr, addr.postcode);
   return card;
 }
 
@@ -907,7 +947,7 @@ function tenderCard(t, mine) {
 
   /* ── left column, identity ─────────────────────────────────── */
   const producer = $('#wineProducer', root);
-  producer.href = `winery.html?slug=${encodeURIComponent(winery.slug)}`;
+  producer.href = `/winery.html?slug=${encodeURIComponent(winery.slug)}`;
   producer.replaceChildren(icon('i-vine', true), el('span', null, winery.name));
 
   $('#wineTitle', root).textContent = `${w.name} ${w.vintage}`;
@@ -960,7 +1000,7 @@ function tenderCard(t, mine) {
     const reached = deal.tiers.filter((t) => t.cases <= deal.committed_cases).pop() || deal.tiers[0];
     const go = el('a', 'btn btn--brass btn--block',
       `Go Deal live, ${round(reached.price)} per case`);
-    go.href = 'go-deals.html';
+    go.href = '/go-deals.html';
     actions.appendChild(go);
   }
 
@@ -981,7 +1021,7 @@ function tenderCard(t, mine) {
       document.createTextNode('Licensed producer '),
       el('b', null, winery.licence_number));
     const link = $('#stripLink', strip);
-    link.href = `winery.html?slug=${encodeURIComponent(winery.slug)}`;
+    link.href = `/winery.html?slug=${encodeURIComponent(winery.slug)}`;
     link.replaceChildren(
       el('span', null, `About ${winery.name}`), icon('i-arrow-right', true));
   }
@@ -1224,6 +1264,589 @@ function diagram(id) {
 
 
 /* ═══════════════════════════════════════════════════════════════
+   COMPONENT: MOBILE MENU
+   Below 760 the header nav and the account link are hidden, so this
+   is the only route through the site on a phone. Every destination
+   is in it, including the legal pages.
+   ═══════════════════════════════════════════════════════════════ */
+(function mobileMenu() {
+  const menu = $('#mobileMenu');
+  const btn = $('#menuBtn');
+  const close = $('#menuClose');
+  if (!menu || !btn || !close) return;
+
+  let release = null;
+  let restore = null;
+
+  function open() {
+    menu.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.style.setProperty('overflow', 'hidden');
+    restore = isolate(menu);
+    release = trapFocus(menu, shut);
+    close.focus();
+  }
+
+  function shut() {
+    menu.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.style.removeProperty('overflow');
+    if (release) { release(); release = null; }
+    if (restore) { restore(); restore = null; }
+    btn.focus();                       // focus returns to what opened it
+  }
+
+  btn.addEventListener('click', open);
+  close.addEventListener('click', shut);
+  $$('[data-closes-menu]', menu).forEach((n) => n.addEventListener('click', shut));
+  // Following a link inside the drawer navigates away; drop the isolation
+  // first so a bfcache restore never comes back to an inert document.
+  $$('.mobile-menu__link', menu).forEach((a) => a.addEventListener('click', () => {
+    if (release) release();
+    if (restore) restore();
+  }));
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: AGE GATE  (spec 8)
+   Date of birth entry, not a yes/no button, held for the session.
+   The <head> script has already added .age-gate-open to <html> if
+   this session has not been verified, so the gate is covering the
+   page before this code runs.
+   ═══════════════════════════════════════════════════════════════ */
+const AGE_KEY = 'gwg-age-verified';
+
+function sessionGet(key) {
+  try { return sessionStorage.getItem(key); } catch (e) { return null; }
+}
+function sessionSet(key, value) {
+  try { sessionStorage.setItem(key, value); } catch (e) { /* private mode */ }
+}
+
+/** Whole years between a date of birth and today. */
+function yearsSince(y, m, d) {
+  const today = new Date();
+  let age = today.getFullYear() - y;
+  const hadBirthday =
+    today.getMonth() + 1 > m || (today.getMonth() + 1 === m && today.getDate() >= d);
+  if (!hadBirthday) age -= 1;
+  return age;
+}
+
+(async function ageGate() {
+  const gate = $('#ageGate');
+  if (!gate) return;
+
+  const html = document.documentElement;
+  const isOpen = () => html.classList.contains('age-gate-open');
+
+  // Already verified this session: the head script left the gate shut.
+  if (!isOpen()) { gate.remove(); return; }
+
+  const copy = (await loadJSON('policy'))?.age_gate;
+  const legal = POLICY ? POLICY.responsible_service : null;
+
+  // Fill the wording from policy.json. If it cannot be fetched the gate
+  // still blocks — the markup carries the question and the button.
+  if (copy) {
+    $('#ageGateEyebrow').textContent = copy.eyebrow;
+    $('#ageGateTitle').textContent = copy.title;
+    $('#ageGateNote').textContent = copy.note;
+    $('#ageGateLegend').textContent = copy.legend;
+    $('#ageGateSubmit').replaceChildren(
+      document.createTextNode(copy.submit + ' '), icon('i-arrow-right', true));
+  }
+  const legalLine = legal || (await loadJSON('policy'))?.responsible_service;
+  if (legalLine) $('#ageGateLegal').textContent = legalLine;
+
+  const form = $('#ageGateForm');
+  const err = $('#ageGateError');
+  const restore = isolate(gate);
+  const release = trapFocus(gate, null);   // no Escape: the gate cannot be dismissed
+  $('#ageDay').focus();
+
+  const fail = (msg) => { err.textContent = msg; err.classList.add('is-shown'); };
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const d = parseInt($('#ageDay').value, 10);
+    const m = parseInt($('#ageMonth').value, 10);
+    const y = parseInt($('#ageYear').value, 10);
+    const c = copy || {};
+
+    if (!d || !m || !y || String($('#ageYear').value).trim().length !== 4) {
+      fail(c.error_incomplete || 'Enter your full date of birth, including the year.');
+      return;
+    }
+    // Reject a date that does not exist, rather than letting Date roll it over.
+    const probe = new Date(y, m - 1, d);
+    if (probe.getFullYear() !== y || probe.getMonth() !== m - 1 || probe.getDate() !== d) {
+      fail(c.error_invalid || 'That date does not exist.');
+      return;
+    }
+    if (probe > new Date()) { fail(c.error_future || 'That date is in the future.'); return; }
+
+    if (yearsSince(y, m, d) < 18) {
+      fail(c.error_underage || 'You must be 18 or over to enter.');
+      $('#ageGateSubmit').disabled = true;
+      return;
+    }
+
+    sessionSet(AGE_KEY, '1');
+    release();
+    restore();
+    html.classList.remove('age-gate-open');
+    gate.remove();
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: BANNED DRINKER REGISTER NOTICE  (spec 8)
+   Shown wherever a delivery postcode falls inside a BDR region. The
+   ranges live in data/policy.json and are flagged there as
+   indicative until confirmed against the current determination.
+   ═══════════════════════════════════════════════════════════════ */
+function bdrRegionFor(postcode) {
+  if (!POLICY || !POLICY.banned_drinker_register) return null;
+  const pc = parseInt(String(postcode).trim(), 10);
+  if (!pc) return null;
+  for (const region of POLICY.banned_drinker_register.regions) {
+    for (const range of region.postcodes) {
+      const [lo, hi] = range.split('-').map(Number);
+      if (pc >= lo && pc <= (hi === undefined ? lo : hi)) return region.name;
+    }
+  }
+  return null;
+}
+
+/** Fill a .bdr element for a postcode, or hide it. */
+function renderBdr(node, postcode) {
+  if (!node) return;
+  const region = bdrRegionFor(postcode);
+  if (!region) { node.classList.remove('is-shown'); node.replaceChildren(); return; }
+  const body = el('span');
+  body.appendChild(el('b', null, POLICY.banned_drinker_register.heading + '. '));
+  body.appendChild(document.createTextNode(POLICY.banned_drinker_register.notice));
+  body.appendChild(el('span', 'bdr__region', region + ' region, postcode ' + postcode + '.'));
+  node.replaceChildren(icon('i-alert'), body);
+  node.classList.add('is-shown');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: FOR WINERIES  (for-wineries.html only, spec 4.7)
+   The commercially important page. Territory protection is the
+   objection every winery raises first, so it gets its own section
+   and a thin-line diagram.
+   ═══════════════════════════════════════════════════════════════ */
+(async function forWineriesPage() {
+  const root = $('#fwRoot');
+  if (!root) return;
+
+  const [c, ok] = await Promise.all([loadJSON('for-wineries'), catalogue()]);
+  if (!c || !ok) { dataError(root, 'this page'); return; }
+
+  /* ── hero ─────────────────────────────────────────────────── */
+  $('#fwEyebrow').textContent = c.hero.eyebrow;
+  $('#fwTitle').textContent = c.hero.title;
+  $('#fwLead').textContent = c.hero.lead;
+
+  /* ── the maths, illustrative and labelled as such ─────────── */
+  $('#fwMathsEyebrow').textContent = c.maths.eyebrow;
+  $('#fwMathsTitle').textContent = c.maths.title;
+  $('#fwMathsNote').replaceChildren(icon('i-alert', true), el('span', null, c.maths.note));
+
+  const head = $('#fwMathsHead');
+  head.replaceChildren(el('th', null, ''),
+    ...c.maths.columns.map((h) => { const th = el('th', null, h); th.scope = 'col'; return th; }));
+  $('#fwMathsBody').replaceChildren(...c.maths.rows.map((r) => {
+    const tr = el('tr', r.is_total ? 'is-total' : null);
+    const th = el('th', null, r.label); th.scope = 'row';
+    tr.appendChild(th);
+    tr.appendChild(el('td', null, r.trade));
+    tr.appendChild(el('td', null, r.direct));
+    return tr;
+  }));
+  $('#fwMathsFoot').textContent = c.maths.footnote;
+
+  /* ── territory protection, the objection killer ───────────── */
+  $('#fwTerrEyebrow').textContent = c.territory.eyebrow;
+  $('#fwTerrTitle').textContent = c.territory.title;
+  $('#fwTerrDiagram').replaceChildren(diagram(c.territory.diagram));
+  $('#fwTerrCaption').textContent =
+    'Your wine reaches everywhere on the map except the postcodes you exclude.';
+  $('#fwTerrLead').textContent = c.territory.lead;
+  $('#fwTerrPoints').replaceChildren(...c.territory.points.map((p) => {
+    const li = el('li', 'fw-territory__point');
+    li.appendChild(icon('i-check', true));
+    li.appendChild(el('span', null, p));
+    return li;
+  }));
+  $('#fwTerrExample').textContent = c.territory.example;
+
+  /* ── how you get paid ─────────────────────────────────────── */
+  $('#fwPaidEyebrow').textContent = c.paid.eyebrow;
+  $('#fwPaidTitle').textContent = c.paid.title;
+  $('#fwPaid').replaceChildren(...c.paid.items.map((it) => {
+    const box = el('div', 'fw-paid__item');
+    box.appendChild(icon(it.icon));
+    box.appendChild(el('h3', 'fw-paid__name', it.name));
+    box.appendChild(el('p', 'fw-paid__text', it.text));
+    return box;
+  }));
+
+  /* ── what it costs ────────────────────────────────────────── */
+  $('#fwCostEyebrow').textContent = c.cost.eyebrow;
+  $('#fwCostTitle').textContent = c.cost.title;
+  $('#fwCost').replaceChildren(...c.cost.items.map((it) => {
+    const box = el('div', 'fw-cost__item');
+    box.appendChild(el('p', 'fw-cost__val', it.value));
+    box.appendChild(el('p', 'fw-cost__lbl', it.label));
+    return box;
+  }));
+  $('#fwCostNote').textContent = c.cost.note;
+
+  /* ── already on Winescape ─────────────────────────────────── */
+  $('#fwWsEyebrow').textContent = c.winescape.eyebrow;
+  $('#fwWsTitle').textContent = c.winescape.title;
+  $('#fwWsText').textContent = c.winescape.text;
+  $('#fwWsSteps').replaceChildren(
+    ...c.winescape.steps.map((s) => el('li', 'fw-winescape__step', s)));
+
+  /* ── requirements ─────────────────────────────────────────── */
+  $('#fwReqEyebrow').textContent = c.requirements.eyebrow;
+  $('#fwReqTitle').textContent = c.requirements.title;
+  $('#fwReq').replaceChildren(...c.requirements.items.map((r) => {
+    const li = el('li', 'fw-req__item');
+    li.appendChild(icon('i-check', true));
+    li.appendChild(el('span', null, r));
+    return li;
+  }));
+
+  /* ── register interest ────────────────────────────────────── */
+  $('#fwRegEyebrow').textContent = c.register.eyebrow;
+  $('#fwRegTitle').textContent = c.register.title;
+  $('#fwRegNote').textContent = c.register.note;
+
+  const form = $('#fwRegisterForm');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('#fwWinery').value.trim();
+    const email = $('#fwEmail').value.trim();
+    const licence = $('#fwLicence').value.trim();
+    if (!name || !email || !licence) {
+      toast('Enter your winery name, an email address and your producer licence number.', 'i-x-circle');
+      return;
+    }
+    toast(c.register.success, 'i-check-circle');
+    form.reset();
+  });
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: SUPPLIER — offers inbox, Go Deal tiers, payouts
+   Spec 4.8. These read from data/supplier.json, which is the ONLY
+   file holding a floor price. Nothing here is rendered on a
+   buyer-facing page.
+   ═══════════════════════════════════════════════════════════════ */
+(async function supplierData() {
+  const root = $('#supplierRoot');
+  if (!root) return;
+
+  const [sup, ok] = await Promise.all([loadJSON('supplier'), catalogue()]);
+  if (!sup || !ok) { dataError($('#supStats', root) || root, 'the dashboard'); return; }
+
+  const winery = WINERIES[sup.winery_slug];
+  const floorOf = (slug) => (sup.listings.find((l) => l.wine_slug === slug) || {}).floor_price;
+
+  $('#supWelcome', root).replaceChildren(
+    document.createTextNode('Welcome back, '),
+    el('b', null, winery.name),
+    document.createTextNode(' · Licensed producer ' + winery.licence_number));
+
+  /* ── stat cards ───────────────────────────────────────────── */
+  $('#supStats', root).replaceChildren(...sup.stats.map((s) => {
+    const box = el('div', 'supplier__stat');
+    box.appendChild(el('p', 'supplier__stat-num', s.value));
+    box.appendChild(el('p', 'supplier__stat-lbl', s.label));
+    return box;
+  }));
+
+  /* ── my listings, with territory exclusions ───────────────── */
+  $('#listingsBody', root).replaceChildren(...sup.listings.map((l) => {
+    const w = wineBySlug(l.wine_slug);
+    const row = document.createElement('tr');
+
+    const wineCell = el('td');
+    wineCell.appendChild(el('b', null, `${w.name} ${w.vintage}`));
+    wineCell.appendChild(el('span', 'supplier__table-sub',
+      `${w.subregion}, ${w.gi} · ${w.case_size} bottles per case`));
+    row.appendChild(wineCell);
+
+    row.appendChild(el('td', null, String(w.cases_available)));
+    row.appendChild(el('td', null, round(w.list_price_per_case)));
+    row.appendChild(el('td', null, round(l.floor_price)));
+    row.appendChild(el('td', null, String(l.open_offers)));
+
+    const stateCell = el('td');
+    stateCell.appendChild(el('span', 'pill pill--ok',
+      w.state === 'go_deal' ? 'Go Deal live' : 'Active'));
+    row.appendChild(stateCell);
+
+    const exclCell = el('td');
+    exclCell.appendChild(el('span', 'supplier__excl',
+      winery.territory_exclusions.length
+        ? winery.territory_exclusions.join(', ')
+        : 'None, sells everywhere'));
+    row.appendChild(exclCell);
+
+    const actions = el('td');
+    const go = el('button', 'btn btn--ghost btn--sm', 'Go Deal');
+    go.addEventListener('click', () => {
+      const card = $('#goDealCard', root);
+      card.hidden = false;
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    actions.appendChild(go);
+    const remove = el('button', 'btn btn--quiet btn--sm', 'Remove');
+    remove.addEventListener('click', () => {
+      if (confirm('Remove this listing?')) row.remove();
+    });
+    actions.appendChild(remove);
+    row.appendChild(actions);
+    return row;
+  }));
+  $('#listingCount', root).textContent =
+    sup.listings.length === 1 ? '1 active listing' : `${sup.listings.length} active listings`;
+
+  /* ── offers inbox: accept, counter, reject, with expiry ────── */
+  const awaiting = sup.offers_inbox.filter((o) => o.status === 'awaiting');
+  $('#supOfferCount', root).textContent =
+    awaiting.length === 1 ? '1 awaiting response' : `${awaiting.length} awaiting response`;
+
+  $('#supOffers', root).replaceChildren(...sup.offers_inbox.map((o) => {
+    const w = wineBySlug(o.wine_slug);
+    const floor = floorOf(o.wine_slug);
+    const wrap = el('div', 'supplier__offer');
+
+    const left = el('div');
+    left.appendChild(el('p', 'supplier__offer-name', `${w.name} ${w.vintage}`));
+    const meta = el('p', 'supplier__offer-meta');
+    meta.appendChild(document.createTextNode(o.customer + ' offered '));
+    meta.appendChild(el('b', null, round(o.price_per_case) + ' per case'));
+    meta.appendChild(document.createTextNode(
+      ` for ${o.quantity} case${o.quantity > 1 ? 's' : ''} · ` +
+      (o.status === 'awaiting' ? 'Expires ' : 'Closed ') + auDate(o.expires_at)));
+    left.appendChild(meta);
+
+    if (o.status === 'awaiting') {
+      const atOrAbove = o.price_per_case >= floor;
+      const flag = el('p', 'supplier__offer-flag' + (atOrAbove ? '' : ' supplier__offer-flag--under'));
+      flag.appendChild(icon(atOrAbove ? 'i-check-circle' : 'i-alert', true));
+      flag.appendChild(el('span', null, atOrAbove
+        ? 'At or above your floor. Auto-accept would take this.'
+        : 'Below your floor. Needs a decision.'));
+      left.appendChild(flag);
+    }
+    wrap.appendChild(left);
+
+    const actions = el('div', 'supplier__offer-actions');
+    if (o.status !== 'awaiting') {
+      actions.appendChild(el('span', 'pill pill--ok', 'Accepted'));
+      wrap.appendChild(actions);
+      return wrap;
+    }
+
+    const counterBox = el('div', 'supplier__counter');
+    const field = el('div', 'field');
+    const label = el('label', 'field__label', 'Counter at ($ per case)');
+    const input = document.createElement('input');
+    input.className = 'field__input';
+    input.type = 'number';
+    input.id = 'counter-' + o.id;
+    input.value = String(Math.round((o.price_per_case + w.list_price_per_case) / 2));
+    label.htmlFor = input.id;
+    field.appendChild(label);
+    field.appendChild(input);
+    counterBox.appendChild(field);
+    const send = el('button', 'btn btn--solid btn--sm', 'Send counteroffer');
+    send.addEventListener('click', () => {
+      actions.replaceChildren(el('span', 'pill pill--wait', 'Countered at ' + round(input.value)));
+      counterBox.classList.remove('is-open');
+      toast(`Counteroffer sent to ${o.customer} at ${round(input.value)} per case.`, 'i-exchange');
+    });
+    counterBox.appendChild(send);
+
+    const accept = el('button', 'btn btn--solid btn--sm', 'Accept');
+    accept.addEventListener('click', () => {
+      actions.replaceChildren(el('span', 'pill pill--ok', 'Accepted'));
+      counterBox.classList.remove('is-open');
+      toast(`Offer accepted. ${o.customer} will be charged ` +
+            `${round(o.price_per_case)} per case.`, 'i-check-circle');
+    });
+    const counter = el('button', 'btn btn--ghost btn--sm', 'Counter');
+    counter.addEventListener('click', () => counterBox.classList.toggle('is-open'));
+    const reject = el('button', 'btn btn--quiet btn--sm', 'Reject');
+    reject.addEventListener('click', () => {
+      if (!confirm('Reject this offer?')) return;
+      actions.replaceChildren(el('span', 'pill pill--inactive', 'Rejected'));
+      counterBox.classList.remove('is-open');
+      toast('Offer rejected.', 'i-x-circle');
+    });
+    actions.append(accept, counter, reject);
+    wrap.appendChild(actions);
+    wrap.appendChild(counterBox);
+    return wrap;
+  }));
+
+  /* ── Go Deal engine: floor, tiers, commitment ─────────────── */
+  const deal = sup.go_deal;
+  const dealWine = wineBySlug(deal.wine_slug);
+  $('#goDealWine', root).textContent = `${dealWine.name} ${dealWine.vintage}`;
+  $('#goDealSticker', root).value = String(deal.list_price);
+  $('#goDealFloor', root).value = String(deal.floor_price);
+  $('#goDealSticker', root).dispatchEvent(new Event('input'));
+  $('#goDealCommitted', root).replaceChildren(
+    el('b', null, String(deal.committed_cases)),
+    document.createTextNode(' cases committed · closes ' + auDate(deal.closes_at)));
+
+  $('#goDealTiers', root).replaceChildren(...deal.tiers.map((t) => {
+    const reached = deal.committed_cases >= t.cases;
+    const li = el('li', 'supplier__tier' + (reached ? ' is-reached' : ''));
+    li.appendChild(el('span', 'supplier__tier-cases',
+      t.cases === 0 ? 'From the first case' : `At ${t.cases} cases`));
+    li.appendChild(el('span', 'supplier__tier-price', round(t.price) + ' per case'));
+    li.appendChild(el('span', 'supplier__tier-state',
+      reached ? 'Reached' : `${t.cases - deal.committed_cases} more`));
+    return li;
+  }));
+
+  /* ── orders and dispatch ──────────────────────────────────── */
+  const DISPATCH = {
+    dispatched: ['Dispatched', 'pill--ok'],
+    awaiting_payment: ['Awaiting payment', 'pill--wait'],
+    delivered: ['Delivered', 'pill--ok'],
+  };
+  $('#supOrders', root).replaceChildren(...sup.orders.map((o) => {
+    const w = wineBySlug(o.wine_slug);
+    const row = document.createElement('tr');
+    row.appendChild(el('td', null, o.id));
+    row.appendChild(el('td', null, o.customer));
+    row.appendChild(el('td', null, `${w.name} ${w.vintage}`));
+    row.appendChild(el('td', null, String(o.quantity)));
+    row.appendChild(el('td', null, round(o.sale_price)));
+    const state = el('td');
+    const [lbl, cls] = DISPATCH[o.dispatch_state];
+    state.appendChild(el('span', 'pill ' + cls,
+      o.pod_state === 'received' ? 'Paid out' : lbl));
+    row.appendChild(state);
+    const action = el('td');
+    if (o.dispatch_state !== 'awaiting_payment' && o.pod_state !== 'received') {
+      const btn = el('button', 'btn btn--ghost btn--sm', 'Upload proof of delivery');
+      btn.dataset.podOrder = o.id;
+      btn.dataset.podSale = String(o.sale_price);
+      action.appendChild(btn);
+    } else {
+      action.appendChild(el('span', 'supplier__excl',
+        o.pod_state === 'received' ? 'Complete' : 'None'));
+    }
+    row.appendChild(action);
+    return row;
+  }));
+
+  /* ── payouts: released and pending ────────────────────────── */
+  const rate = sup.payouts.commission_rate;
+  const net = (gross) => gross * (1 - rate);
+  const relCol = $('#supReleased', root);
+  relCol.replaceChildren(...sup.payouts.released.map((p) => {
+    const row = el('div', 'supplier__payout-row');
+    const left = el('span');
+    left.appendChild(el('b', null, p.order_id));
+    left.appendChild(el('span', 'supplier__payout-sub', 'Released ' + auDate(p.released_at)));
+    row.appendChild(left);
+    row.appendChild(el('span', null, money(net(p.amount))));
+    return row;
+  }));
+  const relTotal = sup.payouts.released.reduce((n, p) => n + net(p.amount), 0);
+  relCol.appendChild((() => {
+    const t = el('div', 'supplier__payout-total');
+    t.appendChild(el('span', null, 'Released'));
+    t.appendChild(el('span', null, money(relTotal)));
+    return t;
+  })());
+
+  const penCol = $('#supPending', root);
+  penCol.replaceChildren(...sup.payouts.pending.map((p) => {
+    const row = el('div', 'supplier__payout-row');
+    const left = el('span');
+    left.appendChild(el('b', null, p.order_id));
+    left.appendChild(el('span', 'supplier__payout-sub', p.reason));
+    row.appendChild(left);
+    row.appendChild(el('span', null, money(net(p.amount))));
+    return row;
+  }));
+  const penTotal = sup.payouts.pending.reduce((n, p) => n + net(p.amount), 0);
+  penCol.appendChild((() => {
+    const t = el('div', 'supplier__payout-total');
+    t.appendChild(el('span', null, 'Pending'));
+    t.appendChild(el('span', null, money(penTotal)));
+    return t;
+  })());
+
+  $('#supPayoutNote', root).textContent =
+    `Amounts shown are net of ${Math.round(rate * 100)}% commission. ` +
+    'Funds release when proof of delivery is uploaded.';
+
+  // The proof-of-delivery buttons are rendered above, so their handlers
+  // are wired after the table exists rather than at first paint.
+  if (typeof wirePodButtons === 'function') wirePodButtons();
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: LEGAL  (legal/*.html)
+   Four documents, one template, all four rendered from
+   data/legal.json. They are STRUCTURAL DRAFTS: each section says
+   what a published document has to cover and states no term, so a
+   lawyer can draft against the structure instead of first unpicking
+   invented clauses. The draft notice is the most important thing on
+   the page and is rendered before the content, not after it.
+   ═══════════════════════════════════════════════════════════════ */
+(async function legalPage() {
+  const root = $('#legalRoot');
+  if (!root) return;
+
+  const key = root.dataset.doc;
+  const [legal, ok] = await Promise.all([loadJSON('legal'), catalogue()]);
+  if (!legal || !legal.docs[key]) { dataError(root, 'this document'); return; }
+  const doc = legal.docs[key];
+
+  document.title = `${doc.title} — Go Wine Go`;
+  $('#legalTitle').textContent = doc.title;
+  $('#legalLead').textContent = doc.lead;
+  $('#legalCrumb').textContent = doc.title;
+
+  const notice = $('#legalDraft');
+  notice.replaceChildren(icon('i-alert'), (() => {
+    const body = el('span');
+    body.appendChild(el('b', null, 'Draft, not a binding agreement. '));
+    body.appendChild(document.createTextNode(
+      ok && POLICY ? POLICY.legal_draft_notice
+        : 'This page is a structural draft pending legal review.'));
+    return body;
+  })());
+
+  root.replaceChildren(...doc.sections.map((s) => {
+    const sec = el('section', 'legal__section');
+    sec.appendChild(el('h2', 'legal__h', s.h));
+    s.p.forEach((p) => sec.appendChild(el('p', 'legal__body', p)));
+    const todo = el('p', 'legal__todo');
+    todo.appendChild(icon('i-alert', true));
+    todo.appendChild(el('span', null, 'Needs legal drafting'));
+    sec.appendChild(todo);
+    return sec;
+  }));
+})();
+
+/* ═══════════════════════════════════════════════════════════════
    SECTION: SUPPLIER  (supplier.html only)
    Listings, the Go Deal engine, and proof of delivery. Uploading a
    POD is what releases the payment to the winery.
@@ -1330,7 +1953,9 @@ function diagram(id) {
   let podSale = 0;
   const podPanel = $('#podPanel', root);
 
-  $$('[data-pod-order]', root).forEach((btn) => {
+  wirePodButtons = () => $$('[data-pod-order]', root).forEach((btn) => {
+    if (btn.dataset.podWired) return;
+    btn.dataset.podWired = '1';
     btn.addEventListener('click', () => {
       podSale = Number(btn.dataset.podSale);
       $('#podOrderId', root).textContent = btn.dataset.podOrder;
@@ -1373,4 +1998,11 @@ function diagram(id) {
   if (pay) pay.addEventListener('click', processBuy);
   const card = $('#cardNum');
   if (card) card.addEventListener('input', () => formatCard(card));
+
+  // Banned Drinker Register, spec 8: the notice appears as soon as the
+  // delivery postcode falls inside a covered region, not after submit.
+  const postcode = $('#deliveryPostcode');
+  if (postcode) {
+    postcode.addEventListener('input', () => renderBdr($('#buyBdr'), postcode.value));
+  }
 })();

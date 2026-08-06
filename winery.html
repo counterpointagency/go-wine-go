@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
-<link rel="stylesheet" href="assets/css/main.css">
+<link rel="stylesheet" href="/assets/css/main.css">
 </head>
 <body data-hero>
 
@@ -47,6 +47,18 @@
   <symbol id="i-vine" viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M12 12.5c-3.4 0-5.5-2-5.5-5.5 3.4 0 5.5 2 5.5 5.5Z"/><path d="M12 10c0-3.4 2.1-5.5 5.5-5.5 0 3.4-2.1 5.5-5.5 5.5Z"/><path d="M7 21h10"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10.5" r="2.6"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 1.8 20.5h20.4L12 3.5Z"/><path d="M12 10v4.4"/><path d="M12 17.4v.5"/></symbol>
+
+  <!-- Territory protection (for-wineries.html, spec 4.7 section 3): your
+       wine reaches the whole map except the postcodes you exclude, and a
+       customer inside an excluded one never sees the listing at all. -->
+  <symbol id="i-dia-territory" viewBox="0 0 24 24">
+    <path d="M2.5 5.5 9 3.2l6 2.3 6.5-2.3v15.3L15 20.8l-6-2.3-6.5 2.3V5.5Z"/>
+    <path d="M9 3.2v15.3"/><path d="M15 5.5v15.3"/>
+    <circle cx="12" cy="11" r="3.1"/>
+    <path d="m9.8 8.8 4.4 4.4"/>
+  </symbol>
 
   <!-- ── THIN-LINE DIAGRAMS (how-it-works.html, spec 4.6) ──────────
        Same spec as every other icon — 24x24 viewBox, stroke 1.25,
@@ -107,6 +119,66 @@
   </symbol>
 </svg>
 
+<!-- ═══ SHARED: AGE GATE ════════════════════════════════════════════
+     Spec 8. BYTE IDENTICAL across every page. Date of birth entry,
+     not a yes/no button, held for the session.
+
+     The open state is set by a synchronous script in <head>, before
+     first paint, so an unverified visitor never sees the market flash
+     behind the gate. If that script or JS fails, the gate stays shut
+     and the site is reachable — which is the wrong failure direction
+     for compliance and is called out in the round report.
+
+     The photograph behind the plate is UNTINTED. The copy sits on a
+     solid --bone plate, exactly like the hero. No scrim.
+     ════════════════════════════════════════════════════════════════ -->
+<div class="age-gate" id="ageGate">
+  <picture class="age-gate__media">
+    <source srcset="/assets/img/hero-vineyard-dawn.webp" type="image/webp">
+    <img src="/assets/img/hero-vineyard-dawn.jpg"
+         alt="Aerial view of vineyard rows and two dams at dawn, Margaret River"
+         width="2400" height="1091" decoding="async">
+  </picture>
+  <div class="age-gate__plate" role="dialog" aria-modal="true"
+       aria-labelledby="ageGateTitle" aria-describedby="ageGateNote">
+    <p class="label age-gate__eyebrow" id="ageGateEyebrow">Before you come in</p>
+    <h1 class="age-gate__title" id="ageGateTitle">Do you meet the legal drinking age?</h1>
+    <p class="age-gate__note" id="ageGateNote"></p>
+
+    <form id="ageGateForm" novalidate>
+      <fieldset class="age-gate__fields">
+        <legend class="age-gate__legend" id="ageGateLegend">Your date of birth</legend>
+        <div class="age-gate__row">
+          <span class="age-gate__field">
+            <label for="ageDay">Day</label>
+            <input id="ageDay" name="day" type="text" inputmode="numeric"
+                   maxlength="2" placeholder="DD" autocomplete="bday-day">
+          </span>
+          <span class="age-gate__field">
+            <label for="ageMonth">Month</label>
+            <input id="ageMonth" name="month" type="text" inputmode="numeric"
+                   maxlength="2" placeholder="MM" autocomplete="bday-month">
+          </span>
+          <span class="age-gate__field">
+            <label for="ageYear">Year</label>
+            <input id="ageYear" name="year" type="text" inputmode="numeric"
+                   maxlength="4" placeholder="YYYY" autocomplete="bday-year">
+          </span>
+        </div>
+      </fieldset>
+
+      <p class="age-gate__error" id="ageGateError" role="alert"></p>
+
+      <button class="btn btn--solid btn--block age-gate__submit" type="submit" id="ageGateSubmit">
+        Enter the market
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+      </button>
+    </form>
+
+    <p class="age-gate__legal" id="ageGateLegal"></p>
+  </div>
+</div>
+
 <!-- ═══ SECTION: SITE HEADER ═════════════════════════════════════════
      BYTE IDENTICAL across all eight pages. Becomes get_header().
 
@@ -120,24 +192,28 @@
      ════════════════════════════════════════════════════════════════ -->
 <header class="site-header" id="siteHeader">
   <div class="site-header__inner">
-    <a class="site-header__logo" href="index.html" aria-label="Go Wine Go home">
+    <a class="site-header__logo" href="/index.html" aria-label="Go Wine Go home">
       <svg class="icon" aria-hidden="true"><use href="#i-grape"/></svg>
       <span class="site-header__wordmark">Go Wine Go</span>
     </a>
 
     <nav class="site-header__nav" aria-label="Primary">
-      <a class="site-header__tab" href="index.html" data-page="index.html wine.html winery.html">Market</a>
-      <a class="site-header__tab" href="go-deals.html" data-page="go-deals.html">Go Deals</a>
-      <a class="site-header__tab" href="tenders.html" data-page="tenders.html">Tenders</a>
-      <a class="site-header__tab" href="how-it-works.html" data-page="how-it-works.html">How it works</a>
+      <a class="site-header__tab" href="/index.html" data-page="index.html wine.html winery.html">Market</a>
+      <a class="site-header__tab" href="/go-deals.html" data-page="go-deals.html">Go Deals</a>
+      <a class="site-header__tab" href="/tenders.html" data-page="tenders.html">Tenders</a>
+      <a class="site-header__tab" href="/how-it-works.html" data-page="how-it-works.html">How it works</a>
     </nav>
 
     <div class="site-header__right">
       <div class="site-header__roles" role="group" aria-label="View as">
-        <a class="site-header__role" href="index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
-        <a class="site-header__role" href="supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
+        <a class="site-header__role" href="/index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
+        <a class="site-header__role" href="/supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
       </div>
-      <a class="site-header__login" href="account.html" data-page="account.html">My account</a>
+      <a class="site-header__login" href="/account.html" data-page="account.html">My account</a>
+      <button class="site-header__menu-btn" id="menuBtn" type="button"
+              aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
     </div>
   </div>
 </header>
@@ -162,7 +238,7 @@
 
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
-      <li><a href="index.html">Market</a></li>
+      <li><a href="/index.html">Market</a></li>
       <li><span aria-current="page" id="wineryCrumb">Winery</span></li>
     </ol>
   </nav>
@@ -218,12 +294,17 @@
       <span class="site-footer__wordmark">Go Wine Go</span>
     </div>
     <nav class="site-footer__nav" aria-label="Footer">
-      <a href="index.html">Market</a>
-      <a href="go-deals.html">Go Deals</a>
-      <a href="tenders.html">Tenders</a>
-      <a href="how-it-works.html">How it works</a>
-      <a href="account.html">My account</a>
-      <a href="supplier.html">Supplier dashboard</a>
+      <a href="/index.html">Market</a>
+      <a href="/go-deals.html">Go Deals</a>
+      <a href="/tenders.html">Tenders</a>
+      <a href="/how-it-works.html">How it works</a>
+      <a href="/account.html">My account</a>
+      <a href="/for-wineries.html">For wineries</a>
+      <a href="/supplier.html">Supplier dashboard</a>
+      <a href="/legal/terms.html">Terms of sale</a>
+      <a href="/legal/privacy.html">Privacy</a>
+      <a href="/legal/delivery.html">Delivery</a>
+      <a href="/legal/responsible-service.html">Responsible service</a>
     </nav>
     <hr class="rule rule--on-maroon site-footer__rule">
     <div class="site-footer__meta">
@@ -231,7 +312,12 @@
       <p>Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
       <p class="site-footer__credit">Photography by <a href="https://www.russellord.com/">Russell Ord</a>.</p>
       <p>Listings shown are samples for demonstration and are not available for sale.</p>
-      <p>Wine is sold to persons aged 18 years and over. It is against the law to sell or supply alcohol to, or to obtain alcohol on behalf of, a person under the age of 18 years. Please drink responsibly.</p>
+      <!-- Responsible service line, spec 8. Authored in data/policy.json and
+           repeated here as STATIC markup on purpose: a compliance line that
+           only exists once JS has run is a compliance line that can fail to
+           appear. tools/contrast-audit.mjs asserts these bytes match
+           policy.json exactly, so the two cannot drift. -->
+      <p id="footerResponsibleService">Wine is sold to persons aged 18 years and over. It is against the law to sell or supply alcohol to, or to obtain alcohol on behalf of, a person under the age of 18 years. Please drink responsibly.</p>
       <p>© 2026 Go Wine Go Pty Ltd · ABN 00 000 000 000 · Must be 18+</p>
     </div>
   </div>
@@ -307,7 +393,7 @@
           <div class="modal__dl-row modal__dl-row--hl"><dt>Total value</dt><dd id="confirmTotal"></dd></div>
         </dl>
         <div class="modal__actions">
-          <a class="btn btn--solid" href="account.html">Go to my account</a>
+          <a class="btn btn--solid" href="/account.html">Go to my account</a>
           <button class="btn btn--ghost" data-closes-modal="offerOverlay">Keep browsing</button>
         </div>
       </div>
@@ -366,6 +452,14 @@
           <label class="field__label" for="cardName">Cardholder name</label>
           <input class="field__input" type="text" id="cardName" placeholder="Alex Chen">
         </div>
+        <div class="field">
+          <label class="field__label" for="deliveryPostcode">Delivery postcode</label>
+          <input class="field__input" type="text" id="deliveryPostcode" placeholder="6285"
+                 maxlength="4" inputmode="numeric" autocomplete="postal-code">
+        </div>
+        <!-- Banned Drinker Register notice, spec 8. Filled from
+             data/policy.json when the postcode falls in a covered region. -->
+        <p class="bdr" id="buyBdr" role="status"></p>
 
         <button class="btn btn--brass btn--block" id="payBtn">
           Pay and place order, <span id="payBtnAmt"></span>
@@ -395,7 +489,7 @@
           <span>The funds are held by the payment provider and released to <span id="buyConfirmWinery"></span> when your wine is signed for.</span>
         </p>
         <div class="modal__actions">
-          <a class="btn btn--solid" href="account.html">View in my account</a>
+          <a class="btn btn--solid" href="/account.html">View in my account</a>
           <button class="btn btn--ghost" data-closes-modal="buyOverlay">Keep browsing</button>
         </div>
       </div>
@@ -406,6 +500,6 @@
 <!-- ═══ COMPONENT: TOAST ═══ -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="assets/js/main.js"></script>
+<script src="/assets/js/main.js"></script>
 </body>
 </html>

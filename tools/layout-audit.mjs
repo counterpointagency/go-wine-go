@@ -44,12 +44,17 @@ const DISPLAY_FACE = 'fraunces-600';
 const PAGES = [
   { file: 'index.html',          reserves: '.hero',         prop: 'padding-top', hero: true },
   { file: 'winery.html',         reserves: '.winery-hero',  prop: 'padding-top', hero: true },
+  { file: 'for-wineries.html',   reserves: '.winery-hero',  prop: 'padding-top', hero: true },
   { file: 'wine.html',           reserves: '.page--inner',  prop: 'padding-top' },
   { file: 'go-deals.html',       reserves: '.page--inner',  prop: 'padding-top' },
   { file: 'tenders.html',        reserves: '.page--inner',  prop: 'padding-top' },
   { file: 'how-it-works.html',   reserves: '.page--inner',  prop: 'padding-top' },
   { file: 'account.html',        reserves: '.page--inner',  prop: 'padding-top' },
   { file: 'supplier.html',       reserves: '.page--inner',  prop: 'padding-top' },
+  { file: 'legal/terms.html',               reserves: '.page--inner', prop: 'padding-top' },
+  { file: 'legal/privacy.html',             reserves: '.page--inner', prop: 'padding-top' },
+  { file: 'legal/delivery.html',            reserves: '.page--inner', prop: 'padding-top' },
+  { file: 'legal/responsible-service.html', reserves: '.page--inner', prop: 'padding-top' },
 ];
 
 /* Every plate that sits OVER a photograph, with its width cap and the
@@ -62,7 +67,14 @@ const PLATES = [
   // declared so an accidental 90vw still fails.
   { sel: '.closing__plate',     page: 'index.html',  capVW: 40, capNarrowVW: 60 },
   { sel: '.winery-hero__plate', page: 'winery.html', capVW: 34, capNarrowVW: 34 },
+  { sel: '.winery-hero__plate', page: 'for-wineries.html', capVW: 34, capNarrowVW: 34 },
 ];
+
+/* Below 760 the header nav and the account link are hidden, so a
+   navigation control has to exist in their place or the site has no
+   route on a phone at all. This is the check that would have caught
+   Rounds 3A and 3B shipping with no mobile menu. */
+const MOBILE_NAV_WIDTHS = [390, 760];
 
 /* Sticky elements are allowed to sit under the fixed header ONLY when
    they scroll inside their own container rather than the page. Each
@@ -520,7 +532,40 @@ for (const vp of VIEWPORTS) {
   console.log(`  ${vp.label.padEnd(20)} ${(need.toFixed(0) + 'px').padStart(8)} ${(have.toFixed(0) + 'px').padStart(8)} ${(ok ? c(GREEN, s.padStart(8)) : c(RED, s.padStart(8)))}  ${parts}`);
 }
 
-console.log('\n7. SEARCH INPUT vs ITS PLACEHOLDER');
+/* ── 8. a reachable navigation control on a phone ───────────────────
+   New in Round 3C. Rounds 3A and 3B both shipped with the header nav
+   hidden below 760 and nothing in its place, so the footer was the
+   only route through the site on a phone. Nothing measured that,
+   because every individual element was correctly sized — the failure
+   was an ABSENCE. This asserts the presence. */
+console.log('\n7. NAVIGATION REACHABLE ON A PHONE');
+console.log(`  ${'WIDTH'.padStart(6)}  ${'HEADER NAV'.padEnd(12)} ${'MENU BUTTON'.padEnd(12)} RESULT`);
+for (const w of MOBILE_NAV_WIDTHS) {
+  const map = declMap(rulesFor(w));
+  const navShown = (map.get('.site-header__nav')?.display || 'flex') !== 'none';
+  const btnShown = (map.get('.site-header__menu-btn')?.display || 'none') !== 'none';
+  const ok = navShown || btnShown;
+  if (!ok) failures++;
+  console.log(`  ${(w + 'px').padStart(6)}  ${(navShown ? 'visible' : 'hidden').padEnd(12)} ${(btnShown ? 'visible' : 'hidden').padEnd(12)} ` +
+    (ok ? c(GREEN, 'reachable') : c(RED, 'NO ROUTE THROUGH THE SITE')));
+}
+
+// ...and the drawer it opens has to actually reach every page.
+const menuHrefs = [...HTML.matchAll(/class="mobile-menu__link"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+const missingFromMenu = PAGES
+  .map((p) => '/' + p.file)
+  .filter((href) => !menuHrefs.includes(href));
+if (!menuHrefs.length) {
+  failures++;
+  console.log(c(RED, '  no mobile menu links found — this check inspected nothing'));
+} else if (missingFromMenu.length) {
+  failures++;
+  console.log(`  ${c(RED, 'MISSING from the menu:')} ${missingFromMenu.join(', ')}`);
+} else {
+  console.log(`  ${'(menu)'.padStart(6)}  reaches all ${PAGES.length} pages ${c(GREEN, 'ok')}`);
+}
+
+console.log('\n8. SEARCH INPUT vs ITS PLACEHOLDER');
 for (const vp of VIEWPORTS) {
   const map = declMap(rulesFor(vp.w));
   const R = (v) => resolve1(v, vp);

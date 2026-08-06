@@ -867,6 +867,67 @@ a, button, input, select, textarea, summary, [tabindex] {
 .supplier__ledger-row--net dd { color: var(--eucalypt); }
 .supplier__payout { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
 
+/* ── offers inbox (spec 4.8): accept, counter, reject, with expiry ── */
+.supplier__offer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-4); flex-wrap: wrap;
+  border-bottom: var(--bw) solid var(--stone); padding: var(--sp-4) 0;
+}
+.supplier__offer:last-child { border-bottom: none; padding-bottom: 0; }
+.supplier__offer-name { font-size: var(--fs-body); font-weight: 500; color: var(--ink); }
+.supplier__offer-meta { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); }
+.supplier__offer-meta b { color: var(--ink); font-weight: 500; }
+/* An offer at or above the floor would auto-accept, so it is marked. The
+   floor itself is never rendered on a buyer-facing surface. */
+.supplier__offer-flag {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-xs); color: var(--eucalypt); margin-top: var(--sp-2);
+}
+.supplier__offer-flag--under { color: var(--clay); }
+.supplier__offer-actions { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.supplier__counter {
+  display: none; width: 100%; gap: var(--sp-3); align-items: flex-end;
+  background: var(--surface); border: var(--bw) solid var(--stone);
+  border-radius: var(--r-sm); padding: var(--sp-4); margin-top: var(--sp-3);
+}
+.supplier__counter.is-open { display: flex; }
+.supplier__counter .field { margin-bottom: 0; flex: 1; }
+
+/* ── Go Deal tier ladder ── */
+.supplier__tiers { list-style: none; margin: var(--sp-5) 0; }
+.supplier__tier {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-4); padding: var(--sp-3) var(--sp-4);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+  margin-bottom: var(--sp-2); font-size: var(--fs-sm);
+}
+.supplier__tier.is-reached { background: var(--surface); border-color: var(--maroon); }
+.supplier__tier-cases { color: var(--ink-soft); }
+.supplier__tier-price { font-weight: 500; color: var(--maroon); }
+.supplier__tier-state { font-size: var(--fs-xs); color: var(--eucalypt); }
+
+/* ── payouts ── */
+.supplier__payouts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+.supplier__payout-col-title {
+  font-size: var(--fs-micro); font-weight: 500;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: var(--sp-3);
+}
+.supplier__payout-row {
+  display: flex; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-3) 0; border-bottom: var(--bw) solid var(--stone);
+  font-size: var(--fs-sm);
+}
+.supplier__payout-row:last-child { border-bottom: none; }
+.supplier__payout-row b { font-weight: 500; }
+.supplier__payout-sub { display: block; font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); }
+.supplier__payout-total {
+  display: flex; justify-content: space-between; gap: var(--sp-4);
+  border-top: var(--bw-thick) solid var(--stone); margin-top: var(--sp-3); padding-top: var(--sp-3);
+  font-size: var(--fs-body); font-weight: 500; color: var(--maroon);
+}
+.supplier__excl { font-size: var(--fs-xs); color: var(--ink-soft); }
+
 /* ═══════════════════════════════════════════════════════════════
    SECTION: WINE DETAIL  (wine.html, spec 4.2)
    Left column carries the wine's identity, right column is sticky
@@ -1224,6 +1285,272 @@ a, button, input, select, textarea, summary, [tabindex] {
 .faq__item.is-open .faq__a { display: block; }
 
 /* ═══════════════════════════════════════════════════════════════
+   COMPONENT: MOBILE MENU
+   Below 760 the header nav is hidden, so this is the ONLY route
+   through the site on a phone. It is a dialog: focus moves in on
+   open, is trapped while open, Escape closes it, and focus returns
+   to the button that opened it.
+   ═══════════════════════════════════════════════════════════════ */
+.site-header__menu-btn {
+  display: none;                       /* only below 760 — see RESPONSIVE */
+  align-items: center; justify-content: center;
+  width: 40px; height: 40px; color: inherit;
+  border: var(--bw) solid currentColor; border-radius: var(--r-sm);
+  transition: opacity var(--t-fast);
+}
+.site-header__menu-btn:hover { opacity: .75; }
+
+.mobile-menu { display: none; position: fixed; inset: 0; z-index: 700; }
+.mobile-menu.is-open { display: block; }
+.mobile-menu__scrim { position: absolute; inset: 0; background: rgba(var(--rgb-maroon-deep), .55); }
+.mobile-menu__panel {
+  position: absolute; inset: 0 0 0 auto;
+  width: min(88vw, 360px);
+  background: var(--maroon); color: var(--on-maroon);
+  display: flex; flex-direction: column;
+  overflow-y: auto; padding: var(--sp-5);
+}
+.mobile-menu__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-4); margin-bottom: var(--sp-5);
+}
+.mobile-menu__title {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--on-maroon);
+}
+.mobile-menu__close {
+  color: inherit; width: 40px; height: 40px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: var(--bw) solid currentColor; border-radius: var(--r-sm);
+}
+.mobile-menu__group {
+  color: var(--on-maroon); opacity: .82;
+  margin: var(--sp-5) 0 var(--sp-2);
+  border-top: var(--bw-thick) solid var(--brass); padding-top: var(--sp-3);
+}
+.mobile-menu__group:first-of-type { margin-top: 0; }
+.mobile-menu__link {
+  display: block; color: var(--on-maroon); text-decoration: none;
+  font-size: var(--fs-body); padding: var(--sp-3) 0;
+  border-bottom: var(--bw) solid transparent;
+}
+.mobile-menu__link:hover { border-bottom-color: var(--brass); }
+.mobile-menu__link[aria-current='page'] { font-weight: 500; border-bottom-color: var(--brass); }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: AGE GATE  (spec 8)
+   Date of birth entry, not a yes/no button. Held for the session.
+   The open state is set by a synchronous script in <head>, so a
+   returning-but-unverified visitor never sees the market flash
+   behind the gate before JS runs.
+   The photograph behind the plate is untinted, exactly like the
+   hero: the copy sits on a solid --bone plate instead of a scrim.
+   ═══════════════════════════════════════════════════════════════ */
+.age-gate { display: none; position: fixed; inset: 0; z-index: 900; isolation: isolate; }
+html.age-gate-open .age-gate { display: grid; align-content: center; justify-items: center; padding: var(--sp-5); }
+html.age-gate-open body { overflow: hidden; }
+.age-gate__media { position: absolute; inset: 0; z-index: -1; }
+.age-gate__media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.age-gate__plate {
+  background: var(--bone); color: var(--maroon);
+  width: min(92vw, 520px); max-height: 92vh; overflow-y: auto;
+  padding: var(--sp-7);
+  box-shadow: inset 0 0 0 var(--bw) var(--brass);
+}
+.age-gate__eyebrow { color: var(--brass-text); margin-bottom: var(--sp-3); }
+.age-gate__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+}
+.age-gate__note { color: var(--ink-soft); font-size: var(--fs-sm); margin-top: var(--sp-4); }
+.age-gate__fields { border: none; margin-top: var(--sp-5); }
+.age-gate__legend {
+  font-size: var(--fs-xs); font-weight: 500; color: var(--ink-soft);
+  margin-bottom: var(--sp-3); padding: 0;
+}
+.age-gate__row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: var(--sp-3); }
+.age-gate__field { display: flex; flex-direction: column; gap: var(--sp-2); }
+.age-gate__field label { font-size: var(--fs-micro); color: var(--ink-soft); }
+.age-gate__field input {
+  background: var(--surface); color: var(--ink);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-body);
+  text-align: center;
+}
+.age-gate__error {
+  display: none; margin-top: var(--sp-4);
+  font-size: var(--fs-sm); color: var(--clay);
+  border-left: var(--bw-thick) solid var(--clay); padding-left: var(--sp-4);
+}
+.age-gate__error.is-shown { display: block; }
+.age-gate__submit { margin-top: var(--sp-5); }
+.age-gate__legal {
+  font-size: var(--fs-micro); color: var(--ink-soft);
+  border-top: var(--bw) solid var(--stone);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: BANNED DRINKER REGISTER NOTICE  (spec 8)
+   Shown where a delivery postcode falls inside a BDR region.
+   ═══════════════════════════════════════════════════════════════ */
+.bdr {
+  display: none; gap: var(--sp-3); align-items: flex-start;
+  border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--clay);
+  border-radius: var(--r-md); background: var(--surface);
+  padding: var(--sp-4); margin-top: var(--sp-4);
+  font-size: var(--fs-xs); color: var(--ink);
+}
+.bdr.is-shown { display: flex; }
+.bdr .icon { color: var(--clay); }
+.bdr b { font-weight: 500; }
+.bdr__region { display: block; color: var(--ink-soft); margin-top: var(--sp-2); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: FOR WINERIES  (for-wineries.html, spec 4.7)
+   ═══════════════════════════════════════════════════════════════ */
+.fw-maths { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-7) var(--sp-5); }
+.fw-maths__note {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-xs); color: var(--ink);
+  border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--brass-text);
+  border-radius: var(--r-sm); background: var(--surface);
+  padding: var(--sp-3) var(--sp-4); margin: var(--sp-4) 0 var(--sp-5); max-width: 70ch;
+}
+.fw-maths__table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.fw-maths__table th {
+  text-align: left; font-size: var(--fs-micro); font-weight: 500;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--ink-soft); padding: var(--sp-3) var(--sp-4);
+  border-bottom: var(--bw) solid var(--stone);
+}
+.fw-maths__table th:not(:first-child), .fw-maths__table td:not(:first-child) { text-align: right; }
+.fw-maths__table td { padding: var(--sp-4); border-bottom: var(--bw) solid var(--stone); }
+.fw-maths__table tr:last-child td { border-bottom: none; }
+.fw-maths__table .is-total td {
+  border-top: var(--bw-thick) solid var(--maroon);
+  font-size: var(--fs-body); font-weight: 500; color: var(--maroon);
+}
+.fw-maths__foot { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--sp-5); max-width: 68ch; }
+
+.fw-territory { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-7) var(--sp-5); }
+.fw-territory__grid {
+  display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  gap: var(--sp-8); align-items: start;
+}
+.fw-territory__figure {
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  background: var(--surface); padding: var(--sp-7);
+  display: grid; justify-items: center; gap: var(--sp-4);
+}
+.fw-territory__figure .diagram { width: 132px; height: 132px; color: var(--maroon); }
+.fw-territory__caption { font-size: var(--fs-xs); color: var(--ink-soft); text-align: center; }
+.fw-territory__lead { font-size: var(--fs-lead); color: var(--ink); max-width: 62ch; }
+.fw-territory__points { list-style: none; margin-top: var(--sp-5); }
+.fw-territory__point {
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+  color: var(--ink-soft); padding: var(--sp-4) 0;
+  border-bottom: var(--bw) solid var(--stone);
+}
+.fw-territory__point .icon { color: var(--eucalypt); }
+.fw-territory__example {
+  font-size: var(--fs-sm); color: var(--ink);
+  border-left: var(--bw-thick) solid var(--eucalypt);
+  padding-left: var(--sp-4); margin-top: var(--sp-5); max-width: 66ch;
+}
+
+.fw-paid { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-7) var(--sp-5); }
+.fw-paid__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-5); }
+.fw-paid__item { border-top: var(--bw-thick) solid var(--brass-text); padding-top: var(--sp-4); }
+.fw-paid__item .icon { color: var(--eucalypt); margin-bottom: var(--sp-3); }
+.fw-paid__name {
+  font-family: var(--font-body); font-size: var(--fs-body); font-weight: 500;
+  color: var(--maroon); margin-bottom: var(--sp-2);
+}
+.fw-paid__text { font-size: var(--fs-sm); color: var(--ink-soft); }
+
+.fw-cost { background: var(--maroon); color: var(--on-maroon); padding: var(--sp-9) var(--sp-5); }
+.fw-cost__inner { max-width: var(--w-max); margin: 0 auto; }
+.fw-cost__eyebrow { color: var(--on-maroon); opacity: .9; }
+.fw-cost__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-display); margin: var(--sp-3) 0 var(--sp-7);
+}
+.fw-cost__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-6); }
+.fw-cost__item { border-top: var(--bw-thick) solid var(--brass); padding-top: var(--sp-4); }
+.fw-cost__val { font-size: var(--fs-num); font-weight: 500; color: var(--on-maroon); line-height: 1; }
+.fw-cost__lbl { font-size: var(--fs-sm); color: var(--on-maroon-soft); margin-top: var(--sp-3); }
+.fw-cost__note { font-size: var(--fs-sm); color: var(--on-maroon); margin-top: var(--sp-7); max-width: 64ch; }
+
+.fw-winescape { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-8) var(--sp-5); }
+.fw-winescape__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-8); align-items: start; }
+.fw-winescape__text { color: var(--ink-soft); max-width: 56ch; margin-top: var(--sp-4); }
+.fw-winescape__steps { list-style: none; counter-reset: step; }
+.fw-winescape__step {
+  counter-increment: step; position: relative;
+  padding: var(--sp-4) 0 var(--sp-4) var(--sp-8);
+  border-bottom: var(--bw) solid var(--stone);
+  color: var(--ink);
+}
+.fw-winescape__step::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute; left: 0; top: var(--sp-4);
+  font-size: var(--fs-sm); font-weight: 500; color: var(--brass-text);
+}
+
+.fw-req { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+.fw-req__list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-4); }
+.fw-req__item {
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  padding: var(--sp-4); font-size: var(--fs-sm); color: var(--ink);
+}
+.fw-req__item .icon { color: var(--eucalypt); }
+
+.fw-register { max-width: var(--w-narrow); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-9); }
+.fw-register__wrap {
+  border: var(--bw) solid var(--stone); border-top: var(--bw-thick) solid var(--maroon);
+  border-radius: var(--r-md); background: var(--surface); padding: var(--sp-7);
+}
+.fw-register__note { font-size: var(--fs-xs); color: var(--ink-soft); margin: var(--sp-3) 0 var(--sp-5); }
+.fw-register__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-4); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: LEGAL  (legal/*.html)
+   Structural drafts. The draft notice is not decoration: it is the
+   most important thing on the page until a lawyer has been near it.
+   ═══════════════════════════════════════════════════════════════ */
+.legal { max-width: var(--w-narrow); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-9); }
+.legal__draft {
+  display: flex; gap: var(--sp-4); align-items: flex-start;
+  border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--clay);
+  border-radius: var(--r-md); background: var(--surface);
+  padding: var(--sp-5); margin-bottom: var(--sp-7);
+  font-size: var(--fs-sm); color: var(--ink);
+}
+.legal__draft .icon { color: var(--clay); }
+.legal__draft b { font-weight: 500; }
+.legal__section { border-top: var(--bw) solid var(--stone); padding: var(--sp-6) 0 0; margin-bottom: var(--sp-6); }
+.legal__h {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); line-height: var(--lh-snug); margin-bottom: var(--sp-4);
+}
+.legal__body { color: var(--ink-soft); max-width: 70ch; }
+.legal__body + .legal__body { margin-top: var(--sp-4); }
+.legal__todo {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-micro); font-weight: 500;
+  letter-spacing: var(--tracking-label); text-transform: uppercase;
+  color: var(--clay);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-pill);
+  padding: var(--sp-1) var(--sp-3); margin-top: var(--sp-4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    SECTION: SITE FOOTER
    Markup is byte identical across all three pages — get_footer().
    ═══════════════════════════════════════════════════════════════ */
@@ -1354,10 +1681,19 @@ a, button, input, select, textarea, summary, [tabindex] {
   .wine__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
   .wine__aside { position: static; }
   .tenders__layout { grid-template-columns: 1fr; gap: var(--sp-7); }
+  .fw-territory__grid, .fw-winescape__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .supplier__payouts { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   :root { --header-h: 64px; }
+  /* The bar cannot wrap, so below 760 it sheds the nav and the account
+     link and shows the menu button instead. The drawer carries every
+     destination, which is why shedding them here is safe.
+     tools/layout-audit.mjs asserts a reachable nav control at 390 and 760
+     and that what is left still fits the bar. */
   .site-header__nav { display: none; }
+  .site-header__login { display: none; }
+  .site-header__menu-btn { display: inline-flex; }
   .site-header__inner { gap: var(--sp-3); }
   /* Mobile: the plate drops below the photograph and goes full width.
      The image height is reduced rather than the frame being cropped
@@ -1392,7 +1728,7 @@ a, button, input, select, textarea, summary, [tabindex] {
     width: 100vw; padding: var(--sp-6) var(--sp-5);
     box-shadow: none; border-bottom: var(--bw) solid var(--stone);
   }
-  .supplier__form-grid, .modal__grid-2, .tenders__row { grid-template-columns: 1fr; }
+  .supplier__form-grid, .modal__grid-2, .tenders__row, .fw-register__row { grid-template-columns: 1fr; }
   .account__row { flex-direction: column; align-items: flex-start; }
   .account__grid { grid-template-columns: 1fr; }
   /* Same treatment as the home hero: photograph first, plate below it,
@@ -1408,6 +1744,9 @@ a, button, input, select, textarea, summary, [tabindex] {
   }
   .winery-strip__inner { grid-template-columns: 1fr; gap: var(--sp-5); }
   .winery-strip__figure img { aspect-ratio: 16 / 9; }
+  .fw-maths__table { font-size: var(--fs-xs); }
+  .age-gate__plate { padding: var(--sp-5); }
+  .supplier__counter { flex-direction: column; align-items: stretch; }
   .supplier__panel-body--scroll { overflow-x: auto; }
   .supplier__table { min-width: 640px; }
   .modal__actions { flex-direction: column; }

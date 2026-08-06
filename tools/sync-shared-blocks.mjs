@@ -25,14 +25,20 @@ import { dirname, resolve } from 'node:path';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = 'index.html';
-const TARGETS = ['account.html', 'supplier.html'];
+const TARGETS = [
+  'wine.html', 'winery.html', 'go-deals.html', 'tenders.html', 'how-it-works.html',
+  'account.html', 'for-wineries.html', 'supplier.html',
+  'legal/terms.html', 'legal/privacy.html', 'legal/delivery.html',
+  'legal/responsible-service.html',
+];
 const CHECK = process.argv.includes('--check');
 
 /** label, opening marker, closing marker (inclusive). */
 const BLOCKS = [
-  ['sprite', '<!-- ═══ SHARED: ICON SPRITE', '</svg>\n'],
-  ['header', '<!-- ═══ SECTION: SITE HEADER', '</header>\n'],
-  ['footer', '<!-- ═══ SECTION: SITE FOOTER', '</footer>\n'],
+  ['sprite',  '<!-- ═══ SHARED: ICON SPRITE',   '</svg>\n'],
+  ['agegate', '<!-- ═══ SHARED: AGE GATE',      '</div>\n</div>\n'],
+  ['header',  '<!-- ═══ SECTION: SITE HEADER',  '</header>\n'],
+  ['footer',  '<!-- ═══ SECTION: SITE FOOTER',  '</footer>\n'],
 ];
 
 const GREEN = '\x1b[32m', RED = '\x1b[31m', DIM = '\x1b[2m', OFF = '\x1b[0m';

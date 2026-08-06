@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
 
@@ -47,18 +47,6 @@
   <symbol id="i-vine" viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M12 12.5c-3.4 0-5.5-2-5.5-5.5 3.4 0 5.5 2 5.5 5.5Z"/><path d="M12 10c0-3.4 2.1-5.5 5.5-5.5 0 3.4-2.1 5.5-5.5 5.5Z"/><path d="M7 21h10"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10.5" r="2.6"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></symbol>
-  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 1.8 20.5h20.4L12 3.5Z"/><path d="M12 10v4.4"/><path d="M12 17.4v.5"/></symbol>
-
-  <!-- Territory protection (for-wineries.html, spec 4.7 section 3): your
-       wine reaches the whole map except the postcodes you exclude, and a
-       customer inside an excluded one never sees the listing at all. -->
-  <symbol id="i-dia-territory" viewBox="0 0 24 24">
-    <path d="M2.5 5.5 9 3.2l6 2.3 6.5-2.3v15.3L15 20.8l-6-2.3-6.5 2.3V5.5Z"/>
-    <path d="M9 3.2v15.3"/><path d="M15 5.5v15.3"/>
-    <circle cx="12" cy="11" r="3.1"/>
-    <path d="m9.8 8.8 4.4 4.4"/>
-  </symbol>
 
   <!-- ── THIN-LINE DIAGRAMS (how-it-works.html, spec 4.6) ──────────
        Same spec as every other icon — 24x24 viewBox, stroke 1.25,
@@ -119,66 +107,6 @@
   </symbol>
 </svg>
 
-<!-- ═══ SHARED: AGE GATE ════════════════════════════════════════════
-     Spec 8. BYTE IDENTICAL across every page. Date of birth entry,
-     not a yes/no button, held for the session.
-
-     The open state is set by a synchronous script in <head>, before
-     first paint, so an unverified visitor never sees the market flash
-     behind the gate. If that script or JS fails, the gate stays shut
-     and the site is reachable — which is the wrong failure direction
-     for compliance and is called out in the round report.
-
-     The photograph behind the plate is UNTINTED. The copy sits on a
-     solid --bone plate, exactly like the hero. No scrim.
-     ════════════════════════════════════════════════════════════════ -->
-<div class="age-gate" id="ageGate">
-  <picture class="age-gate__media">
-    <source srcset="/assets/img/hero-vineyard-dawn.webp" type="image/webp">
-    <img src="/assets/img/hero-vineyard-dawn.jpg"
-         alt="Aerial view of vineyard rows and two dams at dawn, Margaret River"
-         width="2400" height="1091" decoding="async">
-  </picture>
-  <div class="age-gate__plate" role="dialog" aria-modal="true"
-       aria-labelledby="ageGateTitle" aria-describedby="ageGateNote">
-    <p class="label age-gate__eyebrow" id="ageGateEyebrow">Before you come in</p>
-    <h1 class="age-gate__title" id="ageGateTitle">Do you meet the legal drinking age?</h1>
-    <p class="age-gate__note" id="ageGateNote"></p>
-
-    <form id="ageGateForm" novalidate>
-      <fieldset class="age-gate__fields">
-        <legend class="age-gate__legend" id="ageGateLegend">Your date of birth</legend>
-        <div class="age-gate__row">
-          <span class="age-gate__field">
-            <label for="ageDay">Day</label>
-            <input id="ageDay" name="day" type="text" inputmode="numeric"
-                   maxlength="2" placeholder="DD" autocomplete="bday-day">
-          </span>
-          <span class="age-gate__field">
-            <label for="ageMonth">Month</label>
-            <input id="ageMonth" name="month" type="text" inputmode="numeric"
-                   maxlength="2" placeholder="MM" autocomplete="bday-month">
-          </span>
-          <span class="age-gate__field">
-            <label for="ageYear">Year</label>
-            <input id="ageYear" name="year" type="text" inputmode="numeric"
-                   maxlength="4" placeholder="YYYY" autocomplete="bday-year">
-          </span>
-        </div>
-      </fieldset>
-
-      <p class="age-gate__error" id="ageGateError" role="alert"></p>
-
-      <button class="btn btn--solid btn--block age-gate__submit" type="submit" id="ageGateSubmit">
-        Enter the market
-        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"/></svg>
-      </button>
-    </form>
-
-    <p class="age-gate__legal" id="ageGateLegal"></p>
-  </div>
-</div>
-
 <!-- ═══ SECTION: SITE HEADER ═════════════════════════════════════════
      BYTE IDENTICAL across all eight pages. Becomes get_header().
 
@@ -192,76 +120,97 @@
      ════════════════════════════════════════════════════════════════ -->
 <header class="site-header" id="siteHeader">
   <div class="site-header__inner">
-    <a class="site-header__logo" href="/index.html" aria-label="Go Wine Go home">
+    <a class="site-header__logo" href="index.html" aria-label="Go Wine Go home">
       <svg class="icon" aria-hidden="true"><use href="#i-grape"/></svg>
       <span class="site-header__wordmark">Go Wine Go</span>
     </a>
 
     <nav class="site-header__nav" aria-label="Primary">
-      <a class="site-header__tab" href="/index.html" data-page="index.html wine.html winery.html">Market</a>
-      <a class="site-header__tab" href="/go-deals.html" data-page="go-deals.html">Go Deals</a>
-      <a class="site-header__tab" href="/tenders.html" data-page="tenders.html">Tenders</a>
-      <a class="site-header__tab" href="/how-it-works.html" data-page="how-it-works.html">How it works</a>
+      <a class="site-header__tab" href="index.html" data-page="index.html wine.html winery.html">Market</a>
+      <a class="site-header__tab" href="go-deals.html" data-page="go-deals.html">Go Deals</a>
+      <a class="site-header__tab" href="tenders.html" data-page="tenders.html">Tenders</a>
+      <a class="site-header__tab" href="how-it-works.html" data-page="how-it-works.html">How it works</a>
     </nav>
 
     <div class="site-header__right">
       <div class="site-header__roles" role="group" aria-label="View as">
-        <a class="site-header__role" href="/index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
-        <a class="site-header__role" href="/supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
+        <a class="site-header__role" href="index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
+        <a class="site-header__role" href="supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
       </div>
-      <a class="site-header__login" href="/account.html" data-page="account.html">My account</a>
-      <button class="site-header__menu-btn" id="menuBtn" type="button"
-              aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
-        <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
-      </button>
+      <a class="site-header__login" href="account.html" data-page="account.html">My account</a>
     </div>
   </div>
 </header>
 
 <main class="page--inner" id="main">
-  <!-- ═══ SECTION: SUPPLIER DASHBOARD ═════════════════════════════
-       Spec 4.8. Extended from the Round 3A dashboard, not rebuilt:
-       the listings table, the list-a-wine form, the Go Deal engine
-       and the proof-of-delivery panel are the same components, now
-       reading from data/supplier.json and joined with the wine and
-       winery catalogue.
-
-       data/supplier.json is the ONLY file holding a floor price.
-       In the live product it is an authenticated endpoint scoped to
-       the signed-in winery, not a static asset.
+  <!-- ═══ SECTION: SUPPLIER ═══════════════════════════════════════
+       Moved across from the old single-file build unchanged in
+       structure and restyled only. Payment language corrected to
+       Model A: the winery is the seller, funds are held by the
+       payment provider, and uploading proof of delivery is what
+       releases them.
        ══════════════════════════════════════════════════════════ -->
   <section class="supplier" id="supplierRoot" aria-labelledby="supplierTitle">
     <div class="supplier__head">
       <div>
         <h1 class="supplier__title" id="supplierTitle">Supplier dashboard</h1>
-        <p class="supplier__welcome" id="supWelcome">Loading…</p>
+        <p class="supplier__welcome">Welcome back, <b>Wilyabrup Reach</b> · Licensed producer WA-PRD-SAMPLE-001</p>
       </div>
-      <button class="btn btn--solid" id="listNewWine" type="button">List new wine</button>
+      <button class="btn btn--solid" id="listNewWine">List new wine</button>
     </div>
 
-    <div class="supplier__stats" id="supStats"></div>
+    <div class="supplier__stats">
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">3</p>
+        <p class="supplier__stat-lbl">Cases sold this month</p>
+      </div>
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">2</p>
+        <p class="supplier__stat-lbl">Offers awaiting response</p>
+      </div>
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">$1,020</p>
+        <p class="supplier__stat-lbl">Held, releases on delivery</p>
+      </div>
+      <div class="supplier__stat">
+        <p class="supplier__stat-num">1</p>
+        <p class="supplier__stat-lbl">Awaiting proof of delivery</p>
+      </div>
+    </div>
 
-    <!-- ── My listings, with territory exclusions (spec 4.8) ── -->
     <div class="supplier__panel">
       <div class="supplier__panel-head">
         <h2 class="supplier__panel-title">My listings</h2>
-        <span class="supplier__panel-note" id="listingCount"></span>
+        <span class="supplier__panel-note">1 active listing</span>
       </div>
       <div class="supplier__panel-body supplier__panel-body--flush supplier__panel-body--scroll">
         <table class="supplier__table">
           <thead>
             <tr>
               <th scope="col">Wine</th>
-              <th scope="col">Cases</th>
               <th scope="col">List price</th>
               <th scope="col">Floor price</th>
               <th scope="col">Offers</th>
-              <th scope="col">State</th>
-              <th scope="col">Territory exclusions</th>
+              <th scope="col">Status</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
-          <tbody id="listingsBody"></tbody>
+          <tbody id="listingsBody">
+            <tr>
+              <td>
+                <b>Old Vine Cabernet Sauvignon 2021</b>
+                <span class="supplier__table-sub">Wilyabrup, Margaret River · 6 bottles per case</span>
+              </td>
+              <td>$340 per case</td>
+              <td>$290 per case</td>
+              <td>3</td>
+              <td><span class="pill pill--ok">Active</span></td>
+              <td>
+                <button class="btn btn--ghost btn--sm" data-opens-godeal>Go Deal</button>
+                <button class="btn btn--quiet btn--sm" data-removes-row>Remove</button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
 
@@ -308,38 +257,25 @@
           </div>
         </div>
         <div class="supplier__form-actions">
-          <button class="btn btn--solid" id="saveListing" type="button">Save listing</button>
-          <button class="btn btn--ghost" id="cancelListing" type="button">Cancel</button>
+          <button class="btn btn--solid" id="saveListing">Save listing</button>
+          <button class="btn btn--ghost" id="cancelListing">Cancel</button>
           <label class="supplier__check">
-            <input type="checkbox" id="autoAccept"> Auto-accept offers at or above the floor
+            <input type="checkbox" id="autoAccept"> Auto-accept offers above floor
           </label>
         </div>
       </div>
     </div>
 
-    <!-- ── Offers inbox: accept, counter, reject, with expiry ── -->
-    <div class="supplier__panel">
-      <div class="supplier__panel-head">
-        <h2 class="supplier__panel-title">
-          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-exchange"/></svg>
-          Offers inbox
-        </h2>
-        <span class="supplier__panel-note" id="supOfferCount"></span>
-      </div>
-      <div class="supplier__panel-body" id="supOffers"></div>
-    </div>
-
-    <!-- ── Go Deal engine: floor, tiers, commitment ── -->
-    <div class="supplier__panel" id="goDealCard">
+    <div class="supplier__panel" id="goDealCard" hidden>
       <div class="supplier__panel-head">
         <h2 class="supplier__panel-title">
           <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bolt"/></svg>
-          Go Deal engine, <span id="goDealWine"></span>
+          Go Deal engine, Old Vine Cabernet Sauvignon 2021
         </h2>
-        <span class="supplier__panel-note" id="goDealCommitted"></span>
+        <button class="btn btn--quiet btn--sm" data-closes-godeal>Close</button>
       </div>
       <div class="supplier__panel-body">
-        <p class="supplier__godeal-note">Set a floor below your list price. Offers at or above the floor are accepted automatically with no manual review, and as more cases are committed the price falls for everyone in the deal. The floor is never shown to buyers and is never sent to a buyer-facing page.</p>
+        <p class="supplier__godeal-note">Set a floor below your list price. Offers at or above the floor are accepted automatically with no manual review, and as more cases are committed the price falls for everyone. The floor is never shown to buyers and is never sent to the browser.</p>
         <div class="supplier__form-grid">
           <div class="supplier__toggle-row">
             <label class="supplier__check">
@@ -350,24 +286,21 @@
           </div>
           <div class="field">
             <label class="field__label" for="goDealSticker">List price</label>
-            <div class="field__prefixed"><span class="field__prefix">$</span><input type="number" id="goDealSticker"></div>
+            <div class="field__prefixed"><span class="field__prefix">$</span><input type="number" id="goDealSticker" value="340"></div>
           </div>
           <div class="field">
             <label class="field__label" for="goDealFloor">Floor price (hidden from buyers)</label>
-            <div class="field__prefixed"><span class="field__prefix">$</span><input type="number" id="goDealFloor"></div>
+            <div class="field__prefixed"><span class="field__prefix">$</span><input type="number" id="goDealFloor" value="290"></div>
             <p class="field__hint" id="goDealMargin"></p>
           </div>
         </div>
-        <p class="label">Price tiers</p>
-        <ol class="supplier__tiers" id="goDealTiers"></ol>
         <div class="supplier__form-actions">
-          <button class="btn btn--solid" id="saveGoDeal" type="button">Save Go Deal</button>
-          <button class="btn btn--ghost" data-closes-godeal type="button">Close</button>
+          <button class="btn btn--solid" id="saveGoDeal">Save Go Deal</button>
+          <button class="btn btn--ghost" data-closes-godeal>Cancel</button>
         </div>
       </div>
     </div>
 
-    <!-- ── Orders and dispatch: proof of delivery releases payment ── -->
     <div class="supplier__panel">
       <div class="supplier__panel-head">
         <h2 class="supplier__panel-title">Orders and dispatch</h2>
@@ -380,7 +313,26 @@
               <th scope="col">Cases</th><th scope="col">Sale price</th><th scope="col">Status</th><th scope="col">Action</th>
             </tr>
           </thead>
-          <tbody id="supOrders"></tbody>
+          <tbody>
+            <tr>
+              <td>#001</td><td>Alex Chen</td><td>Old Vine Cabernet Sauvignon 2021</td>
+              <td>2</td><td>$680</td>
+              <td><span class="pill pill--ok">Dispatched</span></td>
+              <td><button class="btn btn--ghost btn--sm" data-pod-order="#001" data-pod-sale="680">Upload proof of delivery</button></td>
+            </tr>
+            <tr>
+              <td>#002</td><td>Sarah M.</td><td>Old Vine Cabernet Sauvignon 2021</td>
+              <td>1</td><td>$340</td>
+              <td><span class="pill pill--wait">Awaiting payment</span></td>
+              <td>None</td>
+            </tr>
+            <tr>
+              <td>#003</td><td>James T.</td><td>Old Vine Cabernet Sauvignon 2021</td>
+              <td>1</td><td>$320</td>
+              <td><span class="pill pill--ok">Delivered, awaiting proof</span></td>
+              <td><button class="btn btn--ghost btn--sm" data-pod-order="#003" data-pod-sale="320">Upload proof of delivery</button></td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -391,7 +343,7 @@
           <svg class="icon icon--sm" aria-hidden="true"><use href="#i-doc"/></svg>
           Proof of delivery, order <span id="podOrderId"></span>
         </h2>
-        <button class="btn btn--quiet btn--sm" id="closePOD" type="button">Close</button>
+        <button class="btn btn--quiet btn--sm" id="closePOD">Close</button>
       </div>
       <div class="supplier__panel-body">
         <div id="podUploadArea">
@@ -421,26 +373,6 @@
         </div>
       </div>
     </div>
-
-    <!-- ── Payouts: what has been released, what is pending ── -->
-    <div class="supplier__panel">
-      <div class="supplier__panel-head">
-        <h2 class="supplier__panel-title">Payouts</h2>
-      </div>
-      <div class="supplier__panel-body">
-        <div class="supplier__payouts">
-          <div>
-            <p class="supplier__payout-col-title">Released</p>
-            <div id="supReleased"></div>
-          </div>
-          <div>
-            <p class="supplier__payout-col-title">Pending</p>
-            <div id="supPending"></div>
-          </div>
-        </div>
-        <p class="supplier__payout" id="supPayoutNote"></p>
-      </div>
-    </div>
   </section>
 </main>
 
@@ -456,17 +388,12 @@
       <span class="site-footer__wordmark">Go Wine Go</span>
     </div>
     <nav class="site-footer__nav" aria-label="Footer">
-      <a href="/index.html">Market</a>
-      <a href="/go-deals.html">Go Deals</a>
-      <a href="/tenders.html">Tenders</a>
-      <a href="/how-it-works.html">How it works</a>
-      <a href="/account.html">My account</a>
-      <a href="/for-wineries.html">For wineries</a>
-      <a href="/supplier.html">Supplier dashboard</a>
-      <a href="/legal/terms.html">Terms of sale</a>
-      <a href="/legal/privacy.html">Privacy</a>
-      <a href="/legal/delivery.html">Delivery</a>
-      <a href="/legal/responsible-service.html">Responsible service</a>
+      <a href="index.html">Market</a>
+      <a href="go-deals.html">Go Deals</a>
+      <a href="tenders.html">Tenders</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="account.html">My account</a>
+      <a href="supplier.html">Supplier dashboard</a>
     </nav>
     <hr class="rule rule--on-maroon site-footer__rule">
     <div class="site-footer__meta">
@@ -474,12 +401,7 @@
       <p>Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
       <p class="site-footer__credit">Photography by <a href="https://www.russellord.com/">Russell Ord</a>.</p>
       <p>Listings shown are samples for demonstration and are not available for sale.</p>
-      <!-- Responsible service line, spec 8. Authored in data/policy.json and
-           repeated here as STATIC markup on purpose: a compliance line that
-           only exists once JS has run is a compliance line that can fail to
-           appear. tools/contrast-audit.mjs asserts these bytes match
-           policy.json exactly, so the two cannot drift. -->
-      <p id="footerResponsibleService">Wine is sold to persons aged 18 years and over. It is against the law to sell or supply alcohol to, or to obtain alcohol on behalf of, a person under the age of 18 years. Please drink responsibly.</p>
+      <p>Wine is sold to persons aged 18 years and over. It is against the law to sell or supply alcohol to, or to obtain alcohol on behalf of, a person under the age of 18 years. Please drink responsibly.</p>
       <p>© 2026 Go Wine Go Pty Ltd · ABN 00 000 000 000 · Must be 18+</p>
     </div>
   </div>
@@ -488,6 +410,6 @@
 <!-- ═══ COMPONENT: TOAST ═══ -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="/assets/js/main.js"></script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>

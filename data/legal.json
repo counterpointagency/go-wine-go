@@ -1,0 +1,76 @@
+{
+  "_note": "STRUCTURAL DRAFTS ONLY. Each section states what a published document has to cover; none of it states a term. No clause here is binding, none has been settled by a lawyer, and the wording is deliberately descriptive so that a liquor licensing lawyer can draft against the structure rather than having to unpick invented terms first. Every document must be drafted and reviewed before this site takes a real order.",
+
+  "docs": {
+    "terms": {
+      "title": "Terms of sale",
+      "lead": "The agreement between a customer and the winery that sells them wine, and the separate, narrower relationship between both of them and Go Wine Go.",
+      "sections": [
+        { "h": "Who you are buying from", "p": ["Must state plainly that the seller is the winery, named on the listing and holding the producer's licence, and that Go Wine Go operates the marketplace and is not the seller, the supplier or the licensee for the sale.", "Must explain what that means in practice for who the customer contracts with, who owes the consumer guarantees, and who they contact first when something goes wrong."] },
+        { "h": "When a contract is formed", "p": ["Must define the moment of acceptance separately for each of the four mechanics: buying at the listed price, an offer accepted by the winery, a counteroffer accepted by the customer, a Go Deal that closes, and a tender submission the customer selects."] },
+        { "h": "Price, GST and Wine Equalisation Tax", "p": ["Must state that displayed prices include GST and WET, identify who issues the tax invoice, and cover what happens to a Go Deal price that falls after a customer has already committed."] },
+        { "h": "Offers, counteroffers and tenders", "p": ["Must set out expiry, withdrawal before acceptance, and the fact that posting a tender or making an offer creates no obligation on either side until acceptance.", "Must avoid any characterisation of the process as an auction, which is a separately licensed activity in Western Australia."] },
+        { "h": "Payment and release of funds", "p": ["Must identify the payment provider, state that Go Wine Go does not hold customer funds, and define the event that releases funds to the winery, which is proof of delivery."] },
+        { "h": "Delivery, title and risk", "p": ["Must state when title passes and when risk passes, and reconcile that with the adult signature requirement and with wine that is refused at the door."] },
+        { "h": "Cancellation and change of mind", "p": ["Must distinguish cancellation before dispatch from change of mind after delivery, and state which is available and on what terms."] },
+        { "h": "Faulty, damaged or corked wine", "p": ["Must set out the remedy path, who assesses a fault, and the interaction with temperature-controlled freight where the fault may have arisen in transit."] },
+        { "h": "Australian Consumer Law", "p": ["Must confirm that nothing in the document limits the consumer guarantees, and identify the winery as the supplier against whom those guarantees run."] },
+        { "h": "Liquor licensing and age", "p": ["Must state the legal drinking age, the age verification at purchase and at delivery, and the prohibition on secondary supply."] },
+        { "h": "Disputes between a customer and a winery", "p": ["Must describe what role, if any, Go Wine Go takes when a customer and a winery disagree, and be consistent with not being the seller."] },
+        { "h": "Governing law", "p": ["Must nominate a jurisdiction and be checked against the liquor licensing law of every state delivered into."] }
+      ]
+    },
+
+    "privacy": {
+      "title": "Privacy",
+      "lead": "What personal information the marketplace collects, what the winery receives, and what happens to a date of birth entered at the age gate.",
+      "sections": [
+        { "h": "What is collected", "p": ["Must list each category: account details, delivery addresses, order history, offers made, and the date of birth submitted at the age gate."] },
+        { "h": "Date of birth and age verification", "p": ["Must state whether the date of birth is stored or only evaluated, how long any age-verification flag persists, and what is held in the browser rather than on a server.", "The current prototype holds a pass or fail flag in session storage only and sends nothing to a server. That behaviour must be described accurately, or changed and then described."] },
+        { "h": "What the winery receives", "p": ["Must be explicit. The winery is the seller, so it necessarily receives the customer's name, delivery address and order. Must state what it does not receive, including payment card details."] },
+        { "h": "Payment information", "p": ["Must identify the payment provider, confirm that card details are not held by Go Wine Go or by the winery, and link to the provider's own handling."] },
+        { "h": "Identity checked on delivery", "p": ["Must cover the photo identification sighted by the carrier at the door, whether any record of it is kept, and by whom."] },
+        { "h": "Marketing and consent", "p": ["Must separate marketplace marketing from winery marketing and state how consent is obtained for each."] },
+        { "h": "Cookies and browser storage", "p": ["Must list what is set, why, and which of it is strictly necessary. The prototype currently uses session storage for the age gate only."] },
+        { "h": "Access, correction and complaints", "p": ["Must set out how a person requests their information, how they correct it, and the complaints path including the Office of the Australian Information Commissioner."] },
+        { "h": "Overseas disclosure", "p": ["Must state whether any information is processed outside Australia, including by the payment provider or hosting."] },
+        { "h": "Contact", "p": ["Must name a real contact point for privacy enquiries."] }
+      ]
+    },
+
+    "delivery": {
+      "title": "Delivery",
+      "lead": "How wine gets from the winery's licensed premises to the customer, and the conditions the law puts on that journey.",
+      "sections": [
+        { "h": "Who dispatches", "p": ["Must state that wine is dispatched by the winery from its own licensed premises, not from a Go Wine Go warehouse, and that Go Wine Go never takes possession of the wine."] },
+        { "h": "Dispatch times", "p": ["Must give an indicative window per case size and state that it runs from acceptance, not from the offer."] },
+        { "h": "Temperature-controlled freight", "p": ["Must describe the standard applied, the carriers used, and what happens where a destination cannot be reached in temperature-controlled transport."] },
+        { "h": "Delivery window", "p": ["Deliveries are made between 7am and 7pm. Must state whether a customer can nominate a narrower window."] },
+        { "h": "Adult signature required", "p": ["An adult aged 18 or over must be present to sign. Must state what identification the carrier may ask for and what happens if it cannot be produced."] },
+        { "h": "Never left unattended", "p": ["Wine is not left at an unattended address and is not left with a neighbour. Must set out the card, the redelivery attempt and the depot collection path."] },
+        { "h": "Failed delivery and redelivery", "p": ["Must state how many attempts are made, any fee, and what happens to the order and the payment if delivery ultimately fails."] },
+        { "h": "Regional and remote addresses", "p": ["Must identify the areas that attract longer times or surcharges, and the areas that cannot be served in temperature-controlled freight at all."] },
+        { "h": "Banned Drinker Register regions", "p": ["Deliveries into the Kimberley, the Pilbara, the Goldfields Electorate, and Carnarvon and Gascoyne Junction are subject to Western Australia's Banned Drinker Register.", "Must set out the check the winery performs, the identification sighted on delivery, and the fact that delivery may be refused. The postcode ranges used by the prototype are indicative and must be confirmed against the current determination."] },
+        { "h": "Damage in transit", "p": ["Must set out who bears the loss, how a claim is made, and the evidence required."] },
+        { "h": "Where we deliver", "p": ["Must list the states and territories served, and note that each winery additionally sets its own postcode exclusions."] }
+      ]
+    },
+
+    "responsible-service": {
+      "title": "Responsible service of alcohol",
+      "lead": "The obligations that come with selling alcohol online in Australia, and how this marketplace meets them.",
+      "sections": [
+        { "h": "Legal drinking age", "p": ["It is against the law to sell or supply alcohol to a person under 18, or to obtain alcohol on behalf of a person under 18. Must state this in the terms required by each jurisdiction."] },
+        { "h": "Age verification at purchase", "p": ["Must describe the age gate, that it takes a date of birth rather than a yes or no, and that it holds for the session."] },
+        { "h": "Age verification on delivery", "p": ["Must describe the adult signature requirement and the photo identification the carrier may sight, and state that these are separate from the check at purchase."] },
+        { "h": "Secondary supply", "p": ["Must explain that buying alcohol for a person under 18 is an offence and how that applies to a gift delivery."] },
+        { "h": "Intoxication", "p": ["Must state the obligation not to supply to an intoxicated person and how that is applied to a delivery rather than a bar."] },
+        { "h": "Banned Drinker Register", "p": ["Must set out the register, the regions it covers, the check performed before dispatch, and the circumstances in which a sale is refused."] },
+        { "h": "Quantity limits", "p": ["Must state any per-order or per-period limits and whether they differ by jurisdiction."] },
+        { "h": "Advertising and marketing standards", "p": ["Must commit to the ABAC Responsible Alcohol Marketing Code and describe how listing content and imagery are reviewed against it."] },
+        { "h": "Where to get help", "p": ["Must carry the current national and state support services. The prototype deliberately does not list a helpline number, because publishing an unverified support number is worse than publishing none."] },
+        { "h": "Licensee details", "p": ["Must display the licence number of each selling winery, which the site already does on every winery profile and every wine listing, and any licence held by the marketplace operator itself."] }
+      ]
+    }
+  }
+}

@@ -6,7 +6,7 @@
       "name": "Wilyabrup",
       "gi": "Margaret River",
       "blurb": "Gravel over granite, the region's oldest cabernet blocks",
-      "image": "assets/img/region-wilyabrup",
+      "image": "/assets/img/region-wilyabrup",
       "alt": "Aerial view of a vineyard block on a valley slope beside stands of gum trees in late afternoon light"
     },
     {
@@ -14,7 +14,7 @@
       "name": "Yallingup",
       "gi": "Margaret River",
       "blurb": "Exposed and maritime, thick skins and slow ripening",
-      "image": "assets/img/region-yallingup",
+      "image": "/assets/img/region-yallingup",
       "alt": "Overhead view of vineyard rows meeting mown grass and a gravel track"
     },
     {
@@ -22,7 +22,7 @@
       "name": "Karridale",
       "gi": "Margaret River",
       "blurb": "The coldest fruit in the region, late picked whites",
-      "image": "assets/img/region-karridale",
+      "image": "/assets/img/region-karridale",
       "alt": "A line of tall gum trees and autumn coloured vines reflected in a still dam"
     },
     {
@@ -30,7 +30,7 @@
       "name": "Cowaramup",
       "gi": "Margaret River",
       "blurb": "Mixed farming country, whites made to drink young",
-      "image": "assets/img/region-cowaramup",
+      "image": "/assets/img/region-cowaramup",
       "alt": "Sheep grazing between rows of bare winter vines"
     },
     {
@@ -38,7 +38,7 @@
       "name": "Treeton",
       "gi": "Margaret River",
       "blurb": "Sheltered valley floor, small family holdings",
-      "image": "assets/img/region-treeton",
+      "image": "/assets/img/region-treeton",
       "alt": "Late sun breaking through the branches of paperbark trees above a vineyard"
     },
     {
@@ -46,7 +46,7 @@
       "name": "Boranup",
       "gi": "Margaret River",
       "blurb": "Cut into the karri forest, cool nights and a late harvest",
-      "image": "assets/img/region-boranup",
+      "image": "/assets/img/region-boranup",
       "alt": "White trunked trees and fallen leaves at the edge of a green vineyard"
     }
   ]

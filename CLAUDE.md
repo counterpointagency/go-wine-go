@@ -7,11 +7,17 @@ Autodeploy is ON. The live URL has been shared with the client.
 never holds money. Nothing says escrow, auction or bid. The full specification
 is `docs/site-spec.md` and it is the reference for Rounds 3A, 3B and 3C.
 
-As of Round 3B the build is eight pages — `index.html` (home and market),
+As of Round 3C the build is thirteen pages — `index.html` (home and market),
 `wine.html`, `winery.html`, `go-deals.html`, `tenders.html`,
-`how-it-works.html`, `account.html`, `supplier.html` — over one shared
-`assets/css/main.css`, one shared `assets/js/main.js`, and hand-authored
-content in `data/*.json`. `for-wineries.html` and the legal stubs are 3C.
+`how-it-works.html`, `account.html`, `for-wineries.html`, `supplier.html`,
+and four drafts under `legal/` — over one shared `assets/css/main.css`, one
+shared `assets/js/main.js`, and hand-authored content in `data/*.json`.
+
+**All paths are root-relative** (`/assets/...`, `/data/...`, `/index.html`).
+They have to be: the header, footer, sprite and age gate are byte identical
+across every page, and a relative path cannot be byte identical in both the
+repo root and `legal/`. This also means the site must be SERVED, never opened
+from the file system.
 
 `wine.html` and `winery.html` are slug driven: `wine.html?slug=<wine>`,
 `winery.html?slug=<winery>`. That is what becomes `single-wine.php` and
@@ -244,7 +250,12 @@ from `tools/font-metrics.json`, and asserts:
 6. **header content vs. the width of the bar.** The header is a fixed 76px
    bar that cannot wrap, so it sheds content by media query instead. Measured
    with real glyph advances, so adding a nav item fails loudly
-7. search input width vs. its own placeholder
+7. **a reachable navigation control at 390 and 760**, and that the drawer it
+   opens links to every page. Rounds 3A and 3B both shipped with the header
+   nav hidden below 760 and nothing in its place, so the footer was the only
+   route on a phone. Nothing measured it, because every element was correctly
+   sized — the failure was an ABSENCE, and absences need their own assertion
+8. search input width vs. its own placeholder
 
 `tools/font-metrics.json` is extracted with fontTools from the exact Google
 Fonts woff2 files the pages request, with variable axes instanced at the values
@@ -267,10 +278,21 @@ slide under a still-transparent header.
 `tools/contrast-audit.mjs` parses the `:root` block out of
 `assets/css/main.css` and checks every pairing the site actually renders against
 the threshold that pairing must meet (4.5 / 7.0 / 3.0), plus structural guards
-across **all three pages**: no hex outside `:root`, no `rgba()` literals outside
+across **all thirteen pages**: no hex outside `:root`, no `rgba()` literals outside
 `:root`, no `!important`, no inline `style=`, no inline `on*=` handlers, no
 emoji, no "escrow", no "auction"/"bid" in shipped copy, no display type under
 32px or under weight 500, and no display rule that fails to pin `opsz`.
+
+It also asserts that **no Go Deal floor appears in any buyer-facing data
+file**. The floor is the winery's private auto-accept threshold and lives only
+in `data/supplier.json`. In the live product that is an authenticated endpoint
+scoped to the signed-in winery; a static prototype cannot enforce that, so the
+audit enforces the thing that actually matters instead.
+
+It also asserts that the **responsible-service line in every footer matches
+`data/policy.json` byte for byte**. That line is static markup on purpose — a
+compliance line that only exists once JS has run is a compliance line that can
+fail to appear — and the guard is what stops the two copies drifting.
 
 It also checks that every `<use href="#id">` resolves to a symbol in the
 sprite, and that no symbol is defined without being used. **Round 3B shipped a
@@ -376,3 +398,29 @@ serving.
   because the header nav is hidden below 760 and there is still no mobile menu.
   Archived at `archive/index-v4.html`, `archive/account-v1.html`,
   `archive/supplier-v1.html`.
+- **Round 3C** — supply side, compliance, and the mobile gap.
+  `for-wineries.html` built in full to spec 4.7, with territory protection
+  given its own section and a thin-line diagram because it is the objection
+  every winery raises first. `supplier.html` extended to spec 4.8: offers
+  inbox with accept, counter and reject, the Go Deal tier ladder, territory
+  exclusions on the listings table, and payouts split into released and
+  pending. Four structural legal drafts under `legal/`, which forced the
+  move to root-relative paths.
+
+  Compliance: an **age gate** taking a date of birth rather than a yes or no,
+  held for the session, opened by a synchronous `<head>` script so the market
+  never flashes behind it; a **Banned Drinker Register** notice driven by
+  postcode at checkout and against every saved address; the responsible
+  service line in the global footer; the producer licence on every wine page.
+  All wording lives in `data/policy.json`.
+
+  A real **mobile menu** with a focus trap, Escape to close, focus returned to
+  the opener, and the rest of the document marked `inert` while it is open.
+  One `trapFocus` and one `isolate` helper serve both it and the age gate.
+
+  Spec 6 assigns `AmeliaPark_070` to the For Wineries hero, but that file is a
+  restaurant sign on a planted wall, not the vineyard photograph spec 4.7
+  requires. Shortlisted five candidates and used `LarryCherubino_159`;
+  flagged rather than substituted silently.
+
+  Archived at `archive/index-v5.html`, `archive/supplier-v2.html`.
