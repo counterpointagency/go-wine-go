@@ -500,11 +500,15 @@ a, button, input, select, textarea, summary, [tabindex] {
 }
 .wine-card__body { padding: var(--sp-5); display: flex; flex-direction: column; flex: 1; }
 .wine-card__producer { margin-bottom: var(--sp-2); }
+.wine-card__producer-link { color: inherit; text-decoration: none; }
+.wine-card__producer-link:hover { color: var(--maroon); text-decoration: underline; }
 .wine-card__name {
   font-family: var(--font-body); font-size: var(--fs-lead); font-weight: 500;
   color: var(--ink); line-height: var(--lh-snug); margin-bottom: var(--sp-2);
   max-width: 22ch;
 }
+.wine-card__name-link { color: inherit; text-decoration: none; }
+.wine-card__name-link:hover { color: var(--maroon); text-decoration: underline; }
 .wine-card__meta { font-size: var(--fs-xs); color: var(--ink-soft); }
 .wine-card__meta span + span::before { content: '·'; margin: 0 var(--sp-2); color: var(--ink-soft); }
 .wine-card__variety { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); }
@@ -548,6 +552,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 .editorial__body { color: var(--ink-soft); max-width: 56ch; }
 .editorial__body + .editorial__body { margin-top: var(--sp-4); }
 .editorial__body b { color: var(--ink); font-weight: 500; }
+.editorial__more { margin-top: var(--sp-5); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: GO DEALS STRIP
@@ -712,23 +717,58 @@ a, button, input, select, textarea, summary, [tabindex] {
 .account__row-name { font-size: var(--fs-body); font-weight: 500; color: var(--ink); }
 .account__row-meta { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); }
 .account__row-actions { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
-.account__row-state { margin-top: var(--sp-3); }
 .account__counter {
   font-size: var(--fs-xs); color: var(--clay);
   margin-top: var(--sp-2); display: inline-flex; align-items: center; gap: var(--sp-2);
 }
 .account__counter b { font-weight: 500; }
-.account__payment {
-  display: flex; gap: var(--sp-3); align-items: flex-start;
-  font-size: var(--fs-sm); color: var(--ink-soft);
-  background: var(--surface);
+.account__panel-note { font-size: var(--fs-sm); color: var(--ink-soft); margin-bottom: var(--sp-5); max-width: 68ch; }
+.account__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: var(--sp-5); }
+
+/* Orders carry a dispatch timeline and a tracking reference (spec 4.9). */
+.account__order {
   border: var(--bw) solid var(--stone); border-radius: var(--r-md);
-  padding: var(--sp-4) var(--sp-5); margin-top: var(--sp-4);
+  padding: var(--sp-5); margin-bottom: var(--sp-4); background: var(--bone);
 }
-.account__payment b { color: var(--ink); font-weight: 500; }
-.account__payment .icon { color: var(--brass-text); }
-.account__empty { text-align: center; padding: var(--sp-9) var(--sp-5); color: var(--ink-soft); }
-.account__empty .icon { margin: 0 auto var(--sp-4); color: var(--ink-soft); }
+.account__order-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sp-4); flex-wrap: wrap;
+}
+.account__order-id { font-size: var(--fs-micro); color: var(--ink-soft); letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.account__order-name { font-size: var(--fs-body); font-weight: 500; color: var(--ink); margin-top: var(--sp-2); }
+.account__order-meta { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); }
+.account__order-total { font-size: var(--fs-num); font-weight: 500; color: var(--maroon); line-height: 1; }
+/* Three fixed steps, so the bar is a rail with the reached steps marked.
+   Each step also names itself in text, so the rail never carries meaning
+   on its own (1.4.1). */
+.account__track { display: flex; gap: var(--sp-1); margin: var(--sp-5) 0 var(--sp-3); }
+.account__track-step {
+  flex: 1; height: 6px; background: var(--surface);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-pill);
+}
+.account__track-step.is-done { background: var(--maroon); border-color: var(--maroon); }
+.account__track-labels { display: flex; gap: var(--sp-1); font-size: var(--fs-micro); color: var(--ink-soft); }
+.account__track-labels span { flex: 1; }
+.account__track-labels span.is-done { color: var(--maroon); font-weight: 500; }
+.account__order-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  flex-wrap: wrap;
+  border-top: var(--bw) solid var(--stone); margin-top: var(--sp-4); padding-top: var(--sp-4);
+  font-size: var(--fs-xs); color: var(--ink-soft);
+}
+.account__order-foot b { color: var(--ink); font-weight: 500; }
+
+.account__address {
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  padding: var(--sp-5); background: var(--bone);
+}
+.account__address-label {
+  display: flex; align-items: center; gap: var(--sp-3);
+  font-size: var(--fs-body); font-weight: 500; color: var(--maroon);
+  margin-bottom: var(--sp-3);
+}
+.account__address-lines { font-size: var(--fs-sm); color: var(--ink); font-style: normal; }
+.account__address-note { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: SUPPLIER
@@ -828,6 +868,362 @@ a, button, input, select, textarea, summary, [tabindex] {
 .supplier__payout { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); display: flex; align-items: center; gap: var(--sp-2); }
 
 /* ═══════════════════════════════════════════════════════════════
+   SECTION: WINE DETAIL  (wine.html, spec 4.2)
+   Left column carries the wine's identity, right column is sticky
+   and carries price and the three actions.
+
+   The sticky offset is calc(--header-h + --sp-5), NOT 0. A sticky
+   element with top:0 parks itself underneath the fixed header, which
+   is the same class of collision the hero plate had in Round 2 —
+   colour audits cannot see it. tools/layout-audit.mjs now asserts
+   every sticky top clears the header.
+   ═══════════════════════════════════════════════════════════════ */
+.wine { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-6) var(--sp-5) var(--sp-7); }
+.wine__grid {
+  display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--sp-8); align-items: start;
+}
+.wine__producer {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  color: var(--brass-text); text-decoration: none;
+  border-bottom: var(--bw) solid var(--stone); padding-bottom: 2px;
+}
+.wine__producer:hover { color: var(--maroon); border-bottom-color: var(--maroon); }
+.wine__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+  margin: var(--sp-4) 0 var(--sp-3); text-wrap: balance;
+}
+.wine__meta { font-size: var(--fs-sm); color: var(--ink-soft); }
+.wine__meta span + span::before { content: '·'; margin: 0 var(--sp-2); }
+.wine__tone { height: 4px; width: 96px; background: var(--tone-2); margin-top: var(--sp-5); }
+.wine__note { color: var(--ink-soft); margin-top: var(--sp-5); max-width: 60ch; }
+.wine__specs { margin-top: var(--sp-6); border-top: var(--bw) solid var(--stone); }
+.wine__spec {
+  display: flex; justify-content: space-between; gap: var(--sp-5);
+  padding: var(--sp-3) 0; border-bottom: var(--bw) solid var(--stone);
+  font-size: var(--fs-sm);
+}
+.wine__spec dt { color: var(--ink-soft); }
+.wine__spec dd { font-weight: 500; text-align: right; max-width: 46ch; }
+
+.wine__aside {
+  position: sticky; top: calc(var(--header-h) + var(--sp-5));
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  background: var(--bone); padding: var(--sp-5);
+}
+.wine__price { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); }
+.wine__price-val {
+  font-size: var(--fs-num); font-weight: 500; color: var(--maroon); line-height: 1;
+}
+.wine__price-unit { font-size: var(--fs-xs); color: var(--ink-soft); margin-left: var(--sp-2); font-weight: 400; }
+.wine__tax { font-size: var(--fs-micro); color: var(--ink-soft); margin-top: var(--sp-3); }
+.wine__stock { font-size: var(--fs-sm); color: var(--ink); margin-top: var(--sp-4); }
+.wine__stock b { font-weight: 500; }
+.wine__actions { display: grid; gap: var(--sp-3); margin-top: var(--sp-5); }
+.wine__seller {
+  font-size: var(--fs-xs); color: var(--ink-soft);
+  border-top: var(--bw) solid var(--stone);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+}
+.wine__seller b { color: var(--ink); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: WINERY STRIP  (wine.html — the Model A trust anchor)
+   Not optional. Small photograph, one paragraph, producer licence
+   number, link through to the profile.
+   ═══════════════════════════════════════════════════════════════ */
+.winery-strip { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+.winery-strip__inner {
+  display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: var(--sp-6);
+  align-items: center;
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  padding: var(--sp-5); background: var(--surface);
+}
+.winery-strip__figure { margin: 0; }
+.winery-strip__figure img {
+  width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover;
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+}
+.winery-strip__name {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); line-height: var(--lh-snug);
+}
+.winery-strip__text { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--sp-3); max-width: 66ch; }
+.winery-strip__licence {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  font-size: var(--fs-xs); color: var(--ink);
+  border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
+  background: var(--bone); padding: var(--sp-2) var(--sp-3); margin-top: var(--sp-4);
+}
+.winery-strip__licence b { font-weight: 500; }
+.winery-strip__link { display: inline-flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-4); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: INFO PANEL
+   The delivery panel, the payment panel and the credentials block
+   are the same box. One pattern, so it maps to one PHP partial.
+   ═══════════════════════════════════════════════════════════════ */
+.panels { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-8); }
+.panels__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-5); }
+.panel {
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  padding: var(--sp-5); background: var(--bone);
+}
+.panel__head { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.panel__head .icon { color: var(--eucalypt); }
+.panel__title {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); line-height: var(--lh-snug);
+}
+.panel__list { list-style: none; }
+.panel__item {
+  display: flex; gap: var(--sp-3); align-items: flex-start;
+  font-size: var(--fs-sm); color: var(--ink);
+  padding: var(--sp-3) 0; border-bottom: var(--bw) solid var(--stone);
+}
+.panel__item:last-child { border-bottom: none; padding-bottom: 0; }
+.panel__item .icon { color: var(--brass-text); }
+.panel__note { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-4); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: PAGE HEAD
+   The eyebrow / title / lead used by every inner page that has no
+   hero photograph. In WordPress this is one template part.
+   ═══════════════════════════════════════════════════════════════ */
+.page-head { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-8) var(--sp-5) var(--sp-6); }
+.page-head__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+  margin-top: var(--sp-3); text-wrap: balance;
+}
+.page-head__lead { font-size: var(--fs-lead); color: var(--ink-soft); margin-top: var(--sp-4); max-width: 64ch; }
+/* Spec 4.4 wants the Go Deal mechanic explained "in three lines", so
+   they are three list items rather than one run-on paragraph. */
+.page-head__lines { list-style: none; margin-top: var(--sp-4); max-width: 68ch; }
+.page-head__lines li {
+  font-size: var(--fs-lead); color: var(--ink-soft);
+  padding-left: var(--sp-5); position: relative; margin-bottom: var(--sp-3);
+}
+.page-head__lines li::before {
+  content: ''; position: absolute; left: 0; top: 0.72em;
+  width: 12px; height: var(--bw); background: var(--stone);
+}
+
+/* Section-level display heading, for sections that are not a page head. */
+.section-title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+  margin-top: var(--sp-3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: BREADCRUMB
+   ═══════════════════════════════════════════════════════════════ */
+.breadcrumb { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-5) var(--sp-5) 0; font-size: var(--fs-xs); }
+.breadcrumb ol { list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+.breadcrumb li + li::before { content: '/'; margin-right: var(--sp-2); color: var(--ink-soft); }
+.breadcrumb a { color: var(--brass-text); }
+.breadcrumb [aria-current='page'] { color: var(--ink-soft); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: WINERY PROFILE  (winery.html, spec 4.3)
+   The page that makes Model A legible. Untinted landscape hero with
+   the name on a bone plate — no scrim, exactly like the home hero.
+   ═══════════════════════════════════════════════════════════════ */
+.winery-hero {
+  position: relative; isolation: isolate;
+  padding-top: var(--header-h);
+  min-height: min(56vh, 460px);
+  display: grid; align-content: end;
+}
+.winery-hero__media { position: absolute; inset: 0; z-index: -1; }
+.winery-hero__media picture { height: 100%; }
+.winery-hero__media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.winery-hero__inner {
+  max-width: var(--w-max); width: 100%; margin: 0 auto;
+  padding: 0 var(--sp-5) var(--sp-6);
+  display: grid; justify-items: start;
+}
+.winery-hero__plate {
+  background: var(--bone); color: var(--maroon);
+  width: 34vw; max-height: 60vh;
+  padding: var(--sp-6);
+  box-shadow: inset 0 0 0 var(--bw) var(--brass);
+}
+.winery-hero__eyebrow { color: var(--brass-text); margin-bottom: var(--sp-3); }
+.winery-hero__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+}
+.winery-hero__sub { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--sp-3); }
+
+.winery-story { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-8) var(--sp-5); }
+.winery-story__grid {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--sp-8); align-items: center;
+}
+.winery-story__figure { margin: 0; }
+.winery-story__figure img {
+  width: 100%; height: auto; aspect-ratio: 4 / 5;
+  object-fit: cover; border-radius: var(--r-md);
+}
+.winery-story__caption { font-size: var(--fs-micro); color: var(--ink-soft); margin-top: var(--sp-3); }
+.winery-story__title {
+  font-family: var(--font-display); font-weight: var(--display-weight);
+  font-variation-settings: var(--display-axes);
+  font-size: var(--fs-h2); color: var(--maroon);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
+  margin: var(--sp-3) 0 var(--sp-5);
+}
+.winery-story__body { color: var(--ink-soft); max-width: 60ch; }
+.winery-story__body + .winery-story__body { margin-top: var(--sp-4); }
+
+.credentials { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+.credentials__grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-5);
+  border-top: var(--bw) solid var(--stone); padding-top: var(--sp-5);
+}
+.credentials__item { border-left: var(--bw-thick) solid var(--brass-text); padding-left: var(--sp-4); }
+.credentials__val {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); line-height: var(--lh-snug);
+}
+.credentials__lbl { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-2); }
+
+/* The compliance line is rendered verbatim from data/policy.json. It is
+   the single sentence that makes Model A unambiguous, so it gets its own
+   boundary rather than being folded into body copy. */
+.compliance {
+  max-width: var(--w-max); margin: 0 auto var(--sp-8);
+  padding: 0 var(--sp-5);
+}
+.compliance__inner {
+  display: flex; gap: var(--sp-4); align-items: flex-start;
+  border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--maroon);
+  border-radius: var(--r-md); background: var(--surface);
+  padding: var(--sp-5); font-size: var(--fs-sm); color: var(--ink);
+}
+.compliance__inner .icon { color: var(--maroon); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: TENDERS  (tenders.html, spec 4.5)
+   Never described as an auction, and a submission is never a bid.
+   ═══════════════════════════════════════════════════════════════ */
+.tenders { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-8); }
+.tenders__steps {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-5); margin-bottom: var(--sp-8);
+}
+.tenders__step { border-top: var(--bw-thick) solid var(--brass-text); padding-top: var(--sp-4); }
+.tenders__step-num { font-size: var(--fs-h3); font-weight: 500; color: var(--maroon); line-height: 1; }
+.tenders__step-name { font-size: var(--fs-body); font-weight: 500; color: var(--ink); margin: var(--sp-3) 0 var(--sp-2); }
+.tenders__step-text { font-size: var(--fs-sm); color: var(--ink-soft); }
+.tenders__layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-8); align-items: start; }
+.tenders__form-wrap {
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  background: var(--surface); padding: var(--sp-5);
+}
+.tenders__form-title {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); margin-bottom: var(--sp-2);
+}
+.tenders__form-note { font-size: var(--fs-xs); color: var(--ink-soft); margin-bottom: var(--sp-5); }
+.tenders__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-4); }
+.tenders__list-title {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); margin-bottom: var(--sp-4);
+}
+.tender-card {
+  border: var(--bw) solid var(--stone); border-radius: var(--r-md);
+  padding: var(--sp-5); margin-bottom: var(--sp-4); background: var(--bone);
+}
+.tender-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+.tender-card__id { font-size: var(--fs-micro); color: var(--ink-soft); letter-spacing: var(--tracking-label); text-transform: uppercase; }
+.tender-card__name {
+  font-family: var(--font-body); font-size: var(--fs-lead); font-weight: 500;
+  color: var(--ink); line-height: var(--lh-snug); margin-top: var(--sp-2);
+}
+.tender-card__meta { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-2); }
+.tender-card__max { text-align: right; flex-shrink: 0; }
+.tender-card__max-val { font-size: var(--fs-num); font-weight: 500; color: var(--maroon); line-height: 1; }
+.tender-card__max-lbl { display: block; font-size: var(--fs-micro); color: var(--ink-soft); margin-top: var(--sp-1); }
+.tender-card__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-4); flex-wrap: wrap;
+  border-top: var(--bw) solid var(--stone); margin-top: var(--sp-4); padding-top: var(--sp-4);
+}
+.tender-card__subs { font-size: var(--fs-sm); color: var(--ink-soft); }
+.tender-card__subs b { color: var(--maroon); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: HOW IT WORKS  (how-it-works.html, spec 4.6)
+   Thin-line diagrams, never photography. Diagrams are sprite symbols
+   on the same spec as every other icon — 24x24 viewBox, stroke 1.25,
+   currentColor, fill none — simply rendered large.
+   ═══════════════════════════════════════════════════════════════ */
+.hiw-answers { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-8); }
+.hiw-answers__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-5); }
+.hiw-answers__item {
+  border: var(--bw) solid var(--stone); border-top: var(--bw-thick) solid var(--maroon);
+  border-radius: var(--r-md); padding: var(--sp-6); background: var(--bone);
+}
+.hiw-answers__q {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); line-height: var(--lh-snug); margin: var(--sp-4) 0 var(--sp-3);
+}
+.hiw-answers__a { color: var(--ink); }
+
+.hiw { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
+.hiw__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-6); }
+.hiw__item { border-top: var(--bw) solid var(--stone); padding-top: var(--sp-5); }
+.hiw__name {
+  font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
+  color: var(--maroon); margin: var(--sp-4) 0 var(--sp-3); line-height: var(--lh-snug);
+}
+.hiw__lines { list-style: none; }
+.hiw__line {
+  font-size: var(--fs-sm); color: var(--ink-soft);
+  padding-left: var(--sp-5); position: relative; margin-bottom: var(--sp-3);
+}
+.hiw__line::before {
+  content: ''; position: absolute; left: 0; top: 0.6em;
+  width: 10px; height: var(--bw); background: var(--stone);
+}
+/* The diagram itself. --stroke is 1.25 in a 24x24 viewBox, so scaling the
+   rendered box keeps the line weight optically thin rather than fattening
+   it, which is the whole point of a line diagram. */
+.diagram {
+  width: 72px; height: 72px;
+  stroke: currentColor; stroke-width: var(--stroke);
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+  color: var(--eucalypt);
+}
+.hiw-answers__item .diagram { color: var(--maroon); }
+
+.faq { max-width: var(--w-narrow); margin: 0 auto; padding: var(--sp-7) var(--sp-5) var(--sp-9); }
+.faq__list { border-top: var(--bw) solid var(--stone); }
+.faq__item { border-bottom: var(--bw) solid var(--stone); }
+.faq__q {
+  width: 100%; text-align: left; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-5) 0;
+  font-size: var(--fs-body); font-weight: 500; color: var(--maroon);
+}
+.faq__q .icon { color: var(--brass-text); transition: transform var(--t-fast); flex-shrink: 0; }
+.faq__item.is-open .faq__q .icon { transform: rotate(45deg); }
+.faq__a { display: none; padding-bottom: var(--sp-5); color: var(--ink-soft); max-width: 72ch; }
+.faq__item.is-open .faq__a { display: block; }
+
+/* ═══════════════════════════════════════════════════════════════
    SECTION: SITE FOOTER
    Markup is byte identical across all three pages — get_footer().
    ═══════════════════════════════════════════════════════════════ */
@@ -839,6 +1235,18 @@ a, button, input, select, textarea, summary, [tabindex] {
   font-weight: var(--display-weight); font-variation-settings: var(--display-axes);
   letter-spacing: var(--tracking-display);
 }
+/* Every page is reachable from here. That matters because the header nav
+   is hidden below 760 and the role switcher below 1100, so on a narrow
+   screen the footer is the only complete route through the site. */
+.site-footer__nav {
+  display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-5);
+  margin-bottom: var(--sp-5);
+}
+.site-footer__nav a {
+  color: var(--on-maroon); text-decoration: none; font-size: var(--fs-sm);
+  border-bottom: var(--bw-thick) solid transparent;
+}
+.site-footer__nav a:hover { border-bottom-color: var(--brass); }
 .site-footer__rule { margin-bottom: var(--sp-5); }
 .site-footer__meta { font-size: var(--fs-xs); line-height: var(--lh-body); }
 .site-footer__meta p + p { margin-top: var(--sp-2); }
@@ -928,11 +1336,24 @@ a, button, input, select, textarea, summary, [tabindex] {
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 1100px) {
   .trust__inner { grid-template-columns: repeat(2, 1fr); }
+  /* The header is a fixed 76px bar that cannot wrap, so it has to shed
+     content rather than reflow it. The role switcher goes first: it is
+     the only control that duplicates a destination reachable elsewhere,
+     since the footer nav carries the supplier dashboard on every page.
+     tools/layout-audit.mjs measures what is left against the bar. */
+  .site-header__roles { display: none; }
 }
 @media (max-width: 900px) {
   .editorial__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
   .editorial__figure img { aspect-ratio: 4 / 3; }
   .closing__plate { width: 60vw; }
+  .winery-story__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .winery-story__figure img { aspect-ratio: 4 / 3; }
+  /* Single column: the aside stops being a parallel column, so sticking it
+     would pin a block of the page while the reader scrolls past it. */
+  .wine__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .wine__aside { position: static; }
+  .tenders__layout { grid-template-columns: 1fr; gap: var(--sp-7); }
 }
 @media (max-width: 760px) {
   :root { --header-h: 64px; }
@@ -971,8 +1392,22 @@ a, button, input, select, textarea, summary, [tabindex] {
     width: 100vw; padding: var(--sp-6) var(--sp-5);
     box-shadow: none; border-bottom: var(--bw) solid var(--stone);
   }
-  .supplier__form-grid, .modal__grid-2 { grid-template-columns: 1fr; }
+  .supplier__form-grid, .modal__grid-2, .tenders__row { grid-template-columns: 1fr; }
   .account__row { flex-direction: column; align-items: flex-start; }
+  .account__grid { grid-template-columns: 1fr; }
+  /* Same treatment as the home hero: photograph first, plate below it,
+     full width, so no copy sits over an untinted image on a small screen. */
+  .winery-hero { padding-top: 0; min-height: 0; display: block; }
+  .winery-hero__media { position: relative; }
+  .winery-hero__media img { height: 34vh; }
+  .winery-hero__inner { max-width: none; padding: 0; justify-items: stretch; }
+  .winery-hero__plate {
+    width: 100vw; max-height: none;
+    padding: var(--sp-6) var(--sp-5);
+    box-shadow: none; border-bottom: var(--bw) solid var(--stone);
+  }
+  .winery-strip__inner { grid-template-columns: 1fr; gap: var(--sp-5); }
+  .winery-strip__figure img { aspect-ratio: 16 / 9; }
   .supplier__panel-body--scroll { overflow-x: auto; }
   .supplier__table { min-width: 640px; }
   .modal__actions { flex-direction: column; }

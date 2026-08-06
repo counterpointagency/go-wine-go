@@ -1,0 +1,39 @@
+{
+  "_note": "The signed-in customer for spec 4.9. NEW entity: the content model in spec 5 covers what is bought and sold but never the buyer, and Shortlist, Addresses and 'Tenders I have posted' all hang off the customer. shortlist holds wine slugs — Shortlist is Winescape's own term for saved wines and is used here instead of wishlist, favourites or saved. my_tenders holds tender ids that join to data/tenders.json.",
+  "customer": {
+    "name": "Alex Chen",
+    "email": "alex.chen@example.com",
+    "member_since": "2025-11-14",
+    "shortlist": [
+      "spur-top-cabernet-sauvignon-2021",
+      "riverbend-malbec-2022",
+      "south-block-semillon-2023",
+      "karri-block-shiraz-2022"
+    ],
+    "my_tenders": ["T-1041", "T-1043"],
+    "addresses": [
+      {
+        "id": "ADR-1",
+        "label": "Home",
+        "recipient": "Alex Chen",
+        "line1": "14 Bussell Highway",
+        "suburb": "Margaret River",
+        "state": "WA",
+        "postcode": "6285",
+        "is_default": true,
+        "instructions": "An adult must be present to sign. Do not leave with a neighbour."
+      },
+      {
+        "id": "ADR-2",
+        "label": "Work",
+        "recipient": "Alex Chen",
+        "line1": "Level 3, 190 St Georges Terrace",
+        "suburb": "Perth",
+        "state": "WA",
+        "postcode": "6000",
+        "is_default": false,
+        "instructions": "Reception holds deliveries until 5pm."
+      }
+    ]
+  }
+}

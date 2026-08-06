@@ -1,0 +1,55 @@
+{
+  "_note": "Spec 5 offer entity: id, wine_slug, quantity, price_per_case, status, expires_at. status = sent | countered | accepted | declined | expired. EXTENSION: counter_price_per_case, because a countered offer has to state what the winery countered AT and the spec entity has no field for it. Language is offer and counteroffer throughout, never bid and never auction.",
+  "offers": [
+    {
+      "id": "OF-2041",
+      "wine_slug": "old-vine-cabernet-sauvignon-2021",
+      "quantity": 1,
+      "price_per_case": 310,
+      "counter_price_per_case": null,
+      "status": "sent",
+      "placed_at": "2026-08-04",
+      "expires_at": "2026-08-11"
+    },
+    {
+      "id": "OF-2042",
+      "wine_slug": "cold-ridge-chardonnay-2023",
+      "quantity": 1,
+      "price_per_case": 195,
+      "counter_price_per_case": 210,
+      "status": "countered",
+      "placed_at": "2026-08-03",
+      "expires_at": "2026-08-10"
+    },
+    {
+      "id": "OF-2039",
+      "wine_slug": "spring-dam-pinot-noir-2023",
+      "quantity": 2,
+      "price_per_case": 240,
+      "counter_price_per_case": null,
+      "status": "declined",
+      "placed_at": "2026-07-28",
+      "expires_at": "2026-08-04"
+    },
+    {
+      "id": "OF-2036",
+      "wine_slug": "fence-line-sauvignon-blanc-semillon-2024",
+      "quantity": 1,
+      "price_per_case": 130,
+      "counter_price_per_case": null,
+      "status": "accepted",
+      "placed_at": "2026-03-02",
+      "expires_at": "2026-03-09"
+    },
+    {
+      "id": "OF-2030",
+      "wine_slug": "gravel-block-cabernet-franc-2022",
+      "quantity": 1,
+      "price_per_case": 200,
+      "counter_price_per_case": null,
+      "status": "expired",
+      "placed_at": "2026-07-10",
+      "expires_at": "2026-07-17"
+    }
+  ]
+}

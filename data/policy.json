@@ -1,0 +1,30 @@
+{
+  "_note": "Compliance and payment language, authored ONCE and read by every page that shows it. wine.html, how-it-works.html, winery.html, account.html and the buy modal all render from here, so the wording cannot drift between surfaces — which is the whole risk with a compliance line. The compliance_line and seller_line templates take {winery} and {licence}. Spec 8 items not in this file (age gate, Banned Drinker Register notice, legal stubs) belong to Round 3C.",
+
+  "payment": {
+    "heading": "How payment works",
+    "lines": [
+      "You pay at checkout.",
+      "The funds are held by the payment provider.",
+      "The winery is paid when your wine is signed for."
+    ],
+    "detail": "Go Wine Go never holds your money. The winery is the seller and is paid directly once delivery is confirmed."
+  },
+
+  "delivery": {
+    "heading": "Delivery",
+    "lines": [
+      "Dispatched from the winery's licensed premises.",
+      "Temperature-controlled freight.",
+      "Delivered between 7am and 7pm.",
+      "An adult signature is required on delivery.",
+      "Not left unattended under any circumstances."
+    ]
+  },
+
+  "wet_note": "Prices include GST and Wine Equalisation Tax.",
+
+  "seller_line": "Sold to you by {winery}, licensed producer, licence number {licence}.",
+
+  "compliance_line": "This wine is sold to you by {winery}, licensed producer, licence number {licence}. Go Wine Go is the marketplace, not the seller."
+}

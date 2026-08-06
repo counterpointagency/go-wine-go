@@ -17,7 +17,9 @@
 <a class="skip-link" href="#main">Skip to content</a>
 
 <!-- ═══ SHARED: ICON SPRITE ══════════════════════════════════════════
-     BYTE IDENTICAL across index.html, account.html and supplier.html.
+     BYTE IDENTICAL across all eight pages. index.html is the source of
+     truth; tools/sync-shared-blocks.mjs pushes it to the rest and
+     tools/contrast-audit.mjs fails the build on drift.
      Becomes a single sprite include in the WordPress theme.
      24x24, stroke 1.25, currentColor, fill none. No emoji, no icon
      font, no CDN.
@@ -32,7 +34,7 @@
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21"/></symbol>
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.6 2.8H21v8.4l-9.8 9.8-8.4-8.4 9.8-9.8Z"/><circle cx="17.1" cy="6.9" r="1.4"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 4.5 5.9v6.2c0 4.3 3 8.3 7.5 9.4 4.5-1.1 7.5-5.1 7.5-9.4V5.9L12 2.8Z"/><path d="m8.7 12.1 2.3 2.3 4.3-4.3"/></symbol>
-  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M2.5 3.5h3l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2 4.6 13.6h6.6L10.8 22l8.6-11.6h-6.6L13.2 2Z"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5l-5-5Z"/><path d="M14 2.5v5h5"/></symbol>
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7.5 8.5 12 4l4.5 4.5"/><path d="M4 16v2.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V16"/></symbol>
@@ -43,11 +45,70 @@
   <symbol id="i-exchange" viewBox="0 0 24 24"><path d="M4 9h13"/><path d="M13.5 5.5 17.5 9l-4 3.5"/><path d="M20 15H7"/><path d="M10.5 11.5 6.5 15l4 3.5"/></symbol>
   <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><path d="m9 9 6 6"/><path d="M15 9l-6 6"/></symbol>
   <symbol id="i-vine" viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M12 12.5c-3.4 0-5.5-2-5.5-5.5 3.4 0 5.5 2 5.5 5.5Z"/><path d="M12 10c0-3.4 2.1-5.5 5.5-5.5 0 3.4-2.1 5.5-5.5 5.5Z"/><path d="M7 21h10"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10.5" r="2.6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
+
+  <!-- ── THIN-LINE DIAGRAMS (how-it-works.html, spec 4.6) ──────────
+       Same spec as every other icon — 24x24 viewBox, stroke 1.25,
+       currentColor, fill none — simply rendered at 72px. Scaling the
+       box rather than the stroke is what keeps them reading as line
+       diagrams instead of thickening into illustrations.
+       ────────────────────────────────────────────────────────── -->
+
+  <!-- Who am I buying from: the winery sells to you directly, and the
+       marketplace sits ALONGSIDE the transaction, not inside it. -->
+  <symbol id="i-dia-seller" viewBox="0 0 24 24">
+    <path d="M2.5 13.5v6.5h6v-6.5"/><path d="M1.5 13.8 5.5 10l4 3.8"/>
+    <circle cx="18.5" cy="12.6" r="2.1"/><path d="M14.8 20a3.7 3.7 0 0 1 7.4 0"/>
+    <path d="M10.8 17h3"/><path d="m12.6 15.6 1.6 1.4-1.6 1.4"/>
+    <rect x="9" y="2.5" width="6" height="4.2" rx="1"/>
+    <path d="M12 6.7v2.1"/><path d="M12 10.2v1.4"/>
+  </symbol>
+
+  <!-- Who has my money: you pay, the payment provider holds, the
+       winery is paid on the signature. -->
+  <symbol id="i-dia-payment" viewBox="0 0 24 24">
+    <rect x="1.5" y="10.5" width="7" height="5.5" rx="1"/><path d="M1.5 12.8h7"/>
+    <rect x="15.5" y="10.5" width="7" height="5.5" rx="1"/>
+    <path d="M9.5 13.2h4.2"/><path d="m12.4 11.8 1.6 1.4-1.6 1.4"/>
+    <path d="M12 9.6V7.4"/><circle cx="12" cy="4.6" r="2.4"/>
+    <path d="m10.3 19.4 1.5 1.5 3.1-3.4"/>
+  </symbol>
+
+  <!-- Buy now: pay the listed price, done. -->
+  <symbol id="i-dia-buy" viewBox="0 0 24 24">
+    <path d="M12.4 2.8h8.3v8.3l-9.6 9.6-8.3-8.3 9.6-9.6Z"/>
+    <circle cx="16.9" cy="6.9" r="1.3"/>
+    <path d="m7.2 12.2 2.5 2.5 5-5"/>
+  </symbol>
+
+  <!-- Make an offer: you offer, the winery counters, back and forth. -->
+  <symbol id="i-dia-offer" viewBox="0 0 24 24">
+    <circle cx="4.2" cy="12" r="2.2"/><circle cx="19.8" cy="12" r="2.2"/>
+    <path d="M7 9.2h10"/><path d="m15.3 7.8 1.9 1.4-1.9 1.4"/>
+    <path d="M17 14.8H7"/><path d="m8.7 13.4-1.9 1.4 1.9 1.4"/>
+    <path d="M12 3.5v2.2"/><path d="M12 18.3v2.2"/>
+  </symbol>
+
+  <!-- Go Deal: the price steps down as cases are committed. -->
+  <symbol id="i-dia-godeal" viewBox="0 0 24 24">
+    <path d="M2.5 5.5h5v4.5h5v4.5h5v4.5h4"/>
+    <circle cx="7.5" cy="5.5" r="1.1"/><circle cx="12.5" cy="10" r="1.1"/>
+    <circle cx="17.5" cy="14.5" r="1.1"/>
+  </symbol>
+
+  <!-- Tender: you post one, several wineries submit against it. -->
+  <symbol id="i-dia-tender" viewBox="0 0 24 24">
+    <rect x="8.5" y="2.5" width="7" height="9" rx="1"/>
+    <path d="M10.5 5.6h3"/><path d="M10.5 8.2h3"/>
+    <path d="M12 14.6v6.4"/>
+    <path d="M4.2 21c0-3.2 2.6-5.4 5.6-6"/>
+    <path d="M19.8 21c0-3.2-2.6-5.4-5.6-6"/>
+  </symbol>
 </svg>
 
 <!-- ═══ SECTION: SITE HEADER ═════════════════════════════════════════
-     BYTE IDENTICAL across index.html, account.html and supplier.html.
-     Becomes get_header() in the WordPress theme.
+     BYTE IDENTICAL across all eight pages. Becomes get_header().
 
      The current page is resolved by assets/js/main.js from the URL and
      applied with aria-current, NOT written into the markup, so these
@@ -65,17 +126,18 @@
     </a>
 
     <nav class="site-header__nav" aria-label="Primary">
-      <a class="site-header__tab" href="index.html" data-page="index.html">Market</a>
-      <a class="site-header__tab" href="account.html" data-page="account.html">Account</a>
-      <a class="site-header__tab" href="supplier.html" data-page="supplier.html">Supplier</a>
+      <a class="site-header__tab" href="index.html" data-page="index.html wine.html winery.html">Market</a>
+      <a class="site-header__tab" href="go-deals.html" data-page="go-deals.html">Go Deals</a>
+      <a class="site-header__tab" href="tenders.html" data-page="tenders.html">Tenders</a>
+      <a class="site-header__tab" href="how-it-works.html" data-page="how-it-works.html">How it works</a>
     </nav>
 
     <div class="site-header__right">
       <div class="site-header__roles" role="group" aria-label="View as">
-        <a class="site-header__role" href="index.html" data-role-for="index.html account.html"><span>Customer</span></a>
+        <a class="site-header__role" href="index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
         <a class="site-header__role" href="supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
       </div>
-      <a class="site-header__login" href="account.html">Login</a>
+      <a class="site-header__login" href="account.html" data-page="account.html">My account</a>
     </div>
   </div>
 </header>
@@ -185,6 +247,10 @@
         <h2 class="editorial__title" id="editorialTitle">The shortest line between a vineyard and your table</h2>
         <p class="editorial__body">Most Australian wine reaches you through three or four sets of hands, and each one takes a margin. Buying direct removes them. <b>The winery sets a price, you make an offer, and the difference stays with the two of you.</b></p>
         <p class="editorial__body">Growers keep more of what their fruit is worth. You pay closer to what the wine actually costs to make. Nothing is bought on your behalf, held in a warehouse, or marked up before you see it.</p>
+        <a class="btn btn--ghost editorial__more" href="how-it-works.html">
+          How it works
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+        </a>
       </div>
     </div>
   </section>
@@ -246,8 +312,9 @@
 </main>
 
 <!-- ═══ SECTION: SITE FOOTER ═════════════════════════════════════════
-     BYTE IDENTICAL across index.html, account.html and supplier.html.
-     Becomes get_footer() in the WordPress theme.
+     BYTE IDENTICAL across all eight pages. Becomes get_footer().
+     Carries a complete route through the site, because the header nav is
+     hidden below 760 and the role switcher below 1100.
      ════════════════════════════════════════════════════════════════ -->
 <footer class="site-footer">
   <div class="site-footer__inner">
@@ -255,6 +322,14 @@
       <svg class="icon" aria-hidden="true"><use href="#i-grape"/></svg>
       <span class="site-footer__wordmark">Go Wine Go</span>
     </div>
+    <nav class="site-footer__nav" aria-label="Footer">
+      <a href="index.html">Market</a>
+      <a href="go-deals.html">Go Deals</a>
+      <a href="tenders.html">Tenders</a>
+      <a href="how-it-works.html">How it works</a>
+      <a href="account.html">My account</a>
+      <a href="supplier.html">Supplier dashboard</a>
+    </nav>
     <hr class="rule rule--on-maroon site-footer__rule">
     <div class="site-footer__meta">
       <p>Australia's direct-from-winery marketplace. Every wine is sold to you by the winery that made it, as the licensed producer. Go Wine Go is the marketplace, not the seller.</p>
@@ -268,7 +343,8 @@
 </footer>
 
 <!-- ═══ COMPONENT: OFFER MODAL ══════════════════════════════════════
-     Shared with account.html. Becomes a template part.
+     Shared with wine.html, winery.html, go-deals.html and account.html.
+     Becomes a template part.
      Language: offer, counteroffer, tender. Never bid, never auction.
      ════════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="offerOverlay" role="dialog" aria-modal="true" aria-labelledby="offerModalTitle">
@@ -345,7 +421,8 @@
 </div>
 
 <!-- ═══ COMPONENT: BUY MODAL ════════════════════════════════════════
-     Shared with account.html. Becomes a template part.
+     Shared with wine.html, winery.html, go-deals.html and account.html.
+     Becomes a template part.
      Payment language, Model A: you pay at checkout, the funds are held
      by the payment provider, and the winery is paid when your wine is
      signed for. Go Wine Go never holds the money.
@@ -373,7 +450,7 @@
 
         <p class="modal__payment">
           <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
-          <span>You pay at checkout. The funds are <b>held by the payment provider</b>, and the winery is paid when your wine is signed for. Prices include GST and Wine Equalisation Tax.</span>
+          <span id="buyPaymentLines">You pay at checkout. The funds are held by the payment provider, and the winery is paid when your wine is signed for.</span>
         </p>
 
         <div class="field">

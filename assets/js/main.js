@@ -63,11 +63,76 @@ function dataError(mount, what) {
     'HTTP, so it needs to be served rather than opened from the file system.'));
 }
 
-/* Wines are needed by the market grid, the Go Deals strip and both
-   modals, so they are loaded once and shared by slug and by id. */
+/* ── THE CATALOGUE ────────────────────────────────────────────────
+   Wines, wineries and the compliance/payment language are needed by
+   almost every page and by both modals. They are fetched ONCE per
+   page load and shared: catalogue() memoises the promise, so five
+   section blocks awaiting it produce three requests, not fifteen. */
 let WINES = [];
 let WINERIES = {};
+let POLICY = null;
 const wineBySlug = (slug) => WINES.find((w) => w.slug === slug);
+const winesOf = (winerySlug) => WINES.filter((w) => w.winery_slug === winerySlug);
+
+let cataloguePromise = null;
+function catalogue() {
+  if (!cataloguePromise) {
+    cataloguePromise = (async () => {
+      const [wineData, wineryData, policyData] = await Promise.all([
+        loadJSON('wines'), loadJSON('wineries'), loadJSON('policy'),
+      ]);
+      if (!wineData || !wineryData || !policyData) return false;
+      WINES = wineData.wines;
+      wineryData.wineries.forEach((wy) => { WINERIES[wy.slug] = wy; });
+      POLICY = policyData;
+      return true;
+    })();
+  }
+  return cataloguePromise;
+}
+
+function wineryName(w) {
+  const winery = WINERIES[w.winery_slug];
+  return winery ? winery.name : w.winery_slug;
+}
+
+/** policy.json templates take {winery} and {licence}. Filling them here
+    means the compliance sentence has exactly one source of truth and
+    cannot drift between the wine page, the winery page and the modal. */
+function fillTemplate(tpl, winery) {
+  return String(tpl)
+    .replace('{winery}', winery ? winery.name : '')
+    .replace('{licence}', winery ? winery.licence_number : '');
+}
+
+/** The ?slug= a detail page was opened with, or a stated default. */
+function slugParam(fallback) {
+  const v = new URLSearchParams(location.search).get('slug');
+  return v && v.trim() ? v.trim() : fallback;
+}
+
+/** <picture> with a webp source over a jpg fallback, from an
+    extensionless base path. Every image on the site goes through this. */
+function picture(base, alt, w, h, eager) {
+  const pic = document.createElement('picture');
+  const source = document.createElement('source');
+  source.srcset = base + '.webp';
+  source.type = 'image/webp';
+  pic.appendChild(source);
+  const img = document.createElement('img');
+  img.src = base + '.jpg';
+  img.alt = alt;                       // the scene, never the estate
+  img.width = w;
+  img.height = h;
+  img.loading = eager ? 'eager' : 'lazy';
+  img.decoding = 'async';
+  if (eager) img.setAttribute('fetchpriority', 'high');
+  pic.appendChild(img);
+  return pic;
+}
+
+/** Rendered wherever a price appears, per spec 8. */
+const wetNote = () => POLICY ? POLICY.wet_note : '';
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: SITE HEADER
@@ -96,8 +161,12 @@ const wineBySlug = (slug) => WINES.find((w) => w.slug === slug);
   // pages so they map onto get_header() / get_footer(). That means the
   // current page cannot be marked up statically — it is resolved here.
   const page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  // data-page can list several pages, so a detail page marks its parent
+  // section: wine.html and winery.html both light up Market.
   $$('[data-page]', header).forEach((link) => {
-    if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
+    if (link.dataset.page.split(' ').includes(page)) {
+      link.setAttribute('aria-current', 'page');
+    }
   });
   $$('[data-role-for]', header).forEach((link) => {
     if (link.dataset.roleFor.split(' ').includes(page)) {
@@ -209,6 +278,10 @@ function openBuyModal(slug) {
   const w = wineBySlug(slug);
   if (!w) return;
   currentWineSlug = slug;
+  // Payment wording and the WET note come from data/policy.json, never
+  // from the markup, so every surface says exactly the same thing.
+  const lines = $('#buyPaymentLines');
+  if (lines && POLICY) lines.textContent = POLICY.payment.lines.join(' ') + ' ' + POLICY.wet_note;
   $('#buyWine').textContent  = w.name + ' ' + w.vintage;
   $('#buySeller').textContent = wineryName(w);
   $('#buyPrice').textContent = round(w.list_price_per_case) + ' per case';
@@ -240,11 +313,6 @@ function formatCard(input) {
   input.value = v.replace(/(.{4})/g, '$1 ').trim();
 }
 
-function wineryName(w) {
-  const winery = WINERIES[w.winery_slug];
-  return winery ? winery.name : w.winery_slug;
-}
-
 /* ═══════════════════════════════════════════════════════════════
    SECTION: MARKET  (sample listings grid, home page only)
    One card pattern repeated, so it maps to a single PHP loop.
@@ -263,8 +331,20 @@ function wineCard(w) {
   if (w.accolade) card.appendChild(el('p', 'wine-card__badge', w.accolade));
 
   const body = el('div', 'wine-card__body');
-  body.appendChild(el('p', 'label wine-card__producer', wineryName(w)));
-  body.appendChild(el('h3', 'wine-card__name', w.name));
+  // The producer name links through to the winery profile, and the wine
+  // name to its detail page. Model A: the winery is the seller, so its
+  // name is never dead text on a card.
+  const producer = el('p', 'label wine-card__producer');
+  const producerLink = el('a', 'wine-card__producer-link', wineryName(w));
+  producerLink.href = `winery.html?slug=${encodeURIComponent(w.winery_slug)}`;
+  producer.appendChild(producerLink);
+  body.appendChild(producer);
+
+  const name = el('h3', 'wine-card__name');
+  const nameLink = el('a', 'wine-card__name-link', w.name);
+  nameLink.href = `wine.html?slug=${encodeURIComponent(w.slug)}`;
+  name.appendChild(nameLink);
+  body.appendChild(name);
 
   const meta = el('p', 'wine-card__meta');
   meta.appendChild(el('span', null, String(w.vintage)));
@@ -284,7 +364,7 @@ function wineCard(w) {
   val.appendChild(el('span', 'wine-card__price-unit', w.case_size + ' bottles'));
   price.appendChild(val);
   foot.appendChild(price);
-  foot.appendChild(el('p', 'wine-card__tax', 'Includes GST and Wine Equalisation Tax'));
+  foot.appendChild(el('p', 'wine-card__tax', wetNote()));
 
   const actions = el('div', 'wine-card__actions');
   if (w.state === 'buy_now') {
@@ -310,11 +390,7 @@ function wineCard(w) {
   const grid = $('#wineGrid');
   if (!grid) return;
 
-  const [wineData, wineryData] = await Promise.all([loadJSON('wines'), loadJSON('wineries')]);
-  if (!wineData || !wineryData) { dataError(grid, 'the sample listings'); return; }
-
-  WINES = wineData.wines;
-  wineryData.wineries.forEach((wy) => { WINERIES[wy.slug] = wy; });
+  if (!(await catalogue())) { dataError(grid, 'the sample listings'); return; }
 
   const featured = WINES.filter((w) => w.featured);
   const note = $('#marketNote');
@@ -427,17 +503,8 @@ function goDealCard(deal, w) {
   const grid = $('#goDealGrid');
   if (!grid) return;
 
-  const dealData = await loadJSON('go-deals');
-  if (!dealData) { dataError(grid, 'the live Go Deals'); return; }
-
-  // The market section owns the wine and winery fetch. Wait for it rather
-  // than fetching twice; if this page has no market grid, load them here.
-  if (!WINES.length) {
-    const [wineData, wineryData] = await Promise.all([loadJSON('wines'), loadJSON('wineries')]);
-    if (!wineData || !wineryData) { dataError(grid, 'the live Go Deals'); return; }
-    WINES = wineData.wines;
-    wineryData.wineries.forEach((wy) => { WINERIES[wy.slug] = wy; });
-  }
+  const [dealData, ok] = await Promise.all([loadJSON('go-deals'), catalogue()]);
+  if (!dealData || !ok) { dataError(grid, 'the live Go Deals'); return; }
 
   const cards = dealData.go_deals
     .map((deal) => { const w = wineBySlug(deal.wine_slug); return w ? goDealCard(deal, w) : null; })
@@ -517,18 +584,172 @@ function goDealCard(deal, w) {
 })();
 
 /* ═══════════════════════════════════════════════════════════════
-   SECTION: ACCOUNT  (account.html only)
+   SECTION: ACCOUNT  (account.html only, spec 4.9)
+   Shortlist, My Offers with status, Orders with tracking, Tenders I
+   have posted, Addresses. Every panel renders from data — the
+   customer comes from data/account.json, which is a new entity
+   because spec 5 models what is bought and sold but never the buyer.
+
+   "Shortlist" is Winescape's own term for saved wines and is used
+   here instead of wishlist, favourites or saved.
    ═══════════════════════════════════════════════════════════════ */
+const OFFER_STATE = {
+  sent:      ['Awaiting response', 'pill--wait'],
+  countered: ['Countered',         'pill--wait'],
+  accepted:  ['Accepted',          'pill--ok'],
+  declined:  ['Declined',          'pill--inactive'],
+  expired:   ['Expired',           'pill--inactive'],
+};
+
+/* Three fixed steps. Each is named in text beside the rail, so the
+   rail never carries the meaning on its own (WCAG 1.4.1). */
+const DISPATCH_STEPS = [
+  ['Order placed',   ['awaiting_dispatch', 'in_transit', 'delivered']],
+  ['In transit',     ['in_transit', 'delivered']],
+  ['Delivered',      ['delivered']],
+];
+
+function offerRow(offer) {
+  const w = wineBySlug(offer.wine_slug);
+  if (!w) return null;
+  const [label, pillClass] = OFFER_STATE[offer.status] || OFFER_STATE.sent;
+
+  const row = el('div', 'account__row');
+  const left = el('div');
+  left.appendChild(el('p', 'account__row-name', `${w.name} ${w.vintage}, ${wineryName(w)}`));
+  left.appendChild(el('p', 'account__row-meta',
+    `Your offer ${round(offer.price_per_case)} per case · ${offer.quantity} case` +
+    `${offer.quantity > 1 ? 's' : ''} · ${w.subregion}, ${w.gi}`));
+
+  if (offer.status === 'countered' && offer.counter_price_per_case) {
+    const counter = el('p', 'account__counter');
+    counter.appendChild(icon('i-exchange', true));
+    counter.appendChild(document.createTextNode('Winery countered at '));
+    counter.appendChild(el('b', null, round(offer.counter_price_per_case) + ' per case'));
+    left.appendChild(counter);
+  }
+  left.appendChild(el('p', 'account__row-meta',
+    offer.status === 'expired' || offer.status === 'declined'
+      ? `Closed ${auDate(offer.expires_at)}`
+      : `Expires ${auDate(offer.expires_at)}`));
+  row.appendChild(left);
+
+  const actions = el('div', 'account__row-actions');
+  actions.appendChild(el('span', 'pill ' + pillClass, label));
+
+  if (offer.status === 'countered') {
+    const accept = el('button', 'btn btn--solid btn--sm',
+      'Accept ' + round(offer.counter_price_per_case));
+    accept.addEventListener('click', () => {
+      actions.replaceChildren(el('span', 'pill pill--ok', 'Accepted, proceed to payment'));
+      const pay = el('button', 'btn btn--brass btn--sm', 'Pay now');
+      pay.addEventListener('click', () => openBuyModal(w.slug));
+      actions.appendChild(pay);
+      toast(`Counteroffer accepted at ${round(offer.counter_price_per_case)} per case. ` +
+            'Proceed to payment.', 'i-check-circle');
+    });
+    actions.appendChild(accept);
+  }
+  if (offer.status === 'sent' || offer.status === 'countered') {
+    const revise = el('button', 'btn btn--ghost btn--sm', 'New offer');
+    revise.addEventListener('click', () => openOfferModal(w.slug));
+    actions.appendChild(revise);
+    const archive = el('button', 'btn btn--quiet btn--sm', 'Archive');
+    archive.addEventListener('click', () => {
+      if (!confirm('Archive this offer?')) return;
+      row.remove();
+      toast('Offer archived.', 'i-check');
+    });
+    actions.appendChild(archive);
+  }
+  if (offer.status === 'declined' || offer.status === 'expired') {
+    const again = el('button', 'btn btn--ghost btn--sm', 'Offer again');
+    again.addEventListener('click', () => openOfferModal(w.slug));
+    actions.appendChild(again);
+  }
+  row.appendChild(actions);
+  return row;
+}
+
+function orderCard(order) {
+  const w = wineBySlug(order.wine_slug);
+  if (!w) return null;
+  const winery = WINERIES[w.winery_slug];
+
+  const card = el('div', 'account__order');
+  const top = el('div', 'account__order-top');
+  const left = el('div');
+  left.appendChild(el('p', 'account__order-id', order.id));
+  left.appendChild(el('p', 'account__order-name', `${w.name} ${w.vintage}`));
+  // Seller identification on every order, per spec 8.
+  left.appendChild(el('p', 'account__order-meta', fillTemplate(POLICY.seller_line, winery)));
+  left.appendChild(el('p', 'account__order-meta',
+    `${order.quantity} case${order.quantity > 1 ? 's' : ''} · Ordered ${auDate(order.placed_at)}`));
+  top.appendChild(left);
+
+  const right = el('div');
+  right.appendChild(el('p', 'account__order-total', money(order.price_paid)));
+  right.appendChild(el('p', 'account__order-meta', wetNote()));
+  top.appendChild(right);
+  card.appendChild(top);
+
+  const rail = el('div', 'account__track');
+  const labels = el('div', 'account__track-labels');
+  DISPATCH_STEPS.forEach(([name, states]) => {
+    const done = states.includes(order.dispatch_state);
+    rail.appendChild(el('span', 'account__track-step' + (done ? ' is-done' : '')));
+    labels.appendChild(el('span', done ? 'is-done' : null, name));
+  });
+  card.appendChild(rail);
+  card.appendChild(labels);
+
+  const foot = el('div', 'account__order-foot');
+  const payment = el('span');
+  if (order.payment_state === 'released') {
+    payment.appendChild(document.createTextNode('Signed for '));
+    payment.appendChild(el('b', null, auDate(order.delivered_at)));
+    payment.appendChild(document.createTextNode('. The winery has been paid.'));
+  } else {
+    payment.appendChild(document.createTextNode('Your payment is held by the payment provider. '));
+    payment.appendChild(el('b', null, wineryName(w)));
+    payment.appendChild(document.createTextNode(' is paid when your wine is signed for.'));
+  }
+  foot.appendChild(payment);
+
+  if (order.tracking_reference) {
+    const track = el('span');
+    track.appendChild(document.createTextNode(order.carrier + ' '));
+    track.appendChild(el('b', null, order.tracking_reference));
+    foot.appendChild(track);
+  } else {
+    foot.appendChild(el('span', null, 'Tracking appears here once the winery dispatches.'));
+  }
+  card.appendChild(foot);
+  return card;
+}
+
+function addressCard(addr) {
+  const card = el('div', 'account__address');
+  const label = el('p', 'account__address-label');
+  label.appendChild(icon('i-pin', true));
+  label.appendChild(document.createTextNode(addr.label));
+  if (addr.is_default) label.appendChild(el('span', 'pill pill--ok', 'Default'));
+  card.appendChild(label);
+
+  const lines = el('address', 'account__address-lines');
+  [addr.recipient, addr.line1, `${addr.suburb} ${addr.state} ${addr.postcode}`]
+    .forEach((line, i) => {
+      if (i) lines.appendChild(document.createElement('br'));
+      lines.appendChild(document.createTextNode(line));
+    });
+  card.appendChild(lines);
+  if (addr.instructions) card.appendChild(el('p', 'account__address-note', addr.instructions));
+  return card;
+}
+
 (async function accountSection() {
   const root = $('#accountRoot');
   if (!root) return;
-
-  // The modals on this page need wine and winery data too.
-  const [wineData, wineryData] = await Promise.all([loadJSON('wines'), loadJSON('wineries')]);
-  if (wineData && wineryData) {
-    WINES = wineData.wines;
-    wineryData.wineries.forEach((wy) => { WINERIES[wy.slug] = wy; });
-  }
 
   $$('.account__tab', root).forEach((tab) => {
     tab.addEventListener('click', () => {
@@ -544,35 +765,463 @@ function goDealCard(deal, w) {
     });
   });
 
-  $$('[data-opens-offer]', root).forEach((btn) => {
-    btn.addEventListener('click', () => openOfferModal(btn.dataset.opensOffer));
-  });
-  $$('[data-opens-buy]', root).forEach((btn) => {
-    btn.addEventListener('click', () => openBuyModal(btn.dataset.opensBuy));
-  });
-
-  const accept = $('#acceptCounter', root);
-  if (accept) {
-    accept.addEventListener('click', () => {
-      const row = $('#counterOffer', root);
-      const actions = $('.account__row-actions', row);
-      actions.replaceChildren(el('span', 'pill pill--ok', 'Accepted, proceed to payment'));
-      const pay = el('button', 'btn btn--brass btn--sm', 'Pay now');
-      pay.addEventListener('click', () => openBuyModal('cold-ridge-chardonnay-2023'));
-      actions.appendChild(pay);
-      toast('Counteroffer accepted at $210 per case. Proceed to payment.', 'i-check-circle');
-    });
+  const [acct, offerData, orderData, tenderData, ok] = await Promise.all([
+    loadJSON('account'), loadJSON('offers'), loadJSON('orders'), loadJSON('tenders'), catalogue(),
+  ]);
+  if (!acct || !offerData || !orderData || !tenderData || !ok) {
+    dataError($('#acShortlist', root), 'your account');
+    return;
   }
 
-  const archive = $('#archiveOffer', root);
-  if (archive) {
-    archive.addEventListener('click', () => {
-      if (!confirm('Archive this offer?')) return;
-      $('#counterOffer', root).remove();
-      toast('Offer archived.', 'i-check');
+  const c = acct.customer;
+  $('#accountName', root).textContent = c.name;
+
+  /* ── Shortlist ─────────────────────────────────────────────── */
+  const shortlist = c.shortlist.map(wineBySlug).filter(Boolean);
+  const slMount = $('#acShortlist', root);
+  slMount.replaceChildren(...(shortlist.length
+    ? shortlist.map(wineCard)
+    : [el('p', 'account__panel-note', 'Your shortlist is empty.')]));
+  const slCount = $('#acShortlistCount', root);
+  if (slCount) slCount.textContent = String(shortlist.length);
+
+  /* ── My Offers ─────────────────────────────────────────────── */
+  const rows = offerData.offers.map(offerRow).filter(Boolean);
+  $('#acOffers', root).replaceChildren(...(rows.length
+    ? rows
+    : [el('p', 'account__panel-note', 'You have no offers open.')]));
+  const openCount = offerData.offers.filter((o) => o.status === 'sent' || o.status === 'countered').length;
+  const badge = $('#acOfferBadge', root);
+  if (badge) badge.textContent = String(openCount);
+
+  /* ── Orders ────────────────────────────────────────────────── */
+  const orders = orderData.orders.map(orderCard).filter(Boolean);
+  $('#acOrders', root).replaceChildren(...(orders.length
+    ? orders
+    : [el('p', 'account__panel-note', 'You have no orders yet.')]));
+
+  /* ── Tenders I have posted ─────────────────────────────────── */
+  const mine = tenderData.tenders.filter((t) => c.my_tenders.includes(t.id));
+  $('#acTenders', root).replaceChildren(...(mine.length
+    ? mine.map((t) => tenderCard(t, true))
+    : [el('p', 'account__panel-note', 'You have not posted a tender yet.')]));
+
+  /* ── Addresses ─────────────────────────────────────────────── */
+  $('#acAddresses', root).replaceChildren(...c.addresses.map(addressCard));
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: INFO PANEL BUILDER
+   The delivery panel and the payment panel are the same box built
+   from data/policy.json, so the compliance wording has exactly one
+   source and cannot drift between wine.html and how-it-works.html.
+   ═══════════════════════════════════════════════════════════════ */
+function policyPanel(block, iconId, extraNote) {
+  const panel = el('section', 'panel');
+  const head = el('div', 'panel__head');
+  head.appendChild(icon(iconId));
+  head.appendChild(el('h2', 'panel__title', block.heading));
+  panel.appendChild(head);
+
+  const list = el('ul', 'panel__list');
+  block.lines.forEach((line) => {
+    const li = el('li', 'panel__item');
+    li.appendChild(icon('i-check', true));
+    li.appendChild(el('span', null, line));
+    list.appendChild(li);
+  });
+  panel.appendChild(list);
+
+  const note = extraNote || block.detail;
+  if (note) panel.appendChild(el('p', 'panel__note', note));
+  return panel;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED: TENDER CARD
+   One pattern for tenders.html and for "Tenders I have posted" on
+   account.html, so it maps to a single PHP loop. A submission is
+   never called a bid and this is never called an auction.
+   ═══════════════════════════════════════════════════════════════ */
+function tenderCard(t, mine) {
+  const card = el('article', 'tender-card');
+
+  const top = el('div', 'tender-card__top');
+  const left = el('div');
+  left.appendChild(el('p', 'tender-card__id', t.id));
+  left.appendChild(el('h3', 'tender-card__name',
+    `${t.variety}, ${t.vintage_from} to ${t.vintage_to}`));
+  left.appendChild(el('p', 'tender-card__meta',
+    `${t.gi} · ${t.quantity_cases} cases · Closes ${auDate(t.closes_at)}`));
+  top.appendChild(left);
+
+  const max = el('div', 'tender-card__max');
+  max.appendChild(el('span', 'tender-card__max-val', round(t.max_price_per_case)));
+  max.appendChild(el('span', 'tender-card__max-lbl', 'Maximum per case'));
+  top.appendChild(max);
+  card.appendChild(top);
+
+  const foot = el('div', 'tender-card__foot');
+  const subs = el('p', 'tender-card__subs');
+  subs.appendChild(el('b', null, String(t.submission_count)));
+  subs.appendChild(document.createTextNode(
+    t.submission_count === 1 ? ' winery has submitted' : ' wineries have submitted'));
+  foot.appendChild(subs);
+
+  const action = el('button', 'btn ' + (mine ? 'btn--solid' : 'btn--ghost') + ' btn--sm',
+    mine ? 'Review submissions' : 'View tender');
+  action.addEventListener('click', () => {
+    toast(mine
+      ? `${t.submission_count} submissions on ${t.id}. You can accept one, or none.`
+      : `Tender ${t.id} closes ${auDate(t.closes_at)}.`, 'i-doc');
+  });
+  foot.appendChild(action);
+  card.appendChild(foot);
+  return card;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: WINE DETAIL  (wine.html only, spec 4.2)
+   Left column is identity, right column is the sticky action rail,
+   then the winery strip — the Model A trust anchor, not optional —
+   then delivery and payment.
+   ═══════════════════════════════════════════════════════════════ */
+(async function wineSection() {
+  const root = $('#wineRoot');
+  if (!root) return;
+
+  if (!(await catalogue())) { dataError(root, 'this wine'); return; }
+
+  const w = wineBySlug(slugParam(WINES[0].slug));
+  if (!w) {
+    root.replaceChildren(el('p', 'data-error',
+      'That wine is not in the sample listings. Browse the market to pick one.'));
+    return;
+  }
+  const winery = WINERIES[w.winery_slug];
+  const deal = (await loadJSON('go-deals'))?.go_deals.find((d) => d.wine_slug === w.slug) || null;
+
+  document.title = `${w.name} ${w.vintage}, ${winery.name} — Go Wine Go`;
+  const crumb = $('#wineCrumb');
+  if (crumb) crumb.textContent = `${w.name} ${w.vintage}`;
+
+  /* ── left column, identity ─────────────────────────────────── */
+  const producer = $('#wineProducer', root);
+  producer.href = `winery.html?slug=${encodeURIComponent(winery.slug)}`;
+  producer.replaceChildren(icon('i-vine', true), el('span', null, winery.name));
+
+  $('#wineTitle', root).textContent = `${w.name} ${w.vintage}`;
+  const meta = $('#wineMeta', root);
+  meta.replaceChildren(
+    el('span', null, w.variety),
+    el('span', null, w.gi),
+    el('span', null, w.subregion));
+
+  $('#wineTone', root).className = 'wine__tone wine-card__tone--t' + w.tone;
+  $('#wineNote', root).textContent = w.tasting_note;
+
+  const specs = $('#wineSpecs', root);
+  specs.replaceChildren(...[
+    ['Variety', w.variety],
+    ['Vintage', String(w.vintage)],
+    ['Geographical indication', w.gi],
+    ['Subregion', w.subregion],
+    ['Case size', `${w.case_size} bottles`],
+    ['Alcohol', `${w.alcohol}% by volume`],
+    ['Standard drinks per bottle', String(w.standard_drinks)],
+    ['Allergens', w.allergens],
+  ].map(([k, v]) => {
+    const row = el('div', 'wine__spec');
+    row.appendChild(el('dt', null, k));
+    row.appendChild(el('dd', null, v));
+    return row;
+  }));
+
+  /* ── right column, sticky actions ──────────────────────────── */
+  const priceVal = el('span', 'wine__price-val', round(w.list_price_per_case));
+  priceVal.appendChild(el('span', 'wine__price-unit', `${w.case_size} bottles`));
+  const price = $('#winePrice', root);
+  price.replaceChildren(el('span', 'label', 'Per case'), priceVal);
+  $('#wineTax', root).textContent = wetNote();
+
+  const stock = $('#wineStock', root);
+  stock.replaceChildren(
+    el('b', null, String(w.cases_available)),
+    document.createTextNode(' cases available'));
+
+  const actions = $('#wineActions', root);
+  const buy = el('button', 'btn btn--solid btn--block', 'Buy now');
+  buy.addEventListener('click', () => openBuyModal(w.slug));
+  const offer = el('button', 'btn btn--ghost btn--block', 'Make an offer');
+  offer.addEventListener('click', () => openOfferModal(w.slug));
+  actions.replaceChildren(buy, offer);
+
+  if (deal) {
+    const reached = deal.tiers.filter((t) => t.cases <= deal.committed_cases).pop() || deal.tiers[0];
+    const go = el('a', 'btn btn--brass btn--block',
+      `Go Deal live, ${round(reached.price)} per case`);
+    go.href = 'go-deals.html';
+    actions.appendChild(go);
+  }
+
+  // Seller identification on every wine, per spec 8.
+  $('#wineSeller', root).replaceChildren(
+    el('b', null, 'Sold by ' + winery.name),
+    document.createTextNode('. ' + fillTemplate(POLICY.seller_line, winery)));
+
+  /* ── winery strip, the Model A trust anchor ────────────────── */
+  const strip = $('#wineryStrip');
+  if (strip) {
+    $('.winery-strip__figure', strip).replaceChildren(
+      picture(winery.portrait_image, winery.portrait_alt, 1000, 1250, false));
+    $('#stripName', strip).textContent = winery.name;
+    $('#stripText', strip).textContent = winery.story[0];
+    $('#stripLicence', strip).replaceChildren(
+      icon('i-doc', true),
+      document.createTextNode('Licensed producer '),
+      el('b', null, winery.licence_number));
+    const link = $('#stripLink', strip);
+    link.href = `winery.html?slug=${encodeURIComponent(winery.slug)}`;
+    link.replaceChildren(
+      el('span', null, `About ${winery.name}`), icon('i-arrow-right', true));
+  }
+
+  /* ── delivery and payment panels ───────────────────────────── */
+  const panels = $('#winePanels');
+  if (panels) {
+    const delivery = { ...POLICY.delivery };
+    delivery.lines = [`Dispatched within ${w.dispatch_days}.`, ...POLICY.delivery.lines];
+    panels.replaceChildren(
+      policyPanel(delivery, 'i-box'),
+      policyPanel(POLICY.payment, 'i-shield'));
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: WINERY PROFILE  (winery.html only, spec 4.3)
+   The page that makes Model A legible. Untinted hero with the name
+   on a bone plate, story, credentials, that winery's listings, and
+   the compliance line rendered verbatim from data/policy.json.
+   ═══════════════════════════════════════════════════════════════ */
+(async function winerySection() {
+  const root = $('#wineryRoot');
+  if (!root) return;
+
+  if (!(await catalogue())) { dataError(root, 'this winery'); return; }
+
+  const slug = slugParam(Object.keys(WINERIES)[0]);
+  const winery = WINERIES[slug];
+  if (!winery) {
+    root.replaceChildren(el('p', 'data-error',
+      'That winery is not in the sample listings.'));
+    return;
+  }
+
+  document.title = `${winery.name}, ${winery.subregion} — Go Wine Go`;
+  const crumb = $('#wineryCrumb');
+  if (crumb) crumb.textContent = winery.name;
+
+  /* ── hero: untinted photograph, copy on a bone plate ───────── */
+  $('#wineryHeroMedia').replaceChildren(
+    picture(winery.hero_image, winery.hero_alt, 1400, 700, true));
+  $('#wineryTitle').textContent = winery.name;
+  $('#winerySub').textContent = `${winery.subregion}, ${winery.gi}`;
+
+  /* ── story ─────────────────────────────────────────────────── */
+  $('#wineryPortrait').replaceChildren(
+    picture(winery.portrait_image, winery.portrait_alt, 1000, 1250, false));
+  $('#wineryCaption').textContent = winery.portrait_alt;
+  $('#wineryStory').replaceChildren(
+    ...winery.story.map((p) => el('p', 'winery-story__body', p)));
+
+  /* ── credentials ───────────────────────────────────────────── */
+  const listings = winesOf(winery.slug);
+  const casesAvailable = listings.reduce((n, w) => n + w.cases_available, 0);
+  $('#wineryCreds').replaceChildren(...[
+    ['Producer licence', winery.licence_number],
+    ['Subregion', `${winery.subregion}, ${winery.gi}`],
+    ['Established', String(winery.established)],
+    ['Cases available', String(casesAvailable)],
+  ].map(([lbl, val]) => {
+    const item = el('div', 'credentials__item');
+    item.appendChild(el('p', 'credentials__val', val));
+    item.appendChild(el('p', 'credentials__lbl', lbl));
+    return item;
+  }));
+
+  /* ── that winery's listings ────────────────────────────────── */
+  $('#wineryWinesTitle').textContent = `Wines from ${winery.name}`;
+  $('#wineryWines').replaceChildren(...(listings.length
+    ? listings.map(wineCard)
+    : [el('p', 'market__empty', 'No listings from this winery right now.')]));
+
+  /* ── compliance line, verbatim from policy.json ────────────── */
+  $('#wineryCompliance').replaceChildren(
+    icon('i-shield'),
+    el('span', null, fillTemplate(POLICY.compliance_line, winery)));
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: GO DEALS PAGE  (go-deals.html only, spec 4.4)
+   Reuses the same card as the home strip. The floor is not in
+   data/go-deals.json at all, so it cannot be revealed here.
+   ═══════════════════════════════════════════════════════════════ */
+(async function goDealsPage() {
+  const grid = $('#goDealPageGrid');
+  if (!grid) return;
+
+  const [dealData, content, ok] = await Promise.all([
+    loadJSON('go-deals'), loadJSON('how-it-works'), catalogue(),
+  ]);
+  if (!dealData || !ok) { dataError(grid, 'the live Go Deals'); return; }
+
+  // Spec 4.4 wants the mechanic explained first, in three lines. Those
+  // three lines already exist as the Go Deal entry in how-it-works.json,
+  // so this page renders the same sentences rather than a second copy
+  // that can drift away from them.
+  const explainer = $('#goDealExplainer');
+  const mechanic = content && content.mechanics.items.find((m) => m.name === 'Go Deal');
+  if (explainer && mechanic) {
+    explainer.replaceChildren(...mechanic.lines.map((l) => el('li', null, l)));
+  }
+
+  const cards = dealData.go_deals
+    .map((deal) => { const w = wineBySlug(deal.wine_slug); return w ? goDealCard(deal, w) : null; })
+    .filter(Boolean);
+
+  grid.replaceChildren(...(cards.length
+    ? cards
+    : [el('p', 'market__empty', 'No Go Deals are running right now.')]));
+
+  const count = $('#goDealCount');
+  if (count) {
+    count.textContent = cards.length === 1
+      ? 'One Go Deal is running now' : `${cards.length} Go Deals are running now`;
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: TENDERS  (tenders.html only, spec 4.5)
+   You post what you want, wineries submit, you pick one or none.
+   Never an auction; a submission is never a bid.
+   ═══════════════════════════════════════════════════════════════ */
+(async function tendersPage() {
+  const list = $('#tenderList');
+  if (!list) return;
+
+  const [data, content] = await Promise.all([loadJSON('tenders'), loadJSON('how-it-works')]);
+  if (!data) { dataError(list, 'the open tenders'); return; }
+
+  // The three-step explainer is the Tender entry from how-it-works.json,
+  // so the mechanic is described in one place and read in two.
+  const steps = $('#tenderSteps');
+  const mechanic = content && content.mechanics.items.find((m) => m.name === 'Tender');
+  if (steps && mechanic) {
+    steps.replaceChildren(...mechanic.lines.map((line, i) => {
+      const step = el('div', 'tenders__step');
+      step.appendChild(el('p', 'tenders__step-num', String(i + 1).padStart(2, '0')));
+      step.appendChild(el('p', 'tenders__step-name', ['You post it', 'They submit', 'You choose'][i]));
+      step.appendChild(el('p', 'tenders__step-text', line));
+      return step;
+    }));
+  }
+
+  list.replaceChildren(...(data.tenders.length
+    ? data.tenders.map((t) => tenderCard(t, false))
+    : [el('p', 'market__empty', 'No tenders are open right now.')]));
+
+  const count = $('#tenderCount');
+  if (count) count.textContent = String(data.tenders.length);
+
+  const form = $('#tenderForm');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const variety = $('#tVariety').value;
+      const qty = $('#tQuantity').value;
+      const max = $('#tMaxPrice').value;
+      if (!qty || !max) {
+        toast('Enter how many cases you want and your maximum price per case.', 'i-x-circle');
+        return;
+      }
+      toast(`Tender posted: ${qty} cases of ${variety} up to $${max} per case. ` +
+            'Wineries can now submit. This prototype does not send it anywhere.', 'i-check-circle');
+      form.reset();
     });
   }
 })();
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION: HOW IT WORKS  (how-it-works.html only, spec 4.6)
+   Who am I buying from and who has my money are answered FIRST,
+   before the mechanics. Thin-line diagrams, never photography.
+   ═══════════════════════════════════════════════════════════════ */
+function diagram(id) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'diagram');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', '#' + id);
+  svg.appendChild(use);
+  return svg;
+}
+
+(async function howItWorksPage() {
+  const root = $('#hiwRoot');
+  if (!root) return;
+
+  const [content, ok] = await Promise.all([loadJSON('how-it-works'), catalogue()]);
+  if (!content || !ok) { dataError(root, 'this page'); return; }
+
+  /* ── the two Model A answers, before anything else ─────────── */
+  $('#hiwAnswersEyebrow').textContent = content.answers_first.eyebrow;
+  $('#hiwAnswers').replaceChildren(...content.answers_first.items.map((it) => {
+    const box = el('div', 'hiw-answers__item');
+    box.appendChild(diagram(it.diagram));
+    box.appendChild(el('h2', 'hiw-answers__q', it.question));
+    box.appendChild(el('p', 'hiw-answers__a', it.answer));
+    return box;
+  }));
+
+  /* ── the four mechanics ────────────────────────────────────── */
+  $('#hiwMechEyebrow').textContent = content.mechanics.eyebrow;
+  $('#hiwMechTitle').textContent = content.mechanics.title;
+  $('#hiwMechanics').replaceChildren(...content.mechanics.items.map((m) => {
+    const item = el('div', 'hiw__item');
+    item.appendChild(diagram(m.diagram));
+    item.appendChild(el('h3', 'hiw__name', m.name));
+    const lines = el('ul', 'hiw__lines');
+    m.lines.forEach((l) => lines.appendChild(el('li', 'hiw__line', l)));
+    item.appendChild(lines);
+    return item;
+  }));
+
+  /* ── payment and delivery, from the same policy source ─────── */
+  $('#hiwPanels').replaceChildren(
+    policyPanel(POLICY.payment, 'i-shield'),
+    policyPanel(POLICY.delivery, 'i-box', wetNote()));
+
+  /* ── FAQ ───────────────────────────────────────────────────── */
+  $('#hiwFaqEyebrow').textContent = content.faq.eyebrow;
+  $('#hiwFaqTitle').textContent = content.faq.title;
+  $('#hiwFaq').replaceChildren(...content.faq.items.map((f, i) => {
+    const item = el('div', 'faq__item' + (i === 0 ? ' is-open' : ''));
+    const btn = el('button', 'faq__q');
+    btn.type = 'button';
+    btn.setAttribute('aria-expanded', i === 0 ? 'true' : 'false');
+    btn.appendChild(el('span', null, f.q));
+    btn.appendChild(icon('i-plus'));
+    const answer = el('p', 'faq__a', f.a);
+    btn.addEventListener('click', () => {
+      const open = item.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    item.appendChild(btn);
+    item.appendChild(answer);
+    return item;
+  }));
+})();
+
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: SUPPLIER  (supplier.html only)

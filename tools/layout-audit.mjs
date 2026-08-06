@@ -39,13 +39,38 @@ const FONTS = JSON.parse(readFileSync(resolve(ROOT, 'tools/font-metrics.json'), 
 const DISPLAY_FACE = 'fraunces-600';
 
 /* Each page, and the first in-flow element that has to clear the fixed
-   header. index.html reserves it with the hero's padding-top; the inner
-   pages reserve it with .page--inner. */
+   header. The two pages with a hero photograph reserve it with the hero's
+   own padding-top; every inner page reserves it with .page--inner. */
 const PAGES = [
-  { file: 'index.html',    reserves: '.hero',       prop: 'padding-top' },
-  { file: 'account.html',  reserves: '.page--inner', prop: 'padding-top' },
-  { file: 'supplier.html', reserves: '.page--inner', prop: 'padding-top' },
+  { file: 'index.html',          reserves: '.hero',         prop: 'padding-top', hero: true },
+  { file: 'winery.html',         reserves: '.winery-hero',  prop: 'padding-top', hero: true },
+  { file: 'wine.html',           reserves: '.page--inner',  prop: 'padding-top' },
+  { file: 'go-deals.html',       reserves: '.page--inner',  prop: 'padding-top' },
+  { file: 'tenders.html',        reserves: '.page--inner',  prop: 'padding-top' },
+  { file: 'how-it-works.html',   reserves: '.page--inner',  prop: 'padding-top' },
+  { file: 'account.html',        reserves: '.page--inner',  prop: 'padding-top' },
+  { file: 'supplier.html',       reserves: '.page--inner',  prop: 'padding-top' },
 ];
+
+/* Every plate that sits OVER a photograph, with its width cap and the
+   page it appears on. Below 760 each is specified full width, because
+   the photograph moves into flow and the plate sits under it. */
+const PLATES = [
+  { sel: '.hero__plate',        page: 'index.html',  capVW: 34, capNarrowVW: 34 },
+  // The closing plate widens deliberately below 900, where the column is
+  // narrower and 40vw would leave an unreadable measure. Both caps are
+  // declared so an accidental 90vw still fails.
+  { sel: '.closing__plate',     page: 'index.html',  capVW: 40, capNarrowVW: 60 },
+  { sel: '.winery-hero__plate', page: 'winery.html', capVW: 34, capNarrowVW: 34 },
+];
+
+/* Sticky elements are allowed to sit under the fixed header ONLY when
+   they scroll inside their own container rather than the page. Each
+   exemption has to name that container, so "it is fine" is never the
+   whole argument. */
+const STICKY_EXEMPT = {
+  '.modal__head': 'scrolls inside .modal (overflow-y:auto), not the page',
+};
 for (const p of PAGES) p.html = readFileSync(resolve(ROOT, p.file), 'utf8');
 const HTML = PAGES[0].html;
 
@@ -128,22 +153,37 @@ function resolve1(expr, vp, depth = 0) {
   // var(--x) / var(--x, fallback)
   s = s.replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)/g, (_, name, fb) =>
     tokens[name] !== undefined ? `(${tokens[name]})` : (fb !== undefined ? `(${fb})` : 'NaN'));
-  // functions, innermost first
+  /* Resolve inside out, alternating between function calls and plain
+     grouping parens. Substituting var() wraps each value in parens, so
+     calc(var(--header-h) + var(--sp-5)) becomes calc((76px) + (1.5rem)) —
+     and a function regex that refuses nested parens silently returns NaN
+     for it. That is how wine.html's sticky offset first measured as NaN. */
   const fn = /(clamp|min|max|calc)\(([^()]*)\)/;
-  let g;
-  while ((g = fn.exec(s))) {
-    const name = g[1];
-    const args = g[2].split(',').map((a) => a.trim());
-    let val;
-    if (name === 'calc') {
-      val = evalArith(args[0], vp);
-    } else {
-      const nums = args.map((a) => evalArith(a, vp));
-      if (name === 'min') val = Math.min(...nums);
-      else if (name === 'max') val = Math.max(...nums);
-      else val = Math.min(Math.max(nums[0], nums[1]), nums[2]); // clamp(min, pref, max)
+  const group = /(^|[^\w-])\(([^()]*)\)/;
+  for (let guard = 0; guard < 50; guard++) {
+    const g = fn.exec(s);
+    if (g) {
+      const name = g[1];
+      const args = g[2].split(',').map((a) => a.trim());
+      let val;
+      if (name === 'calc') {
+        val = evalArith(args[0], vp);
+      } else {
+        const nums = args.map((a) => evalArith(a, vp));
+        if (name === 'min') val = Math.min(...nums);
+        else if (name === 'max') val = Math.max(...nums);
+        else val = Math.min(Math.max(nums[0], nums[1]), nums[2]); // clamp(min, pref, max)
+      }
+      s = s.slice(0, g.index) + val + s.slice(g.index + g[0].length);
+      continue;
     }
-    s = s.slice(0, g.index) + val + s.slice(g.index + g[0].length);
+    const p = group.exec(s);
+    if (p) {
+      const val = evalArith(p[2], vp);
+      s = s.slice(0, p.index) + p[1] + val + s.slice(p.index + p[0].length);
+      continue;
+    }
+    break;
   }
   return evalArith(s, vp);
 }
@@ -358,18 +398,129 @@ for (const page of PAGES) {
     // Below 760 the hero deliberately drops its padding: the photograph
     // moves into flow and the plate sits under it, so the image itself
     // is what clears the header.
-    const viaImage = page.reserves === '.hero' && vp.w <= 760;
-    const have = viaImage ? R(map.get('.hero__media img')?.height) : reserved;
+    const viaImage = page.hero === true && vp.w <= 760;
+    const heroImgSel = page.reserves + '__media img';
+    const have = viaImage ? R(map.get(heroImgSel)?.height) : reserved;
     const ok = have >= headerH;
     if (!ok) failures++;
     const s = `${(have - headerH).toFixed(0)}px`;
     console.log(`  ${page.file.padEnd(15)} ${vp.label.padEnd(20)} ${(page.reserves + (viaImage ? ' img' : '')).padEnd(14)} ${(headerH.toFixed(0) + 'px').padStart(7)} ${(have.toFixed(0) + 'px').padStart(7)} ${(ok ? c(GREEN, s.padStart(10)) : c(RED, s.padStart(10)))}`);
   }
 }
-const stickyModal = baseMap.get('.modal__head');
-console.log(`  ${'(all)'.padEnd(15)} ${'(all)'.padEnd(20)} .modal__body   sticky top:${stickyModal?.top ?? '?'}, in flow inside .modal, cannot overlap  ${c(GREEN, 'ok')}`);
 
-console.log('\n4. SEARCH INPUT vs ITS PLACEHOLDER');
+/* ── 4. sticky offsets ──────────────────────────────────────────────
+   New in Round 3B, because wine.html introduced a sticky column. A
+   sticky element with top:0 parks itself UNDER the fixed header and
+   stays there — the same class of collision as the Round 2 hero plate,
+   and just as invisible to a colour audit. */
+console.log('\n4. STICKY OFFSET vs FIXED HEADER — sticky top must clear the header');
+console.log(`  ${'ELEMENT'.padEnd(22)} ${'VIEWPORT'.padEnd(20)} ${'TOP'.padStart(7)} ${'HEADER'.padStart(7)} ${'CLEARANCE'.padStart(10)}`);
+const stickySels = positioned.filter(([, pos]) => pos === 'sticky').map(([sel]) => sel);
+if (!stickySels.length) { failures++; console.log(c(RED, '  no sticky elements found — this check inspected nothing')); }
+for (const sel of stickySels) {
+  if (STICKY_EXEMPT[sel]) {
+    console.log(`  ${sel.padEnd(22)} ${'(exempt)'.padEnd(20)} ${'—'.padStart(7)} ${'—'.padStart(7)} ${c(GREEN, 'ok'.padStart(10))}  ${STICKY_EXEMPT[sel]}`);
+    continue;
+  }
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const R = (v) => resolve1(v, vp);
+    const props = map.get(sel) || {};
+    // A media query can drop it out of sticky entirely, which is a valid
+    // answer on a single-column layout.
+    if ((props.position || 'sticky') !== 'sticky') {
+      console.log(`  ${sel.padEnd(22)} ${vp.label.padEnd(20)} ${'—'.padStart(7)} ${'—'.padStart(7)} ${c(GREEN, 'static'.padStart(10))}  not sticky at this width`);
+      continue;
+    }
+    const headerH = R(map.get('.site-header')?.height);
+    const top = R(props.top ?? '0');
+    const ok = Number.isFinite(top) && top >= headerH;
+    if (!ok) failures++;
+    const s = `${(top - headerH).toFixed(0)}px`;
+    console.log(`  ${sel.padEnd(22)} ${vp.label.padEnd(20)} ${(top.toFixed(0) + 'px').padStart(7)} ${(headerH.toFixed(0) + 'px').padStart(7)} ${(ok ? c(GREEN, s.padStart(10)) : c(RED, s.padStart(10)))}`);
+  }
+}
+
+/* ── 5. every plate that sits over a photograph ─────────────────────
+   Round 3A measured the home hero plate only. winery.html adds a second
+   plate over a photograph and the closing band a third, so the width cap
+   is now checked for all of them at every breakpoint. */
+console.log('\n5. EVERY OVER-PHOTO PLATE vs ITS WIDTH CAP');
+console.log(`  ${'PLATE'.padEnd(22)} ${'PAGE'.padEnd(14)} ${'VIEWPORT'.padEnd(20)} ${'WIDTH'.padStart(8)} ${'CAP'.padStart(8)}`);
+for (const plate of PLATES) {
+  const page = PAGES.find((p) => p.file === plate.page);
+  if (!page || !page.html.includes(plate.sel.replace('.', ''))) {
+    failures++;
+    console.log(`  ${plate.sel.padEnd(22)} ${c(RED, `not found in ${plate.page}`)}`);
+    continue;
+  }
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const R = (v) => resolve1(v, vp);
+    const w = R(map.get(plate.sel)?.width);
+    const mobile = vp.w <= 760;
+    const capVW = vp.w <= 900 ? plate.capNarrowVW : plate.capVW;
+    const cap = mobile ? vp.w : (capVW / 100) * vp.w;
+    // Below the breakpoint the plate is SPECIFIED full width: it sits under
+    // the photograph rather than over it, so the vw cap does not apply.
+    const ok = mobile ? Math.abs(w - vp.w) < 1 : w <= cap + 0.5;
+    if (!ok) failures++;
+    const s = `${w.toFixed(0)}px`;
+    console.log(`  ${plate.sel.padEnd(22)} ${plate.page.padEnd(14)} ${vp.label.padEnd(20)} ${(ok ? c(GREEN, s.padStart(8)) : c(RED, s.padStart(8)))} ${(cap.toFixed(0) + 'px').padStart(8)}`);
+  }
+}
+
+/* ── 6. header content vs the bar it has to fit in ──────────────────
+   New in Round 3B, because the nav grew from three items to four when
+   Go Deals, Tenders and How It Works shipped. The header is a fixed
+   76px bar with no wrap, so overflowing it pushes content out of the
+   viewport rather than reflowing. Measured with real glyph advances. */
+console.log('\n6. HEADER CONTENT vs AVAILABLE WIDTH');
+console.log(`  ${'VIEWPORT'.padEnd(20)} ${'NEEDS'.padStart(8)} ${'HAS'.padStart(8)} ${'SLACK'.padStart(8)}  CONTENT`);
+const navLabels = [...HTML.matchAll(/class="site-header__tab"[^>]*>([^<]+)</g)].map((m) => m[1].trim());
+const roleLabels = [...HTML.matchAll(/class="site-header__role"[^>]*><span>([^<]+)<\/span>/g)].map((m) => m[1].trim());
+const loginLabel = (HTML.match(/class="site-header__login"[^>]*>([^<]+)</) || [, 'Login'])[1].trim();
+const wordmark = (HTML.match(/class="site-header__wordmark">([^<]+)</) || [, 'Go Wine Go'])[1].trim();
+if (!navLabels.length || !roleLabels.length) {
+  failures++;
+  console.log(c(RED, '  could not read the header labels — this check inspected nothing'));
+}
+for (const vp of VIEWPORTS) {
+  const map = declMap(rulesFor(vp.w));
+  const R = (v) => resolve1(v, vp);
+  // The bar sheds content by media query rather than wrapping, so both
+  // the nav and the role switcher can be absent at a given width.
+  const navHidden = (map.get('.site-header__nav')?.display || 'flex') === 'none';
+  const rolesHidden = (map.get('.site-header__roles')?.display || 'flex') === 'none';
+
+  const logo = R(TOKENS['--icon']) + R(TOKENS['--sp-2'])
+             + textWidth(DISPLAY_FACE, wordmark, R(TOKENS['--fs-mark']),
+                         parseFloat(TOKENS['--tracking-display']) || 0);
+  const nav = navHidden ? 0 : navLabels.reduce((sum, label) =>
+    sum + textWidth('inter-400', label, R(TOKENS['--fs-sm'])) + R(TOKENS['--sp-3']) * 2, 0)
+    + R(TOKENS['--sp-1']) * Math.max(0, navLabels.length - 1);
+  const roles = rolesHidden ? 0 : roleLabels.reduce((sum, label) =>
+    sum + textWidth('inter-400', label, R(TOKENS['--fs-xs'])) + R(TOKENS['--sp-3']) * 2, 0)
+    + 4 + 2;                                            // pill padding + border
+  const login = textWidth('inter-500', loginLabel, R(TOKENS['--fs-sm']))
+              + R(TOKENS['--sp-4']) * 2 + 2;
+  const gaps = R(TOKENS['--sp-5']) * (navHidden ? 1 : 2)
+             + (rolesHidden ? 0 : R(TOKENS['--sp-3']));
+
+  const need = logo + nav + roles + login + gaps;
+  const have = Math.min(vp.w, R(TOKENS['--w-max'])) - R(TOKENS['--sp-5']) * 2;
+  const ok = have >= need;
+  if (!ok) failures++;
+  const s = `${(have - need).toFixed(0)}px`;
+  const parts = [
+    navHidden ? 'nav hidden' : `nav: ${navLabels.join(' / ')}`,
+    rolesHidden ? 'roles hidden' : roleLabels.join('/'),
+    loginLabel,
+  ].join(', ');
+  console.log(`  ${vp.label.padEnd(20)} ${(need.toFixed(0) + 'px').padStart(8)} ${(have.toFixed(0) + 'px').padStart(8)} ${(ok ? c(GREEN, s.padStart(8)) : c(RED, s.padStart(8)))}  ${parts}`);
+}
+
+console.log('\n7. SEARCH INPUT vs ITS PLACEHOLDER');
 for (const vp of VIEWPORTS) {
   const map = declMap(rulesFor(vp.w));
   const R = (v) => resolve1(v, vp);

@@ -1,0 +1,89 @@
+{
+  "_note": "Spec 4.6. NEW file: the content model in spec 5 covers entities, not editorial, and this page is entirely editorial. The two Model A answers lead the page and are repeated in the FAQ, because a reader who scrolls straight to the questions must still get them. diagram is a sprite symbol id — thin-line, 24x24 viewBox, stroke 1.25, currentColor, fill none, same spec as every other icon, rendered large. No photography on this page by design.",
+
+  "answers_first": {
+    "eyebrow": "Before anything else",
+    "items": [
+      {
+        "question": "Who am I buying from?",
+        "answer": "The winery. Not Go Wine Go. Every wine on this site is sold to you by the licensed producer that grew and made it, under their own producer's licence, and their licence number is shown on their profile and on every wine they list. Go Wine Go is the marketplace where you find them and agree a price. We are not the seller and we never take title to the wine.",
+        "diagram": "i-dia-seller"
+      },
+      {
+        "question": "Who has my money?",
+        "answer": "The payment provider, until your wine is signed for. You pay at checkout, the funds are held by the payment provider, and the winery is paid when your wine is signed for. Go Wine Go never holds your money at any point, and nothing is charged at all while an offer is still open.",
+        "diagram": "i-dia-payment"
+      }
+    ]
+  },
+
+  "mechanics": {
+    "eyebrow": "Four ways to buy",
+    "title": "Four mechanics, one marketplace",
+    "items": [
+      {
+        "name": "Buy now",
+        "diagram": "i-dia-buy",
+        "lines": [
+          "The winery sets a list price per case and you pay it.",
+          "No negotiation, no waiting. The order goes straight to the winery.",
+          "Use it when the listed price already works for you."
+        ]
+      },
+      {
+        "name": "Make an offer",
+        "diagram": "i-dia-offer",
+        "lines": [
+          "You name your own price per case and how many cases you want.",
+          "The winery accepts, counters or declines. You can accept a counteroffer or walk away.",
+          "Nothing is charged while an offer is open."
+        ]
+      },
+      {
+        "name": "Go Deal",
+        "diagram": "i-dia-godeal",
+        "lines": [
+          "The winery sets a list price and a floor price you never see.",
+          "As more cases are committed the price falls for everyone in the deal.",
+          "When the deal closes everyone pays the final price, including whoever committed first."
+        ]
+      },
+      {
+        "name": "Tender",
+        "diagram": "i-dia-tender",
+        "lines": [
+          "You post what you want: variety, subregion, vintage range, cases and your maximum price.",
+          "Wineries submit against it. You see who submitted and at what price.",
+          "You pick one, or none. There is no obligation to accept anything."
+        ]
+      }
+    ]
+  },
+
+  "faq": {
+    "eyebrow": "Questions",
+    "title": "The rest of it",
+    "items": [
+      {
+        "q": "Who am I buying from?",
+        "a": "The winery, always. They are the licensed seller and their producer's licence number appears on their profile and on every wine they list. Go Wine Go is the marketplace, not the seller."
+      },
+      {
+        "q": "Who has my money?",
+        "a": "The payment provider holds it from checkout until your wine is signed for, then the winery is paid. Go Wine Go never holds it. Nothing is charged while an offer is still open."
+      },
+      {
+        "q": "What if the wine is faulty?",
+        "a": "Contact the winery first, through the contact details on your order. They are the seller and the Australian Consumer Law guarantees run against them. If you cannot reach them, tell us and we will chase it on your behalf, but the remedy is theirs to give."
+      },
+      {
+        "q": "What if nobody is home?",
+        "a": "The carrier will not leave wine unattended and cannot leave it with a neighbour. An adult over 18 has to be there to sign for it. If nobody is home the carrier leaves a card and reattempts, or holds it at a depot for collection with photo identification."
+      },
+      {
+        "q": "Do you deliver to my state?",
+        "a": "These are sample listings, so nothing on this prototype ships anywhere yet. In the live market each winery sets the postcodes it will and will not deliver to, and you will see that on the wine before you order. Liquor delivery rules differ by state and territory, and some remote postcodes carry extra restrictions."
+      }
+    ]
+  }
+}

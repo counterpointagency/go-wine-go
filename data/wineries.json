@@ -1,5 +1,5 @@
 {
-  "_note": "Model A: the winery is the seller, Go Wine Go is the market. Every wine belongs to a named winery and that name is the trust signal. Fictional producers built from real Margaret River subregions; checked against trading wineries before committing. Licence numbers are placeholders in an obviously non-colliding format and must be replaced with real producer licence numbers before launch.",
+  "_note": "Model A: the winery is the seller, Go Wine Go is the market. Every wine belongs to a named winery and that name is the trust signal. Fictional producers built from real Margaret River subregions; checked against trading wineries before committing. Licence numbers are placeholders in an obviously non-colliding format and must be replaced with real producer licence numbers before launch. story is an ARRAY of paragraphs (spec 4.3 wants two or three). hero_image and portrait_image are extensionless base paths; the page appends .webp and .jpg. hero_alt and portrait_alt describe the scene, never the estate.",
   "wineries": [
     {
       "slug": "wilyabrup-reach",
@@ -8,10 +8,18 @@
       "gi": "Margaret River",
       "established": 1987,
       "licence_number": "WA-PRD-SAMPLE-001",
-      "story": "Forty hectares on the western fall of the Wilyabrup valley, planted to cabernet in the mid eighties on gravel over granite. The old blocks are still hand pruned and the fruit is picked in three passes rather than one.",
-      "hero_image": "assets/img/region-wilyabrup.jpg",
-      "portrait_image": "assets/img/vine-old-trunk.jpg",
-      "territory_exclusions": ["6000-6005", "6100-6110"]
+      "story": [
+        "Forty hectares on the western fall of the Wilyabrup valley, planted to cabernet in the mid eighties on gravel over granite. The old blocks are still hand pruned and the fruit is picked in three passes rather than one.",
+        "Those blocks were planted on their own roots and have never been pulled out, which is why the yields are low and the wines take their time. Nothing is bought in and nothing is contract made."
+      ],
+      "hero_image": "assets/img/winery-wilyabrup",
+      "hero_alt": "Aerial view of a vineyard block and gum trees on a valley slope in the late afternoon",
+      "portrait_image": "assets/img/vine-old-trunk",
+      "portrait_alt": "Gnarled old vine trunk on trellis wire in a dormant winter vineyard",
+      "territory_exclusions": [
+        "6000-6005",
+        "6100-6110"
+      ]
     },
     {
       "slug": "boranup-grove",
@@ -20,9 +28,14 @@
       "gi": "Margaret River",
       "established": 1996,
       "licence_number": "WA-PRD-SAMPLE-002",
-      "story": "A small holding cut into the karri on the southern edge of the region. Cool nights and a late harvest give the reds a lift of acid that the warmer northern blocks do not get.",
-      "hero_image": "assets/img/region-boranup.jpg",
-      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "story": [
+        "A small holding cut into the karri on the southern edge of the region. Cool nights and a late harvest give the reds a lift of acid that the warmer northern blocks do not get.",
+        "Harvest here runs two to three weeks behind the northern subregions. The trade-off is a longer hang and firmer acid, and it is the reason the reds are picked at lower baume than most of the region."
+      ],
+      "hero_image": "assets/img/winery-boranup",
+      "hero_alt": "Overhead view of vine rows running in parallel lines across green ground",
+      "portrait_image": "assets/img/portrait-creeper",
+      "portrait_alt": "A bare creeper growing across weathered blue timber cladding",
       "territory_exclusions": []
     },
     {
@@ -32,10 +45,17 @@
       "gi": "Margaret River",
       "established": 2004,
       "licence_number": "WA-PRD-SAMPLE-003",
-      "story": "Twelve hectares in the fold of the Treeton valley, worked by one family without contract labour. Everything is estate grown and everything is bottled on site.",
-      "hero_image": "assets/img/region-treeton.jpg",
-      "portrait_image": "assets/img/vine-old-trunk.jpg",
-      "territory_exclusions": ["6280-6290"]
+      "story": [
+        "Twelve hectares in the fold of the Treeton valley, worked by one family without contract labour. Everything is estate grown and everything is bottled on site.",
+        "Twelve hectares is small enough that the same two people prune, pick and bottle. It is also small enough that a bad decision costs a whole vintage, which tends to concentrate the mind."
+      ],
+      "hero_image": "assets/img/winery-treeton",
+      "hero_alt": "Autumn vines in front of a misty treeline at first light",
+      "portrait_image": "assets/img/portrait-verandah",
+      "portrait_alt": "A cane chair and potted plants on the verandah of a timber building",
+      "territory_exclusions": [
+        "6280-6290"
+      ]
     },
     {
       "slug": "karridale-bench",
@@ -44,9 +64,14 @@
       "gi": "Margaret River",
       "established": 1999,
       "licence_number": "WA-PRD-SAMPLE-004",
-      "story": "The coldest fruit in the region, grown on a bench above a spring fed dam within sight of the southern coast. Chardonnay is picked at low baume and left on lees through winter.",
-      "hero_image": "assets/img/region-karridale.jpg",
-      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "story": [
+        "The coldest fruit in the region, grown on a bench above a spring fed dam within sight of the southern coast. Chardonnay is picked at low baume and left on lees through winter.",
+        "Everything is hand picked in the cool of the morning and pressed the same day. The chardonnay goes to barrel on full solids and stays on lees until the following spring."
+      ],
+      "hero_image": "assets/img/winery-karridale",
+      "hero_alt": "Tall gum trees and autumn vines reflected in a still dam",
+      "portrait_image": "assets/img/portrait-pickers",
+      "portrait_alt": "Aerial view of a small group of pickers working a row mid vineyard",
       "territory_exclusions": []
     },
     {
@@ -56,10 +81,17 @@
       "gi": "Margaret River",
       "established": 2011,
       "licence_number": "WA-PRD-SAMPLE-005",
-      "story": "Sheep run through the rows from leaf fall to bud burst, which is how the vineyard keeps its cover crop down without a tractor. The whites are made for drinking young and priced that way.",
-      "hero_image": "assets/img/region-cowaramup.jpg",
-      "portrait_image": "assets/img/vine-old-trunk.jpg",
-      "territory_exclusions": ["6000-6005"]
+      "story": [
+        "Sheep run through the rows from leaf fall to bud burst, which is how the vineyard keeps its cover crop down without a tractor. The whites are made for drinking young and priced that way.",
+        "Running sheep through the rows from leaf fall to bud burst keeps the cover crop down without a tractor and puts the fertility back where it came from. The whites are made to be drunk young and are priced accordingly."
+      ],
+      "hero_image": "assets/img/winery-cowaramup",
+      "hero_alt": "Aerial view of young vine rows meeting a line of tall trees under scattered cloud",
+      "portrait_image": "assets/img/portrait-vine-canopy",
+      "portrait_alt": "Dense green vine canopy along a trellis with timber posts",
+      "territory_exclusions": [
+        "6000-6005"
+      ]
     },
     {
       "slug": "yallingup-spur",
@@ -68,9 +100,14 @@
       "gi": "Margaret River",
       "established": 1992,
       "licence_number": "WA-PRD-SAMPLE-006",
-      "story": "High on the Yallingup spur where the maritime wind runs hard enough to thicken skins and slow ripening. Riesling and cabernet from the same eight hectare block.",
-      "hero_image": "assets/img/region-yallingup.jpg",
-      "portrait_image": "assets/img/vine-old-trunk.jpg",
+      "story": [
+        "High on the Yallingup spur where the maritime wind runs hard enough to thicken skins and slow ripening. Riesling and cabernet from the same eight hectare block.",
+        "The wind that thickens the skins also cuts the crop, so there is never much of either wine. What comes off the spur is structured and slow to open, and both wines reward being forgotten for a few years."
+      ],
+      "hero_image": "assets/img/winery-yallingup",
+      "hero_alt": "A block of vines against dry summer grass with a wooded ridge behind",
+      "portrait_image": "assets/img/portrait-vine-leaf",
+      "portrait_alt": "Close view of a grape vine leaf showing its veins",
       "territory_exclusions": []
     }
   ]

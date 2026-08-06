@@ -1,0 +1,44 @@
+{
+  "_note": "Spec 5 order entity: id, wine_slug, quantity, price_paid, payment_state, dispatch_state, pod_state. payment_state = held | released. EXTENSIONS: carrier and tracking_reference, because spec 4.9 requires 'Orders with tracking' and the entity had no way to carry it; placed_at and delivered_at for the order timeline. payment_state 'held' means held by the PAYMENT PROVIDER, never by Go Wine Go, and 'released' means the winery has been paid because the customer signed for the wine.",
+  "orders": [
+    {
+      "id": "ORD-1007",
+      "wine_slug": "granite-rise-riesling-2023",
+      "quantity": 1,
+      "price_paid": 160,
+      "payment_state": "held",
+      "dispatch_state": "awaiting_dispatch",
+      "pod_state": "pending",
+      "carrier": null,
+      "tracking_reference": null,
+      "placed_at": "2026-08-05",
+      "delivered_at": null
+    },
+    {
+      "id": "ORD-1006",
+      "wine_slug": "valley-floor-tempranillo-2023",
+      "quantity": 2,
+      "price_paid": 380,
+      "payment_state": "held",
+      "dispatch_state": "in_transit",
+      "pod_state": "pending",
+      "carrier": "Cold Chain Freight",
+      "tracking_reference": "CCF4471902AU",
+      "placed_at": "2026-08-01",
+      "delivered_at": null
+    },
+    {
+      "id": "ORD-1004",
+      "wine_slug": "fence-line-sauvignon-blanc-semillon-2024",
+      "quantity": 1,
+      "price_paid": 130,
+      "payment_state": "released",
+      "dispatch_state": "delivered",
+      "pod_state": "received",
+      "carrier": "Cold Chain Freight",
+      "tracking_reference": "CCF4390118AU",
+      "placed_at": "2026-03-06",
+      "delivered_at": "2026-03-12"
+    }
+  ]
+}

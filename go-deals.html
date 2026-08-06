@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Account, Go Wine Go</title>
-<meta name="description" content="Your shortlist, offers, orders, tenders and delivery addresses.">
+<title>Go Deals, Go Wine Go</title>
+<meta name="description" content="As more cases are committed the price falls for everyone. When the deal closes everyone pays the final price.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,56 +143,26 @@
 </header>
 
 <main class="page--inner" id="main">
-  <!-- ═══ SECTION: ACCOUNT ════════════════════════════════════════
-       Spec 4.9. Shortlist, My Offers with status, Orders with
-       tracking, Tenders I have posted, Addresses. Every panel
-       renders from data — the customer comes from the new
-       data/account.json, because spec 5 models what is bought and
-       sold but never the buyer.
+  <!-- ═══ SECTION: GO DEALS ═══════════════════════════════════════
+       Spec 4.4. The mechanic is explained first, in three lines,
+       rendered from data/how-it-works.json so the explanation here
+       and on how-it-works.html are the same three sentences.
 
-       "Shortlist" is Winescape's own term for saved wines, used
-       here instead of wishlist, favourites or saved.
+       The floor price is NOT in data/go-deals.json at all, so this
+       page cannot reveal it even by accident. Progress runs toward
+       the next published tier.
        ══════════════════════════════════════════════════════════ -->
-  <section class="account" id="accountRoot" aria-labelledby="accountTitle">
-    <h1 class="account__title" id="accountTitle">My account</h1>
-    <p class="account__welcome">Welcome back, <b id="accountName">…</b></p>
+  <div class="page-head">
+    <p class="label">Live now</p>
+    <h1 class="page-head__title">Go Deals</h1>
+    <ul class="page-head__lines" id="goDealExplainer"></ul>
+  </div>
 
-    <div class="account__tabs" role="tablist" aria-label="Account sections">
-      <button class="account__tab is-active" role="tab" aria-selected="true" data-tab="shortlist">
-        Shortlist <span class="account__badge" id="acShortlistCount">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="offers">
-        My offers <span class="account__badge" id="acOfferBadge">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="orders">Orders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="tenders">My tenders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="addresses">Addresses</button>
+  <section class="godeals" aria-labelledby="goDealCount">
+    <div class="godeals__head">
+      <h2 class="godeals__title" id="goDealCount">Loading…</h2>
     </div>
-
-    <div class="account__panel is-active" id="ap-shortlist">
-      <p class="account__panel-note">Wines you have saved. Shortlisting does not reserve stock or commit you to anything.</p>
-      <div class="account__grid" id="acShortlist"></div>
-    </div>
-
-    <div class="account__panel" id="ap-offers">
-      <p class="account__panel-note">Nothing is charged while an offer is open. A winery can accept, counter or decline, and you can accept a counteroffer or walk away.</p>
-      <div id="acOffers"></div>
-    </div>
-
-    <div class="account__panel" id="ap-orders">
-      <p class="account__panel-note">Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
-      <div id="acOrders"></div>
-    </div>
-
-    <div class="account__panel" id="ap-tenders">
-      <p class="account__panel-note">Tenders you have posted, and how many wineries have submitted against each. You can accept one submission, or none.</p>
-      <div id="acTenders"></div>
-    </div>
-
-    <div class="account__panel" id="ap-addresses">
-      <p class="account__panel-note">An adult over 18 must be present to sign for every delivery. Wine is never left unattended.</p>
-      <div class="account__grid" id="acAddresses"></div>
-    </div>
+    <div class="godeals__grid" id="goDealPageGrid"></div>
   </section>
 </main>
 

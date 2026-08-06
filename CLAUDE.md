@@ -7,9 +7,16 @@ Autodeploy is ON. The live URL has been shared with the client.
 never holds money. Nothing says escrow, auction or bid. The full specification
 is `docs/site-spec.md` and it is the reference for Rounds 3A, 3B and 3C.
 
-As of Round 3A the build is three pages — `index.html` (home and market),
-`account.html`, `supplier.html` — over one shared `assets/css/main.css`, one
-shared `assets/js/main.js`, and hand-authored content in `data/*.json`.
+As of Round 3B the build is eight pages — `index.html` (home and market),
+`wine.html`, `winery.html`, `go-deals.html`, `tenders.html`,
+`how-it-works.html`, `account.html`, `supplier.html` — over one shared
+`assets/css/main.css`, one shared `assets/js/main.js`, and hand-authored
+content in `data/*.json`. `for-wineries.html` and the legal stubs are 3C.
+
+`wine.html` and `winery.html` are slug driven: `wine.html?slug=<wine>`,
+`winery.html?slug=<winery>`. That is what becomes `single-wine.php` and
+`single-winery.php`. Both fall back to the first record rather than erroring
+when the parameter is missing.
 
 ---
 
@@ -226,8 +233,18 @@ from `tools/font-metrics.json`, and asserts:
 
 1. header height vs. hero content top offset, clearance must not be negative
 2. plate width and height against their caps (34vw / 60vh desktop; full width below 760px)
-3. every fixed or sticky element vs. the top offset of what follows it
-4. search input width vs. its own placeholder
+3. every fixed or sticky element vs. the top offset of what follows it, **on
+   every page**, not just the one that happens to have a hero
+4. **every sticky element's `top` vs. the header height.** A sticky element
+   with `top: 0` parks itself underneath the fixed header and stays there.
+   Exemptions must name the scroll container that makes them safe
+   (`.modal__head` scrolls inside `.modal`, not the page)
+5. **every plate that sits over a photograph vs. its width cap**, at every
+   breakpoint, on every page — not just the home hero
+6. **header content vs. the width of the bar.** The header is a fixed 76px
+   bar that cannot wrap, so it sheds content by media query instead. Measured
+   with real glyph advances, so adding a nav item fails loudly
+7. search input width vs. its own placeholder
 
 `tools/font-metrics.json` is extracted with fontTools from the exact Google
 Fonts woff2 files the pages request, with variable axes instanced at the values
@@ -255,8 +272,19 @@ across **all three pages**: no hex outside `:root`, no `rgba()` literals outside
 emoji, no "escrow", no "auction"/"bid" in shipped copy, no display type under
 32px or under weight 500, and no display rule that fails to pin `opsz`.
 
+It also checks that every `<use href="#id">` resolves to a symbol in the
+sprite, and that no symbol is defined without being used. **Round 3B shipped a
+delivery panel pointing at `i-box` after Round 3A had pruned it as unused** —
+an icon that renders as nothing at all, which no colour ratio can see. Symbols
+are referenced from markup, from `icon()`/`toast()` in JS, and by name from
+`data/*.json`, so all three sources are scanned.
+
 The prose guards run over the **shipped** text with comments stripped, so a
 comment explaining why a word is banned does not itself trip the ban.
+
+**Every guard reports the sample size it inspected.** A count of zero
+violations is indistinguishable from a guard that never ran, which is exactly
+how the display-face guards passed for two rounds while checking nothing.
 
 > **Round 3A found the display-face guards had never actually run.** The rule
 > loop destructured `[sel, decl]` off `matchAll`, which binds `decl` to the
@@ -326,3 +354,25 @@ serving.
   tests. **The display-face guards were found to have never run** — see the
   note under VERIFICATION. The three-step explainer moved off home; it is due
   on `how-it-works.html` in Round 3B per spec 4.6.
+- **Round 3B** — the customer side. Six pages built against spec 4.2 to 4.6
+  and 4.9: `wine.html`, `winery.html`, `go-deals.html`, `tenders.html`,
+  `how-it-works.html`, and `account.html` extended from the old trading view.
+  Content model extended with `offers`, `orders`, `account`, `policy` and
+  `how-it-works`; `wineries.story` became an array and gained image alts;
+  `wines` gained `dispatch_days`. **`data/policy.json` is the single source
+  for all compliance and payment wording** — the delivery panel, the payment
+  lines, the WET note, the seller line and the compliance line are authored
+  once and read by every surface, so they cannot drift apart. Six winery
+  heroes at 2:1 and six 4:5 portraits pulled from the library; every
+  photograph still untinted, every plate still bone.
+
+  The layout audit grew from four checks to seven and now covers all eight
+  pages. The three additions were driven by real failures it caught on first
+  run: `wine.html`'s sticky column measured as `NaN` because the value
+  resolver could not handle `calc(var() + var())`; the closing plate exceeded
+  its cap at 834; and the header overflowed its own bar by 89px at 834 and
+  154px at 390 once the nav grew to four items. The role switcher is now
+  hidden below 1100 and the footer carries a complete route through the site,
+  because the header nav is hidden below 760 and there is still no mobile menu.
+  Archived at `archive/index-v4.html`, `archive/account-v1.html`,
+  `archive/supplier-v1.html`.

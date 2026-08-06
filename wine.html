@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Account, Go Wine Go</title>
-<meta name="description" content="Your shortlist, offers, orders, tenders and delivery addresses.">
+<title>Wine detail, Go Wine Go</title>
+<meta name="description" content="Sold to you by the winery that made it. Case size, alcohol, allergens, delivery and how payment works.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,56 +143,64 @@
 </header>
 
 <main class="page--inner" id="main">
-  <!-- ═══ SECTION: ACCOUNT ════════════════════════════════════════
-       Spec 4.9. Shortlist, My Offers with status, Orders with
-       tracking, Tenders I have posted, Addresses. Every panel
-       renders from data — the customer comes from the new
-       data/account.json, because spec 5 models what is bought and
-       sold but never the buyer.
-
-       "Shortlist" is Winescape's own term for saved wines, used
-       here instead of wishlist, favourites or saved.
+  <!-- ═══ SECTION: WINE DETAIL ════════════════════════════════════
+       Spec 4.2. Opened as wine.html?slug=<wine>; every field is
+       rendered from data/wines.json and data/wineries.json by
+       assets/js/main.js, which is why this file carries no copy.
        ══════════════════════════════════════════════════════════ -->
-  <section class="account" id="accountRoot" aria-labelledby="accountTitle">
-    <h1 class="account__title" id="accountTitle">My account</h1>
-    <p class="account__welcome">Welcome back, <b id="accountName">…</b></p>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="index.html">Market</a></li>
+      <li><span aria-current="page" id="wineCrumb">Wine</span></li>
+    </ol>
+  </nav>
 
-    <div class="account__tabs" role="tablist" aria-label="Account sections">
-      <button class="account__tab is-active" role="tab" aria-selected="true" data-tab="shortlist">
-        Shortlist <span class="account__badge" id="acShortlistCount">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="offers">
-        My offers <span class="account__badge" id="acOfferBadge">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="orders">Orders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="tenders">My tenders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="addresses">Addresses</button>
-    </div>
+  <section class="wine" id="wineRoot" aria-labelledby="wineTitle">
+    <div class="wine__grid">
+      <div class="wine__main">
+        <a class="wine__producer" id="wineProducer" href="winery.html"></a>
+        <h1 class="wine__title" id="wineTitle">Loading…</h1>
+        <p class="wine__meta" id="wineMeta"></p>
+        <div class="wine__tone" id="wineTone" aria-hidden="true"></div>
+        <p class="wine__note" id="wineNote"></p>
+        <dl class="wine__specs" id="wineSpecs"></dl>
+      </div>
 
-    <div class="account__panel is-active" id="ap-shortlist">
-      <p class="account__panel-note">Wines you have saved. Shortlisting does not reserve stock or commit you to anything.</p>
-      <div class="account__grid" id="acShortlist"></div>
+      <!-- Sticky, offset by the header height plus a gap. A sticky
+           top of 0 would park this underneath the fixed header —
+           tools/layout-audit.mjs asserts it clears. -->
+      <aside class="wine__aside" aria-label="Price and actions">
+        <div class="wine__price" id="winePrice"></div>
+        <p class="wine__tax" id="wineTax"></p>
+        <p class="wine__stock" id="wineStock"></p>
+        <div class="wine__actions" id="wineActions"></div>
+        <p class="wine__seller" id="wineSeller"></p>
+      </aside>
     </div>
+  </section>
 
-    <div class="account__panel" id="ap-offers">
-      <p class="account__panel-note">Nothing is charged while an offer is open. A winery can accept, counter or decline, and you can accept a counteroffer or walk away.</p>
-      <div id="acOffers"></div>
+  <!-- ═══ SECTION: WINERY STRIP ═══════════════════════════════════
+       The Model A trust anchor. Not optional: it is what makes the
+       winery, not Go Wine Go, legible as the seller.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="winery-strip" id="wineryStrip" aria-labelledby="stripName">
+    <div class="winery-strip__inner">
+      <figure class="winery-strip__figure"></figure>
+      <div>
+        <h2 class="winery-strip__name" id="stripName"></h2>
+        <p class="winery-strip__text" id="stripText"></p>
+        <p class="winery-strip__licence" id="stripLicence"></p>
+        <a class="btn btn--ghost winery-strip__link" id="stripLink" href="winery.html"></a>
+      </div>
     </div>
+  </section>
 
-    <div class="account__panel" id="ap-orders">
-      <p class="account__panel-note">Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
-      <div id="acOrders"></div>
-    </div>
-
-    <div class="account__panel" id="ap-tenders">
-      <p class="account__panel-note">Tenders you have posted, and how many wineries have submitted against each. You can accept one submission, or none.</p>
-      <div id="acTenders"></div>
-    </div>
-
-    <div class="account__panel" id="ap-addresses">
-      <p class="account__panel-note">An adult over 18 must be present to sign for every delivery. Wine is never left unattended.</p>
-      <div class="account__grid" id="acAddresses"></div>
-    </div>
+  <!-- ═══ SECTION: DELIVERY AND PAYMENT ═══════════════════════════
+       Both panels render from data/policy.json, so the compliance
+       wording here and on how-it-works.html cannot drift apart.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="panels" aria-label="Delivery and payment">
+    <div class="panels__grid" id="winePanels"></div>
   </section>
 </main>
 

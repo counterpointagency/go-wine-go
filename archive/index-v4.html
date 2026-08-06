@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Account, Go Wine Go</title>
-<meta name="description" content="Your shortlist, offers, orders, tenders and delivery addresses.">
+<title>Go Wine Go, Buy Direct from Australian Wineries</title>
+<meta name="description" content="Australia's direct-from-winery marketplace. Name your price by the case. The winery is the seller, and your payment is released to them when your wine is signed for.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,14 +12,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
-<body>
+<body data-hero>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
 <!-- ═══ SHARED: ICON SPRITE ══════════════════════════════════════════
-     BYTE IDENTICAL across all eight pages. index.html is the source of
-     truth; tools/sync-shared-blocks.mjs pushes it to the rest and
-     tools/contrast-audit.mjs fails the build on drift.
+     BYTE IDENTICAL across index.html, account.html and supplier.html.
      Becomes a single sprite include in the WordPress theme.
      24x24, stroke 1.25, currentColor, fill none. No emoji, no icon
      font, no CDN.
@@ -34,7 +32,7 @@
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 21 21"/></symbol>
   <symbol id="i-tag" viewBox="0 0 24 24"><path d="M12.6 2.8H21v8.4l-9.8 9.8-8.4-8.4 9.8-9.8Z"/><circle cx="17.1" cy="6.9" r="1.4"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8 4.5 5.9v6.2c0 4.3 3 8.3 7.5 9.4 4.5-1.1 7.5-5.1 7.5-9.4V5.9L12 2.8Z"/><path d="m8.7 12.1 2.3 2.3 4.3-4.3"/></symbol>
-  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12l9-4.5"/><path d="M12 12v9"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M2.5 3.5h3l2.3 11.2a1.6 1.6 0 0 0 1.6 1.3h8.2a1.6 1.6 0 0 0 1.6-1.3L21 7H6"/><circle cx="10" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></symbol>
   <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2 4.6 13.6h6.6L10.8 22l8.6-11.6h-6.6L13.2 2Z"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5l-5-5Z"/><path d="M14 2.5v5h5"/></symbol>
   <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4"/><path d="M7.5 8.5 12 4l4.5 4.5"/><path d="M4 16v2.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V16"/></symbol>
@@ -45,70 +43,11 @@
   <symbol id="i-exchange" viewBox="0 0 24 24"><path d="M4 9h13"/><path d="M13.5 5.5 17.5 9l-4 3.5"/><path d="M20 15H7"/><path d="M10.5 11.5 6.5 15l4 3.5"/></symbol>
   <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.25"/><path d="m9 9 6 6"/><path d="M15 9l-6 6"/></symbol>
   <symbol id="i-vine" viewBox="0 0 24 24"><path d="M12 21V8"/><path d="M12 12.5c-3.4 0-5.5-2-5.5-5.5 3.4 0 5.5 2 5.5 5.5Z"/><path d="M12 10c0-3.4 2.1-5.5 5.5-5.5 0 3.4-2.1 5.5-5.5 5.5Z"/><path d="M7 21h10"/></symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z"/><circle cx="12" cy="10.5" r="2.6"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
-
-  <!-- ── THIN-LINE DIAGRAMS (how-it-works.html, spec 4.6) ──────────
-       Same spec as every other icon — 24x24 viewBox, stroke 1.25,
-       currentColor, fill none — simply rendered at 72px. Scaling the
-       box rather than the stroke is what keeps them reading as line
-       diagrams instead of thickening into illustrations.
-       ────────────────────────────────────────────────────────── -->
-
-  <!-- Who am I buying from: the winery sells to you directly, and the
-       marketplace sits ALONGSIDE the transaction, not inside it. -->
-  <symbol id="i-dia-seller" viewBox="0 0 24 24">
-    <path d="M2.5 13.5v6.5h6v-6.5"/><path d="M1.5 13.8 5.5 10l4 3.8"/>
-    <circle cx="18.5" cy="12.6" r="2.1"/><path d="M14.8 20a3.7 3.7 0 0 1 7.4 0"/>
-    <path d="M10.8 17h3"/><path d="m12.6 15.6 1.6 1.4-1.6 1.4"/>
-    <rect x="9" y="2.5" width="6" height="4.2" rx="1"/>
-    <path d="M12 6.7v2.1"/><path d="M12 10.2v1.4"/>
-  </symbol>
-
-  <!-- Who has my money: you pay, the payment provider holds, the
-       winery is paid on the signature. -->
-  <symbol id="i-dia-payment" viewBox="0 0 24 24">
-    <rect x="1.5" y="10.5" width="7" height="5.5" rx="1"/><path d="M1.5 12.8h7"/>
-    <rect x="15.5" y="10.5" width="7" height="5.5" rx="1"/>
-    <path d="M9.5 13.2h4.2"/><path d="m12.4 11.8 1.6 1.4-1.6 1.4"/>
-    <path d="M12 9.6V7.4"/><circle cx="12" cy="4.6" r="2.4"/>
-    <path d="m10.3 19.4 1.5 1.5 3.1-3.4"/>
-  </symbol>
-
-  <!-- Buy now: pay the listed price, done. -->
-  <symbol id="i-dia-buy" viewBox="0 0 24 24">
-    <path d="M12.4 2.8h8.3v8.3l-9.6 9.6-8.3-8.3 9.6-9.6Z"/>
-    <circle cx="16.9" cy="6.9" r="1.3"/>
-    <path d="m7.2 12.2 2.5 2.5 5-5"/>
-  </symbol>
-
-  <!-- Make an offer: you offer, the winery counters, back and forth. -->
-  <symbol id="i-dia-offer" viewBox="0 0 24 24">
-    <circle cx="4.2" cy="12" r="2.2"/><circle cx="19.8" cy="12" r="2.2"/>
-    <path d="M7 9.2h10"/><path d="m15.3 7.8 1.9 1.4-1.9 1.4"/>
-    <path d="M17 14.8H7"/><path d="m8.7 13.4-1.9 1.4 1.9 1.4"/>
-    <path d="M12 3.5v2.2"/><path d="M12 18.3v2.2"/>
-  </symbol>
-
-  <!-- Go Deal: the price steps down as cases are committed. -->
-  <symbol id="i-dia-godeal" viewBox="0 0 24 24">
-    <path d="M2.5 5.5h5v4.5h5v4.5h5v4.5h4"/>
-    <circle cx="7.5" cy="5.5" r="1.1"/><circle cx="12.5" cy="10" r="1.1"/>
-    <circle cx="17.5" cy="14.5" r="1.1"/>
-  </symbol>
-
-  <!-- Tender: you post one, several wineries submit against it. -->
-  <symbol id="i-dia-tender" viewBox="0 0 24 24">
-    <rect x="8.5" y="2.5" width="7" height="9" rx="1"/>
-    <path d="M10.5 5.6h3"/><path d="M10.5 8.2h3"/>
-    <path d="M12 14.6v6.4"/>
-    <path d="M4.2 21c0-3.2 2.6-5.4 5.6-6"/>
-    <path d="M19.8 21c0-3.2-2.6-5.4-5.6-6"/>
-  </symbol>
 </svg>
 
 <!-- ═══ SECTION: SITE HEADER ═════════════════════════════════════════
-     BYTE IDENTICAL across all eight pages. Becomes get_header().
+     BYTE IDENTICAL across index.html, account.html and supplier.html.
+     Becomes get_header() in the WordPress theme.
 
      The current page is resolved by assets/js/main.js from the URL and
      applied with aria-current, NOT written into the markup, so these
@@ -126,80 +65,189 @@
     </a>
 
     <nav class="site-header__nav" aria-label="Primary">
-      <a class="site-header__tab" href="index.html" data-page="index.html wine.html winery.html">Market</a>
-      <a class="site-header__tab" href="go-deals.html" data-page="go-deals.html">Go Deals</a>
-      <a class="site-header__tab" href="tenders.html" data-page="tenders.html">Tenders</a>
-      <a class="site-header__tab" href="how-it-works.html" data-page="how-it-works.html">How it works</a>
+      <a class="site-header__tab" href="index.html" data-page="index.html">Market</a>
+      <a class="site-header__tab" href="account.html" data-page="account.html">Account</a>
+      <a class="site-header__tab" href="supplier.html" data-page="supplier.html">Supplier</a>
     </nav>
 
     <div class="site-header__right">
       <div class="site-header__roles" role="group" aria-label="View as">
-        <a class="site-header__role" href="index.html" data-role-for="index.html wine.html winery.html go-deals.html tenders.html how-it-works.html account.html"><span>Customer</span></a>
+        <a class="site-header__role" href="index.html" data-role-for="index.html account.html"><span>Customer</span></a>
         <a class="site-header__role" href="supplier.html" data-role-for="supplier.html"><span>Supplier</span></a>
       </div>
-      <a class="site-header__login" href="account.html" data-page="account.html">My account</a>
+      <a class="site-header__login" href="account.html">Login</a>
     </div>
   </div>
 </header>
 
-<main class="page--inner" id="main">
-  <!-- ═══ SECTION: ACCOUNT ════════════════════════════════════════
-       Spec 4.9. Shortlist, My Offers with status, Orders with
-       tracking, Tenders I have posted, Addresses. Every panel
-       renders from data — the customer comes from the new
-       data/account.json, because spec 5 models what is bought and
-       sold but never the buyer.
+<main id="main">
 
-       "Shortlist" is Winescape's own term for saved wines, used
-       here instead of wishlist, favourites or saved.
+  <!-- ═══ SECTION: HERO ═══════════════════════════════════════════
+       Untinted photograph, full bleed. No scrim, no tint, no gradient.
+       All copy sits on a solid --bone plate, so text contrast is
+       11.59:1 by construction and the image behind it never needs
+       measuring. The hero reserves header height with padding-top, so
+       the plate cannot pass under the fixed header.
        ══════════════════════════════════════════════════════════ -->
-  <section class="account" id="accountRoot" aria-labelledby="accountTitle">
-    <h1 class="account__title" id="accountTitle">My account</h1>
-    <p class="account__welcome">Welcome back, <b id="accountName">…</b></p>
-
-    <div class="account__tabs" role="tablist" aria-label="Account sections">
-      <button class="account__tab is-active" role="tab" aria-selected="true" data-tab="shortlist">
-        Shortlist <span class="account__badge" id="acShortlistCount">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="offers">
-        My offers <span class="account__badge" id="acOfferBadge">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="orders">Orders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="tenders">My tenders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="addresses">Addresses</button>
-    </div>
-
-    <div class="account__panel is-active" id="ap-shortlist">
-      <p class="account__panel-note">Wines you have saved. Shortlisting does not reserve stock or commit you to anything.</p>
-      <div class="account__grid" id="acShortlist"></div>
-    </div>
-
-    <div class="account__panel" id="ap-offers">
-      <p class="account__panel-note">Nothing is charged while an offer is open. A winery can accept, counter or decline, and you can accept a counteroffer or walk away.</p>
-      <div id="acOffers"></div>
-    </div>
-
-    <div class="account__panel" id="ap-orders">
-      <p class="account__panel-note">Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
-      <div id="acOrders"></div>
-    </div>
-
-    <div class="account__panel" id="ap-tenders">
-      <p class="account__panel-note">Tenders you have posted, and how many wineries have submitted against each. You can accept one submission, or none.</p>
-      <div id="acTenders"></div>
-    </div>
-
-    <div class="account__panel" id="ap-addresses">
-      <p class="account__panel-note">An adult over 18 must be present to sign for every delivery. Wine is never left unattended.</p>
-      <div class="account__grid" id="acAddresses"></div>
+  <section class="hero" aria-labelledby="heroTitle">
+    <picture class="hero__media">
+      <source srcset="assets/img/hero-vineyard-dawn.webp" type="image/webp">
+      <img src="assets/img/hero-vineyard-dawn.jpg"
+           alt="Aerial view of vineyard rows and two dams at dawn, Margaret River"
+           width="2400" height="1091" loading="eager" decoding="async" fetchpriority="high">
+    </picture>
+    <div class="hero__inner">
+      <div class="hero__plate">
+        <p class="label hero__eyebrow">Australia's direct-from-winery marketplace</p>
+        <h1 class="hero__title" id="heroTitle">Buy direct from Australian wineries</h1>
+        <p class="hero__text">Name your price by the case. The winery accepts, counters or declines, and no payment moves until you both agree.</p>
+      </div>
     </div>
   </section>
+
+  <!-- ═══ SECTION: TRUST STRIP ════════════════════════════════════ -->
+  <section class="trust" aria-label="How buying here works">
+    <ul class="trust__inner">
+      <li class="trust__item">
+        <svg class="icon" aria-hidden="true"><use href="#i-vine"/></svg>
+        Direct from the winery
+      </li>
+      <li class="trust__item">
+        <svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg>
+        Name your price
+      </li>
+      <li class="trust__item">
+        <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
+        Released on delivery
+      </li>
+      <li class="trust__item">
+        <svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg>
+        Licensed producers only
+      </li>
+    </ul>
+  </section>
+
+  <!-- ═══ SECTION: FINDER ═════════════════════════════════════════
+       The search sits on the bone below the hero, never on the plate.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="finder" aria-label="Search wines">
+    <form class="finder__search" id="finderForm">
+      <label class="visually-hidden" for="finderSearch">Search wines</label>
+      <input id="finderSearch" type="search" placeholder="Search winery, wine or subregion">
+      <button class="btn btn--solid" type="submit">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-search"/></svg>
+        Search
+      </button>
+    </form>
+  </section>
+
+  <!-- ═══ SECTION: MARKET ═════════════════════════════════════════
+       Cards are rendered from data/wines.json by assets/js/main.js.
+       One card pattern repeated, so it maps to a single PHP loop.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="market" id="market" aria-labelledby="marketTitle">
+    <div class="market__head">
+      <div>
+        <span class="market__sample">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-vine"/></svg>
+          Sample listings
+        </span>
+        <h2 class="market__title" id="marketTitle">Available wines</h2>
+        <p class="market__note" id="marketNote">Loading sample listings…</p>
+      </div>
+      <div class="market__filters" role="group" aria-label="Filter listings">
+        <button class="market__filter is-active" data-filter="all">All</button>
+        <button class="market__filter" data-filter="red">Red</button>
+        <button class="market__filter" data-filter="white">White</button>
+        <button class="market__filter" data-filter="buy_now">Buy now</button>
+        <button class="market__filter" data-filter="open_to_offers">Open to offers</button>
+        <button class="market__filter" data-filter="go_deal">Go Deal</button>
+      </div>
+    </div>
+    <hr class="rule market__divider">
+    <div class="market__grid" id="wineGrid"></div>
+  </section>
+
+  <!-- ═══ SECTION: EDITORIAL ══════════════════════════════════════ -->
+  <section class="editorial" aria-labelledby="editorialTitle">
+    <div class="editorial__grid">
+      <figure class="editorial__figure">
+        <picture>
+          <source srcset="assets/img/vine-old-trunk.webp" type="image/webp">
+          <img src="assets/img/vine-old-trunk.jpg"
+               alt="Gnarled old vine trunk on trellis wire in a dormant winter vineyard"
+               width="1000" height="1250" loading="lazy" decoding="async">
+        </picture>
+        <figcaption class="editorial__caption">Dormant fruiting wood, mid winter.</figcaption>
+      </figure>
+      <div>
+        <p class="label">Why direct</p>
+        <h2 class="editorial__title" id="editorialTitle">The shortest line between a vineyard and your table</h2>
+        <p class="editorial__body">Most Australian wine reaches you through three or four sets of hands, and each one takes a margin. Buying direct removes them. <b>The winery sets a price, you make an offer, and the difference stays with the two of you.</b></p>
+        <p class="editorial__body">Growers keep more of what their fruit is worth. You pay closer to what the wine actually costs to make. Nothing is bought on your behalf, held in a warehouse, or marked up before you see it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION: GO DEALS STRIP ═════════════════════════════════
+       Rendered from data/go-deals.json. The hidden floor is never
+       shown and is not in that file at all: progress runs toward the
+       next published tier, so the bar cannot imply how far the price
+       still has to fall.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="godeals" aria-labelledby="goDealsTitle">
+    <div class="godeals__head">
+      <p class="label">Live now</p>
+      <h2 class="godeals__title" id="goDealsTitle">Go Deals</h2>
+      <p class="godeals__note">The winery sets a list price. As more cases are committed the price falls for everyone, and when the deal closes everyone pays the final price, including the people who committed first.</p>
+    </div>
+    <div class="godeals__grid" id="goDealGrid"></div>
+  </section>
+
+  <!-- ═══ SECTION: REGIONS ════════════════════════════════════════
+       Rendered from data/regions.json. Copy sits below each
+       photograph on bone, never over it, so nothing here is tinted.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="regions" aria-labelledby="regionsTitle">
+    <div class="regions__head">
+      <p class="label">Margaret River</p>
+      <h2 class="regions__title" id="regionsTitle">Six subregions, one drive apart</h2>
+    </div>
+    <div class="regions__grid" id="regionGrid"></div>
+  </section>
+
+  <!-- ═══ SECTION: CLOSING BAND ═══════════════════════════════════
+       Full bleed untinted photograph. The Round 2 maroon wash is
+       gone: the copy sits on a solid --bone plate, exactly like the
+       hero, so nothing is composited over the frame.
+       ══════════════════════════════════════════════════════════ -->
+  <section class="closing" aria-labelledby="closingTitle">
+    <picture class="closing__media">
+      <source srcset="assets/img/closing-vine-rows.webp" type="image/webp">
+      <img src="assets/img/closing-vine-rows.jpg"
+           alt="Late afternoon sun behind a gum treeline above rows of green vines"
+           width="1600" height="800" loading="lazy" decoding="async">
+    </picture>
+    <div class="closing__inner">
+      <div class="closing__plate">
+        <p class="label closing__eyebrow">For wineries</p>
+        <h2 class="closing__title" id="closingTitle">Sell your own wine, at your own price</h2>
+        <p class="closing__text">You stay the licensed seller. You set the list price and the floor, you choose which offers to accept, and you are paid when the customer signs for the wine.</p>
+        <div class="closing__actions">
+          <button class="btn btn--solid" id="supplyInterest">
+            Register your interest
+            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <!-- ═══ SECTION: SITE FOOTER ═════════════════════════════════════════
-     BYTE IDENTICAL across all eight pages. Becomes get_footer().
-     Carries a complete route through the site, because the header nav is
-     hidden below 760 and the role switcher below 1100.
+     BYTE IDENTICAL across index.html, account.html and supplier.html.
+     Becomes get_footer() in the WordPress theme.
      ════════════════════════════════════════════════════════════════ -->
 <footer class="site-footer">
   <div class="site-footer__inner">
@@ -207,14 +255,6 @@
       <svg class="icon" aria-hidden="true"><use href="#i-grape"/></svg>
       <span class="site-footer__wordmark">Go Wine Go</span>
     </div>
-    <nav class="site-footer__nav" aria-label="Footer">
-      <a href="index.html">Market</a>
-      <a href="go-deals.html">Go Deals</a>
-      <a href="tenders.html">Tenders</a>
-      <a href="how-it-works.html">How it works</a>
-      <a href="account.html">My account</a>
-      <a href="supplier.html">Supplier dashboard</a>
-    </nav>
     <hr class="rule rule--on-maroon site-footer__rule">
     <div class="site-footer__meta">
       <p>Australia's direct-from-winery marketplace. Every wine is sold to you by the winery that made it, as the licensed producer. Go Wine Go is the marketplace, not the seller.</p>
@@ -228,8 +268,7 @@
 </footer>
 
 <!-- ═══ COMPONENT: OFFER MODAL ══════════════════════════════════════
-     Shared with wine.html, winery.html, go-deals.html and account.html.
-     Becomes a template part.
+     Shared with account.html. Becomes a template part.
      Language: offer, counteroffer, tender. Never bid, never auction.
      ════════════════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="offerOverlay" role="dialog" aria-modal="true" aria-labelledby="offerModalTitle">
@@ -306,8 +345,7 @@
 </div>
 
 <!-- ═══ COMPONENT: BUY MODAL ════════════════════════════════════════
-     Shared with wine.html, winery.html, go-deals.html and account.html.
-     Becomes a template part.
+     Shared with account.html. Becomes a template part.
      Payment language, Model A: you pay at checkout, the funds are held
      by the payment provider, and the winery is paid when your wine is
      signed for. Go Wine Go never holds the money.
@@ -335,7 +373,7 @@
 
         <p class="modal__payment">
           <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
-          <span id="buyPaymentLines">You pay at checkout. The funds are held by the payment provider, and the winery is paid when your wine is signed for.</span>
+          <span>You pay at checkout. The funds are <b>held by the payment provider</b>, and the winery is paid when your wine is signed for. Prices include GST and Wine Equalisation Tax.</span>
         </p>
 
         <div class="field">

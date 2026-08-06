@@ -35,13 +35,26 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
    colour cannot hide in the page that happens not to be checked. */
 const CSS_FILE = 'assets/css/main.css';
 const JS_FILE = 'assets/js/main.js';
-const HTML_FILES = ['index.html', 'account.html', 'supplier.html'];
+const HTML_FILES = [
+  'index.html', 'wine.html', 'winery.html', 'go-deals.html',
+  'tenders.html', 'how-it-works.html', 'account.html', 'supplier.html',
+];
 
 const CSS = readFileSync(resolve(ROOT, CSS_FILE), 'utf8');
 const JS = readFileSync(resolve(ROOT, JS_FILE), 'utf8');
 const HTML = Object.fromEntries(
   HTML_FILES.map((f) => [f, readFileSync(resolve(ROOT, f), 'utf8')]),
 );
+
+/* Content lives in /data, and it names icons and images, so the guards
+   have to see it too. */
+const DATA_FILES = [
+  'wines', 'wineries', 'go-deals', 'tenders', 'regions',
+  'policy', 'offers', 'orders', 'account', 'how-it-works',
+];
+const DATA = DATA_FILES
+  .map((f) => readFileSync(resolve(ROOT, 'data', f + '.json'), 'utf8'))
+  .join('\n');
 
 /* ── colour maths ──────────────────────────────────────────────── */
 const srgb = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
@@ -149,6 +162,24 @@ const USED_PAIRINGS = [
   ['--brass',    '--maroon-deep', 3.0, '1.4.11', 'Focus ring inner vs toast fill'],
   ['--brass',    '--bone',        3.0, '1.4.11', 'Focus ring inner vs light control fill'],
 
+  // ---- Round 3B: wine detail, winery profile, tenders, how it works ----
+  ['--ink',        '--surface', 4.5, '1.4.3',  'Compliance line copy on its panel'],
+  ['--ink-soft',   '--surface', 4.5, '1.4.3',  'Winery strip paragraph'],
+  ['--maroon',     '--surface', 4.5, '1.4.3',  'Winery strip name'],
+  ['--ink',        '--bone',    4.5, '1.4.3',  'Wine spec values, FAQ answers'],
+  ['--maroon',     '--bone',    4.5, '1.4.3',  'FAQ question, panel titles'],
+  ['--brass-text', '--bone',    4.5, '1.4.3',  'Breadcrumb link, wine producer link'],
+  ['--stone',      '--bone',    3.0, '1.4.11', 'Wine spec rules and sticky aside edge'],
+  ['--stone',      '--bone',    3.0, '1.4.11', 'FAQ dividers and tender card edges'],
+  ['--stone',      '--bone',    3.0, '1.4.11', 'Mechanic list markers, how it works'],
+  ['--stone',      '--surface', 3.0, '1.4.11', 'Winery strip portrait edge on its panel'],
+  ['--brass-text', '--bone',    3.0, '1.4.11', 'Credentials rule and tender step rule (2px)'],
+  ['--maroon',     '--surface', 3.0, '1.4.11', 'Compliance line marker on its panel'],
+  ['--maroon',     '--bone',    3.0, '1.4.11', 'Order tracking rail, reached steps'],
+  ['--eucalypt',   '--bone',    3.0, '1.4.11', 'Thin-line diagrams, how it works'],
+  ['--maroon',     '--bone',    3.0, '1.4.11', 'Answer diagrams, how it works'],
+  ['--eucalypt',   '--bone',    3.0, '1.4.11', 'Panel head icons, delivery and payment'],
+
   // ---- decorative; redundant with a --stone line or a text label --
   ['--brass',       '--bone', 3.0, 'decorative', 'Plate inner hairline, hero + closing'],
   ['--maroon-deep', '--bone', 3.0, 'decorative', 'Varietal tone 1'],
@@ -234,6 +265,21 @@ function guards() {
      three pages, because each becomes get_header() / get_footer() / a sprite
      include in the theme. index.html is the source of truth; run
      `node tools/sync-shared-blocks.mjs` to push it to the other two. */
+  /* Every icon on the site is a <use href="#id"> into the sprite. A
+     reference with no symbol renders as nothing at all and no colour
+     ratio can see it — Round 3B shipped exactly that when the delivery
+     panel referenced i-box after Round 3A pruned it as unused. Symbols
+     are referenced from markup, from icon()/toast() in JS, and by name
+     from data/*.json, so all three sources are scanned. */
+  const symbols = [...HTML['index.html'].matchAll(/<symbol id="([\w-]+)"/g)].map((m) => m[1]);
+  const refs = new Set([
+    ...[...shippedMarkup.matchAll(/href="#(i-[\w-]+)"/g)].map((m) => m[1]),
+    ...[...shippedJs.matchAll(/'(i-[\w-]+)'/g)].map((m) => m[1]),
+    ...[...DATA.matchAll(/"(i-[\w-]+)"/g)].map((m) => m[1]),
+  ]);
+  const missingSymbols = [...refs].filter((r) => !symbols.includes(r)).sort();
+  const unusedSymbols = symbols.filter((s) => !refs.has(s));
+
   const sharedDrift = [];
   const BLOCKS = [
     ['header', '<!-- ═══ SECTION: SITE HEADER', '</header>\n'],
@@ -250,24 +296,49 @@ function guards() {
     }
   }
 
+  /* Every guard reports the SAMPLE SIZE it inspected.
+     The matchAll bug found in Round 3A passed three guards cleanly while
+     inspecting zero rules, and a count of 0 violations is indistinguishable
+     from a guard that never ran unless the guard says what it looked at. */
+  const cssRules = [...shippedCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)].length;
+  const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(0) + 'KB';
+
   return [
-    ['Hardcoded hex outside :root', (cssOutsideRoot.match(/#[0-9A-Fa-f]{3,8}\b/g) || []).length, 0],
-    ['rgb()/rgba() literals outside :root', (cssOutsideRoot.match(/rgba?\(\s*\d/g) || []).length, 0],
-    ['!important declarations', (shippedCss.match(/!important/g) || []).length, 0],
-    ['Inline style= attributes', (shippedMarkup.match(/\sstyle="/g) || []).length, 0],
-    ['Inline on*= event handlers', (shippedMarkup.match(/\son(?:click|change|input|submit|load)="/g) || []).length, 0],
-    ['Emoji characters', (shippedAll.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu) || []).length, 0],
-    ['Bodoni Moda still shipped', ((shippedMarkup + shippedCss).match(/Bodoni/gi) || []).length, 0],
-    ['"escrow" anywhere in shipped output', (shippedAll.match(/escrow/gi) || []).length, 0],
-    ['"auction" / "bid" in shipped copy', (shippedMarkup.match(/\b(auction|bidder|bidding)\b/gi) || []).length, 0],
+    ['Hardcoded hex outside :root', (cssOutsideRoot.match(/#[0-9A-Fa-f]{3,8}\b/g) || []).length, 0,
+      null, `${kb(cssOutsideRoot)} of CSS outside :root`],
+    ['rgb()/rgba() literals outside :root', (cssOutsideRoot.match(/rgba?\(\s*\d/g) || []).length, 0,
+      null, `${kb(cssOutsideRoot)} of CSS outside :root`],
+    ['!important declarations', (shippedCss.match(/!important/g) || []).length, 0,
+      null, `${cssRules} CSS rules`],
+    ['Inline style= attributes', (shippedMarkup.match(/\sstyle="/g) || []).length, 0,
+      null, `${HTML_FILES.length} pages`],
+    ['Inline on*= event handlers', (shippedMarkup.match(/\son(?:click|change|input|submit|load)="/g) || []).length, 0,
+      null, `${HTML_FILES.length} pages`],
+    ['Emoji characters', (shippedAll.match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu) || []).length, 0,
+      null, `${kb(shippedAll)} of markup, CSS and JS`],
+    ['Bodoni Moda still shipped', ((shippedMarkup + shippedCss).match(/Bodoni/gi) || []).length, 0,
+      null, `${kb(shippedMarkup + shippedCss)} of markup and CSS`],
+    ['"escrow" anywhere in shipped output', (shippedAll.match(/escrow/gi) || []).length, 0,
+      null, `${kb(shippedAll)} of markup, CSS and JS`],
+    ['"auction" / "bid" in shipped copy', (shippedMarkup.match(/\b(auction|bidder|bidding)\b/gi) || []).length, 0,
+      null, `${HTML_FILES.length} pages`],
     // If this ever reads 0 the three guards below are checking nothing.
     ['Display rules actually inspected (must be > 0)', displayRulesChecked > 0 ? 0 : 1, 0,
-      [`inspected ${displayRulesChecked} rules using var(--font-display)`]],
-    ['Display rules under 32px', displayTooSmall.length, 0, displayTooSmall],
-    ['Display rules under weight 500', displayTooLight.length, 0, displayTooLight],
-    ['Display rules not pinning opsz', displayNoAxes.length, 0, displayNoAxes],
-    ['--display-axes pins opsz 100', opszPinned ? 0 : 1, 0],
-    ['Header/footer/sprite byte identical across pages', sharedDrift.length, 0, sharedDrift],
+      [`found ${displayRulesChecked} rules using var(--font-display)`],
+      `${cssRules} CSS rules`],
+    ['Display rules under 32px', displayTooSmall.length, 0, displayTooSmall,
+      `${displayRulesChecked} display rules`],
+    ['Display rules under weight 500', displayTooLight.length, 0, displayTooLight,
+      `${displayRulesChecked} display rules`],
+    ['Display rules not pinning opsz', displayNoAxes.length, 0, displayNoAxes,
+      `${displayRulesChecked} display rules`],
+    ['--display-axes pins opsz 100', opszPinned ? 0 : 1, 0, null, '1 token'],
+    ['Header/footer/sprite byte identical across pages', sharedDrift.length, 0, sharedDrift,
+      `3 blocks x ${HTML_FILES.length} pages`],
+    ['Sprite symbols referenced but not defined', missingSymbols.length, 0, missingSymbols,
+      `${refs.size} references`],
+    ['Sprite symbols defined but never referenced', unusedSymbols.length, 0, unusedSymbols,
+      `${symbols.length} symbols`],
   ];
 }
 
@@ -331,10 +402,13 @@ for (const [fg, bg, min, sc, where] of USED_PAIRINGS) {
 }
 
 console.log('\nSTRUCTURAL GUARDS');
-for (const [label, actual, max, detail] of guards()) {
+console.log(`  ${'GUARD'.padEnd(46)} ${'HITS'.padStart(5)}  RESULT  INSPECTED`);
+for (const [label, actual, max, detail, scanned] of guards()) {
   const pass = actual <= max;
   if (!pass) failures++;
-  console.log(`  ${label.padEnd(46)} ${String(actual).padStart(3)} (max ${max})  ` + (pass ? c(GREEN, 'PASS') : c(RED, 'FAIL')));
+  console.log(
+    `  ${label.padEnd(46)} ${String(actual).padStart(5)}  ` +
+    (pass ? c(GREEN, 'PASS  ') : c(RED, 'FAIL  ')) + `  ${scanned || ''}`);
   if (!pass && detail) detail.forEach((d) => console.log(`      → ${d}`));
 }
 

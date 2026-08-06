@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Account, Go Wine Go</title>
-<meta name="description" content="Your shortlist, offers, orders, tenders and delivery addresses.">
+<title>Winery profile, Go Wine Go</title>
+<meta name="description" content="The licensed producer behind the wine, their story, their licence number and everything they have listed.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="assets/css/main.css">
 </head>
-<body>
+<body data-hero>
 
 <a class="skip-link" href="#main">Skip to content</a>
 
@@ -142,57 +142,67 @@
   </div>
 </header>
 
-<main class="page--inner" id="main">
-  <!-- ═══ SECTION: ACCOUNT ════════════════════════════════════════
-       Spec 4.9. Shortlist, My Offers with status, Orders with
-       tracking, Tenders I have posted, Addresses. Every panel
-       renders from data — the customer comes from the new
-       data/account.json, because spec 5 models what is bought and
-       sold but never the buyer.
-
-       "Shortlist" is Winescape's own term for saved wines, used
-       here instead of wishlist, favourites or saved.
+<main id="main">
+  <!-- ═══ SECTION: WINERY PROFILE ═════════════════════════════════
+       Spec 4.3, the page that makes Model A legible. Opened as
+       winery.html?slug=<winery>. Untinted photograph, name on a
+       solid bone plate — no scrim, no tint, exactly like the home
+       hero, and the plate reserves header height the same way.
        ══════════════════════════════════════════════════════════ -->
-  <section class="account" id="accountRoot" aria-labelledby="accountTitle">
-    <h1 class="account__title" id="accountTitle">My account</h1>
-    <p class="account__welcome">Welcome back, <b id="accountName">…</b></p>
-
-    <div class="account__tabs" role="tablist" aria-label="Account sections">
-      <button class="account__tab is-active" role="tab" aria-selected="true" data-tab="shortlist">
-        Shortlist <span class="account__badge" id="acShortlistCount">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="offers">
-        My offers <span class="account__badge" id="acOfferBadge">0</span>
-      </button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="orders">Orders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="tenders">My tenders</button>
-      <button class="account__tab" role="tab" aria-selected="false" data-tab="addresses">Addresses</button>
+  <section class="winery-hero" id="wineryRoot" aria-labelledby="wineryTitle">
+    <div class="winery-hero__media" id="wineryHeroMedia"></div>
+    <div class="winery-hero__inner">
+      <div class="winery-hero__plate">
+        <p class="label winery-hero__eyebrow">Licensed producer</p>
+        <h1 class="winery-hero__title" id="wineryTitle">Loading…</h1>
+        <p class="winery-hero__sub" id="winerySub"></p>
+      </div>
     </div>
+  </section>
 
-    <div class="account__panel is-active" id="ap-shortlist">
-      <p class="account__panel-note">Wines you have saved. Shortlisting does not reserve stock or commit you to anything.</p>
-      <div class="account__grid" id="acShortlist"></div>
-    </div>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="index.html">Market</a></li>
+      <li><span aria-current="page" id="wineryCrumb">Winery</span></li>
+    </ol>
+  </nav>
 
-    <div class="account__panel" id="ap-offers">
-      <p class="account__panel-note">Nothing is charged while an offer is open. A winery can accept, counter or decline, and you can accept a counteroffer or walk away.</p>
-      <div id="acOffers"></div>
+  <section class="winery-story" aria-labelledby="wineryStoryTitle">
+    <div class="winery-story__grid">
+      <figure class="winery-story__figure">
+        <div id="wineryPortrait"></div>
+        <figcaption class="winery-story__caption" id="wineryCaption"></figcaption>
+      </figure>
+      <div>
+        <p class="label">The estate</p>
+        <h2 class="winery-story__title" id="wineryStoryTitle">In their own words</h2>
+        <div id="wineryStory"></div>
+      </div>
     </div>
+  </section>
 
-    <div class="account__panel" id="ap-orders">
-      <p class="account__panel-note">Your payment is held by the payment provider and released to the winery when your wine is signed for.</p>
-      <div id="acOrders"></div>
-    </div>
+  <section class="credentials" aria-label="Producer credentials">
+    <div class="credentials__grid" id="wineryCreds"></div>
+  </section>
 
-    <div class="account__panel" id="ap-tenders">
-      <p class="account__panel-note">Tenders you have posted, and how many wineries have submitted against each. You can accept one submission, or none.</p>
-      <div id="acTenders"></div>
+  <section class="market" aria-labelledby="wineryWinesTitle">
+    <div class="market__head">
+      <div>
+        <span class="market__sample">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-vine"/></svg>
+          Sample listings
+        </span>
+        <h2 class="market__title" id="wineryWinesTitle">Wines</h2>
+      </div>
     </div>
+    <hr class="rule market__divider">
+    <div class="market__grid" id="wineryWines"></div>
+  </section>
 
-    <div class="account__panel" id="ap-addresses">
-      <p class="account__panel-note">An adult over 18 must be present to sign for every delivery. Wine is never left unattended.</p>
-      <div class="account__grid" id="acAddresses"></div>
-    </div>
+  <!-- Rendered verbatim from data/policy.json. This one sentence is
+       what makes Model A unambiguous, so it has one source only. -->
+  <section class="compliance" aria-label="Who sells this wine">
+    <p class="compliance__inner" id="wineryCompliance"></p>
   </section>
 </main>
 
