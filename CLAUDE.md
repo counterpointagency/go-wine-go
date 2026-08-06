@@ -5,14 +5,14 @@ Autodeploy is ON. The live URL has been shared with the client.
 
 **Model A: the winery is the seller, Go Wine Go is the market.** Go Wine Go
 never holds money. Nothing says escrow, auction or bid. The full specification
-is `docs/site-spec.md` and it is the reference for Rounds 3A, 3B and 3C.
+is `docs/site-spec.md`.
 
-As of Round 3C the build is thirteen pages — `index.html` (home and market),
+As of Round 4C the build is fourteen pages — `index.html` (home and market),
 `wine.html`, `winery.html`, `go-deals.html`, `tenders.html`,
 `how-it-works.html`, `account.html`, `for-wineries.html`, `supplier.html`,
-and four drafts under `legal/` — over one shared `assets/css/main.css`, one
-a per-page ES module graph under `assets/js/`, and hand-authored content in
-`data/*.json`.
+`404.html`, and four drafts under `legal/` — over one shared
+`assets/css/main.css`, a per-page ES module graph under `assets/js/`, and
+hand-authored content in `data/*.json`.
 
 **All paths are root-relative** (`/assets/...`, `/data/...`, `/index.html`).
 They have to be: the header, footer, sprite and age gate are byte identical
@@ -24,6 +24,182 @@ from the file system.
 `winery.html?slug=<winery>`. That is what becomes `single-wine.php` and
 `single-winery.php`. Both fall back to the first record rather than erroring
 when the parameter is missing.
+
+---
+
+# CURRENT STATE
+
+*Read this first. It is the orientation for a new session.*
+
+## 1. Where the build is
+
+**Live:** https://winescape-dou7g.ondigitalocean.app
+**App:** `winescape`, id `934123b6-db7b-4c6e-a53e-34ccac8ceab8`, region syd
+
+| | Commit | Status |
+|---|---|---|
+| Serving on the live URL | `e3aee2d` (Round 4B) | ACTIVE |
+| Head of `main` | `446135f` (Round 4C) | pushed, **not deployed** |
+
+> **Round 4C is pushed but not live.** DigitalOcean's webhook did not fire
+> across 30 minutes of polling, and the `doctl` token is READ ONLY for apps —
+> `doctl apps create-deployment` returns 403. Until a write-scope token is
+> issued, a missed webhook needs a manual **Force Rebuild** from the
+> DigitalOcean console (Apps → winescape → Deploy). Nothing else is needed;
+> the commit is already the head of `main`. **The market postcode still clips
+> its own value on the live site until that happens.**
+
+Rounds completed, and what shipped in each:
+
+| Round | Shipped |
+|---|---|
+| 1 | Design system, header and hero, cascade across all sections. Grid, offer modal and supplier dashboard restyled, not restructured |
+| 2 | Contrast rebuild. Round 1 measured only 1.4.3 and never 1.4.11, so every border failed AA. `--stone`, `--eucalypt`, `--clay`; hero wash removed; two-colour focus rings; `contrast-audit.mjs` |
+| 3 | Layout fix. Header transparency keyed to the hero's bottom edge collided the plate with the header at −110px. `layout-audit.mjs` |
+| 3A | Split the 1,487-line single file into three pages over one stylesheet and one script. Content to `data/*.json`. Bodoni retired for Fraunces. Every scrim deleted |
+| 3B | Customer side: wine detail, winery profile, Go Deals, tenders, how it works, account. `policy.json` as the single compliance source |
+| 3C | Supply side and compliance: for-wineries, supplier dashboard to spec 4.8, four legal drafts, age gate, BDR notice, mobile menu, root-relative paths |
+| 3D | Legibility and overflow. Age gate Year field was unreachable. Body copy floor raised to 16px, touch targets to 44px |
+| 4A | Every flow completed on fake data: search into the header, territory enforced, `localStorage` persistence, dead ends closed, 404, robots, noindex |
+| 4B | Performance and accessibility. Header breakpoint to 900. JS split into a module graph, −52% across a crawl. AVIF/WebP/JPEG srcset. Fonts self-hosted |
+| 4C | Market postcode clipped its own value: `width: 7ch` under border-box left a 3.63ch content box. `--control-h` unified the control group |
+
+## 2. What is verified, and what is not
+
+**Every measurement in this project is static analysis.** The audits parse
+CSS, resolve values at four viewports, and lay text out using real glyph
+advances extracted from the actual woff2 files. That is genuinely more than
+eyeballing — it caught a −110px collision, an unreachable form field and a
+clipped postcode — but it is not rendering.
+
+**No browser has ever been used to verify this site. No screen reader has
+ever opened it.** Kalani's visual sign-off is the only thing that has looked
+at rendered output, and it is separate from anything the audits claim.
+
+**Verified** — measured, and every check proven by breaking it first:
+
+- Colour: 74 rendered pairings against 4.5 / 7.0 / 3.0
+- Geometry: header clearance, plate caps, sticky offsets, overlay fit, grid
+  track minimums, form placeholders and values, control group heights
+- Structure: 30 guards across 14 pages — no hex outside `:root`, no inline
+  handlers, no emoji, no banned vocabulary, shared blocks byte identical,
+  sprite references resolve both ways, one entry module per page, noindex and
+  robots present, no Go Deal floor in buyer-facing data
+- Accessibility, statically: landmarks, one `h1`, no skipped heading level,
+  accessible name on 463 controls, label on 120 inputs, `aria-live` on 5
+  regions, reduced motion honoured in both CSS and JS
+- Behaviour: the shipped module graph imported under a DOM shim, every shared
+  renderer run against real data, search and territory walked against the
+  live deployed script
+
+**Unverified** — asserted in code, never observed:
+
+- Focus trap and `inert` on the age gate, both modals and the drawer
+- Tab order matching visual order on any page
+- Screen reader announcement quality, or whether the live regions are useful
+  rather than chatty
+- Whether wrapped text reads well, or where headings break
+- Font fallback before Fraunces and Inter load
+- That `type="module"` deferral interacts correctly with the age gate's
+  synchronous head script
+- Any rendering at all: sub-pixel rounding, real input intrinsic widths
+  (which vary by browser), actual AVIF support negotiation
+
+## 3. The four failure modes this project has produced
+
+Recognise these. Each cost a round, and each passed a green audit.
+
+**1. Guards that inspect nothing.** The display-face loop destructured
+`[sel, decl]` off `matchAll`, which binds `decl` to the selector rather than
+the rule body. No rule ever matched. Three guards reported a clean `0` while
+checking nothing, for two rounds, and the Bodoni floor they were supposed to
+enforce was never enforced. *Every guard now reports the sample size it
+inspected and fails on zero.*
+
+**2. Checks that measure phantoms after an element is removed.** When the home
+finder band was deleted, the search check did not error — it fell back to a
+default selector and a default placeholder and went on reporting a number for
+an element that was no longer on the page. Twice: the overlay check initially
+hardcoded its container widths, so changing the CSS could not fail it.
+*A selector the audit cannot find is now a failure, never a fallback, and
+widths are read from the stylesheet rather than carried by the tool.*
+
+**3. Tests that pass on empty sets.** The offer expiry check reported `ok`
+while flipping zero offers, because no seed offer happened to be past its
+date. It was asserting `true`. *Exercise the logic with constructed inputs,
+not only with whatever the data happens to contain.*
+
+**4. Absences that no present-and-correct check can see.** Rounds 3A and 3B
+shipped with the header nav hidden below 760 and nothing in its place — the
+footer was the only route on a phone. Every element was correctly sized; the
+failure was that something was missing. Round 3C then shipped an age gate
+whose `<head>` script was absent from all thirteen pages, so `main.js` read
+the gate as already-verified and removed it: a liquor marketplace reachable
+with no age check, live for eight minutes. *Absences need their own
+assertion. Ask what should be present, not only whether what is present is
+right.*
+
+## 4. Standing rules, consolidated
+
+- **No manifest at the repo root.** No `package.json`, lockfile,
+  `requirements.txt`, `Gemfile`, `go.mod` or `Dockerfile`. A root
+  `package.json` flipped DigitalOcean from the static-assets buildpack to Node
+  and broke the Round 2 deploy. Tooling lives in `tools/` and runs directly
+- **No overlay, scrim, tint or gradient on any photograph.** Copy over an
+  image sits on a solid `--bone` plate or moves off the image
+- **Header, footer, sprite and age gate byte identical across every page.**
+  `index.html` is the source of truth; `tools/sync-shared-blocks.mjs` pushes
+  it, and the audit fails on drift whether or not it was run
+- **Every grid track declares its minimum.** `1fr` is `minmax(auto, 1fr)`, and
+  where the item is a form control that auto minimum is its intrinsic width
+- **Every display rule pins `opsz`.** Fraunces ships with the axis live at a
+  default of 9; without the pin a 9pt text cut renders at display size
+- **noindex and robots.txt stay** until deliberately removed, together, and
+  only once the licence numbers are real
+- **Every guard reports its sample size and fails on zero**
+- Never delete anything: archive before restructuring, never overwrite an
+  existing archive
+- Alt text describes the scene, never the estate
+- The Go Deal floor never enters buyer-facing data
+
+## 5. Outstanding before this can be shown to a winery
+
+1. **Real producer licence numbers.** Every winery profile and wine page
+   displays `WA-PRD-SAMPLE-00N`
+2. **Lawyer-drafted legal documents.** All four under `legal/` are structural
+   drafts that state no terms
+3. **Confirmed Banned Drinker Register postcode ranges**, against the current
+   determination and the Director of Liquor Licensing's mapped areas. The
+   ranges in `policy.json` are flagged indicative
+4. **A verified helpline number** for the responsible-service page. It
+   deliberately carries none rather than an unverified one
+5. **A custom domain.** The live URL is `winescape-dou7g.ondigitalocean.app`,
+   which is the wrong product name in front of a supplier
+
+## 6. Next actions, in order
+
+1. **Browser and screen-reader pass.** Everything in section 2 marked
+   unverified. This is the largest single gap in the project
+2. **OpenAPI spec for the Winescape interface.** What Go Wine Go needs from
+   Winescape and what it returns — auth, company profile, licence details,
+   the DTC role
+3. **WordPress data model mapping.** `data/*.json` to custom post types and
+   ACF fields. The templates are already marked; the model is the real work
+4. **Lawyer brief.** Sections 1 to 4 of the list above, packaged with
+   `docs/site-spec.md` section 8
+
+## 7. Open questions for Pete
+
+1. **DTC commission rate.** The site states 8% throughout, on
+   `for-wineries.html` and in the supplier payout ledger. It is the one figure
+   on that page not labelled illustrative, and it is currently a guess
+2. **One WordPress install or two?** Go Wine Go alongside Winescape, or
+   separate installs sharing an auth boundary. This decides the data model in
+   next action 3
+3. **Ten founding wineries.** Who are they, and are any willing to be named in
+   the prototype? Six fictional producers and photography of identifiable
+   non-participating estates is the biggest credibility risk in front of a
+   real supplier
 
 ---
 
@@ -453,6 +629,20 @@ doctl apps logs <app-id> --type build                               # on failure
 
 `doctl` is installed via Homebrew. It needs a one-time `doctl auth init` with a
 DigitalOcean personal access token.
+
+> **The current token is READ ONLY for apps.** `doctl apps list` and
+> `list-deployments` work; `doctl apps create-deployment` returns
+> **403 not authorized**. So a deploy cannot be triggered or retried from
+> here.
+>
+> Autodeploy has fired reliably for every round except 4C, where the webhook
+> never fired across 30 minutes despite `deploy_on_push: true` still being set
+> and the commit confirmed on `refs/heads/main`. **When autodeploy misses, the
+> only remedy is a manual Force Rebuild from the DigitalOcean console** (Apps
+> → winescape → Deploy), until a write-scope token is issued.
+>
+> If it keeps happening, raise it with DigitalOcean rather than working around
+> it — the config has not changed.
 
 The app spec at `docs/do-app-spec.yaml` is **reference only**. Deliberately not at
 `.do/app.yaml` — see the root-hygiene rule above.
