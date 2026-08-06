@@ -79,6 +79,52 @@ const PLATES = [
    Rounds 3A and 3B shipping with no mobile menu. */
 const MOBILE_NAV_WIDTHS = [390, 760, 900];
 
+
+/* A BOUNDED value — a postcode, a vintage, a CVC, an expiry — has a known
+   maximum length and the field must render it outright. FREE TEXT cannot be
+   sized for: a wine name has no maximum, and a text input scrolling its own
+   content is correct behaviour, not a defect. Free-text fields are measured
+   and reported, but only bounded ones fail. */
+/* ── LONGEST EXPECTED VALUES ─────────────────────────────────────────
+   Round 4C: the placeholder checks measured PLACEHOLDERS against inputs and
+   never the VALUES those inputs hold. The market postcode was sized for a
+   placeholder it could not render either — `width: 7ch` with border-box
+   left a 3.63ch content box for a four-character postcode.
+
+   These come from data/*.json wherever the data exists, so a longer price
+   or a longer winery name added later fails here rather than on the page. */
+const DATA = (() => {
+  const j = (f) => JSON.parse(readFileSync(resolve(ROOT, 'data', f + '.json'), 'utf8'));
+  const wines = j('wines').wines;
+  const wineries = j('wineries').wineries;
+  const tenders = j('tenders').tenders;
+  const account = j('account').customer;
+  const longest = (arr) => arr.map(String).reduce((a, b) => (b.length > a.length ? b : a), '');
+  return {
+    postcode:   longest(account.addresses.map((a) => a.postcode)),
+    price:      longest(wines.map((w) => w.list_price_per_case)),
+    cases:      longest(wines.map((w) => w.cases_available)),
+    vintage:    longest(wines.map((w) => w.vintage)),
+    wineName:   longest(wines.map((w) => w.name)),
+    subregion:  longest(wines.map((w) => `${w.subregion}, ${w.gi}`)),
+    tenderQty:  longest(tenders.map((t) => t.quantity_cases)),
+    tenderMax:  longest(tenders.map((t) => t.max_price_per_case)),
+    licence:    longest(wineries.map((w) => w.licence_number)),
+    cardName:   account.name,
+    cardNumber: '4242 4242 4242 4242',
+    expiry:     '12 / 29',
+    cvc:        '123',
+    day: '31', month: '12', year: '2008',
+  };
+})();
+
+/* Inputs whose width is DECLARED rather than taken from a container. The
+   postcode was the only one, and it was the one that clipped. */
+const FIXED_INPUTS = [
+  { name: 'market postcode', sel: '.market__postcode-input', page: 'index.html',
+    value: () => DATA.postcode, fs: '--fs-body' },
+];
+
 /* Where the full bar renders it must clear its content by this much. A bar
    that merely fits is one word of copy from overflowing. */
 const HEADER_SLACK_TARGET = 100;
@@ -96,8 +142,8 @@ const FORM_CONTEXTS = [
     chain: ['.supplier', '.supplier__form'],
     grid: '.supplier__form-grid', gap: '--sp-4', cols: 2,
     fields: [
-      { ph: 'e.g. Wilyabrup, Margaret River', fs: '--fs-body', padX: '--sp-4' },
-      { ph: 'e.g. Ridge Block Cabernet',      fs: '--fs-body', padX: '--sp-4' },
+      { ph: 'e.g. Wilyabrup, Margaret River', value: DATA.subregion, freeText: true, fs: '--fs-body', padX: '--sp-4' },
+      { ph: 'e.g. Ridge Block Cabernet',      value: DATA.wineName,  freeText: true, fs: '--fs-body', padX: '--sp-4' },
     ],
   },
   {
@@ -107,15 +153,15 @@ const FORM_CONTEXTS = [
     columnOf: { grid: '.tenders__layout', gap: '--sp-8', ratios: [5, 7], index: 0, collapseAt: 900 },
     grid: '.tenders__row', gap: '--sp-4', cols: 2,
     fields: [
-      { ph: '2021', fs: '--fs-body', padX: '--sp-4' },
-      { ph: '300',  fs: '--fs-body', padX: '--sp-4' },
+      { ph: '2021', value: DATA.vintage,   fs: '--fs-body', padX: '--sp-4' },
+      { ph: '300',  value: DATA.tenderMax, fs: '--fs-body', padX: '--sp-4' },
     ],
   },
   {
     name: 'for wineries, register', page: 'for-wineries.html',
     chain: ['.fw-register', '.fw-register__wrap'],
     grid: '.fw-register__row', gap: '--sp-4', cols: 2,
-    fields: [{ ph: 'Producer licence number', fs: '--fs-body', padX: '--sp-4' }],
+    fields: [{ ph: 'Producer licence number', value: DATA.licence, freeText: true, fs: '--fs-body', padX: '--sp-4' }],
   },
 ];
 
@@ -138,9 +184,9 @@ const OVERLAYS = [
     rows: [{
       ratios: [1, 1, 1.4], gap: '--sp-3',
       fields: [
-        { ph: 'DD',   fs: '--fs-body', padX: '--sp-4' },
-        { ph: 'MM',   fs: '--fs-body', padX: '--sp-4' },
-        { ph: 'YYYY', fs: '--fs-body', padX: '--sp-4' },
+        { ph: 'DD',   value: DATA.day,   fs: '--fs-body', padX: '--sp-4' },
+        { ph: 'MM',   value: DATA.month, fs: '--fs-body', padX: '--sp-4' },
+        { ph: 'YYYY', value: DATA.year,  fs: '--fs-body', padX: '--sp-4' },
       ],
     }],
     buttons: [{ label: 'Enter the market', fs: '--fs-sm', padX: '--sp-5', icon: true }],
@@ -150,14 +196,14 @@ const OVERLAYS = [
     outer: '.modal-overlay', box: '.modal', inner: '.modal__body',
     rows: [
       { ratios: [1], gap: '--sp-4',
-        fields: [{ ph: '1234 5678 9012 3456', fs: '--fs-body', padX: '--sp-4' }] },
+        fields: [{ ph: '1234 5678 9012 3456', value: DATA.cardNumber, fs: '--fs-body', padX: '--sp-4' }] },
       { ratios: [1, 1], gap: '--sp-4', collapse: '.modal__grid-2',
         fields: [
-          { ph: 'MM / YY', fs: '--fs-body', padX: '--sp-4' },
-          { ph: '123',     fs: '--fs-body', padX: '--sp-4' },
+          { ph: 'MM / YY', value: DATA.expiry, fs: '--fs-body', padX: '--sp-4' },
+          { ph: '123',     value: DATA.cvc,    fs: '--fs-body', padX: '--sp-4' },
         ] },
       { ratios: [1], gap: '--sp-4',
-        fields: [{ ph: '6285', fs: '--fs-body', padX: '--sp-4' }] },
+        fields: [{ ph: '6285', value: DATA.postcode, fs: '--fs-body', padX: '--sp-4' }] },
     ],
     buttons: [{ label: 'Pay and place order, $340.00', fs: '--fs-sm', padX: '--sp-5', icon: false }],
   },
@@ -165,7 +211,7 @@ const OVERLAYS = [
     name: 'offer modal',
     outer: '.modal-overlay', box: '.modal', inner: '.modal__body',
     rows: [{ ratios: [1], gap: '--sp-4',
-             fields: [{ ph: '0', fs: '--fs-h3', padX: '--sp-4', prefix: true }] }],
+             fields: [{ ph: '0', value: DATA.price, fs: '--fs-h3', padX: '--sp-4', prefix: true }] }],
     buttons: [{ label: 'Submit offer', fs: '--fs-sm', padX: '--sp-5', icon: true }],
   },
   {
@@ -810,11 +856,14 @@ for (const o of OVERLAYS) {
       fields.forEach((f, i) => {
         const track = avail * (ratios[i] / sum);
         const prefix = f.prefix ? T('--sp-3') * 2 + 12 : 0;
-        const need = textWidth('inter-400', f.ph, T(f.fs)) + T(f.padX) * 2 + 2 + prefix;
+        // The longer of the placeholder and the longest value it will hold.
+        const widest = [f.ph, f.value].filter(Boolean)
+          .reduce((a, b) => (textWidth('inter-400', b, T(f.fs)) > textWidth('inter-400', a, T(f.fs)) ? b : a));
+        const need = textWidth('inter-400', widest, T(f.fs)) + T(f.padX) * 2 + 2 + prefix;
         const ok = track >= need;
         overlayChecks++;
         if (!ok) failures++;
-        console.log(`  ${o.name.padEnd(13)} ${vp.label.padEnd(20)} ${('input "' + f.ph + '"').slice(0, 26).padEnd(26)} ${(need.toFixed(0) + 'px').padStart(7)} ${(track.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPPED')));
+        console.log(`  ${o.name.padEnd(13)} ${vp.label.padEnd(20)} ${('input "' + widest + '"').slice(0, 26).padEnd(26)} ${(need.toFixed(0) + 'px').padStart(7)} ${(track.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPPED')));
       });
     }
 
@@ -882,11 +931,15 @@ for (const ctx of FORM_CONTEXTS) {
     const cols = gridDecl === 'M' ? 1 : ctx.cols;
     const track = (inner - T(ctx.gap) * (cols - 1)) / cols;
     for (const f of ctx.fields) {
-      const need = textWidth('inter-400', f.ph, T(f.fs)) + T(f.padX) * 2 + 2;
+      const widest = [f.ph, f.value].filter(Boolean)
+        .reduce((a, b) => (textWidth('inter-400', b, T(f.fs)) > textWidth('inter-400', a, T(f.fs)) ? b : a));
+      const need = textWidth('inter-400', widest, T(f.fs)) + T(f.padX) * 2 + 2;
       const ok = track >= need;
+      const free = f.freeText && widest === f.value;
       formChecks++;
-      if (!ok) failures++;
-      console.log(`  ${ctx.name.padEnd(24)} ${vp.label.padEnd(20)} ${('"' + f.ph + '"').slice(0, 32).padEnd(32)} ${(need.toFixed(0) + 'px').padStart(7)} ${(track.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')));
+      if (!ok && !free) failures++;
+      const verdict = ok ? c(GREEN, 'fits') : free ? c(YEL, 'scrolls') : c(RED, 'CLIPS');
+      console.log(`  ${ctx.name.padEnd(24)} ${vp.label.padEnd(20)} ${('"' + widest + '"').slice(0, 32).padEnd(32)} ${(need.toFixed(0) + 'px').padStart(7)} ${(track.toFixed(0) + 'px').padStart(7)}  ` + verdict);
     }
   }
 }
@@ -993,6 +1046,82 @@ for (const vp of VIEWPORTS) {
       (ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')) + `   "${drawerPh}"`);
   }
 }
+
+
+/* ── 14. inputs whose width is DECLARED, not inherited ──────────────
+   The market postcode declared `width: 7ch`. box-sizing is border-box
+   globally, so that 7ch carried 32px of padding and 2px of border and left
+   a 3.63ch content box — for a four-character postcode. It clipped its own
+   value AND its own placeholder, and nothing saw it, because every earlier
+   check measured a placeholder against a grid TRACK and this input has no
+   track: it sets its own width.
+
+   Widths are resolved from the stylesheet, so changing the CSS changes the
+   verdict. Values come from data/*.json. */
+console.log('\n14. FIXED-WIDTH INPUTS vs THE VALUE THEY HOLD');
+console.log(`  ${'INPUT'.padEnd(24)} ${'VIEWPORT'.padEnd(20)} ${'VALUE'.padEnd(10)} ${'NEEDS'.padStart(7)} ${'CONTENT'.padStart(8)}  RESULT`);
+let fixedChecks = 0;
+for (const fi of FIXED_INPUTS) {
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const R = (v) => resolve1(v, vp);
+    const rule = map.get(fi.sel);
+    if (!rule) {
+      failures++;
+      console.log(`  ${fi.name.padEnd(24)} ${c(RED, `${fi.sel} not found in the stylesheet`)}`);
+      continue;
+    }
+    const fs = R(rule['font-size'] ?? tokensFor(vp.w)[fi.fs]);
+    // `ch` is the advance of "0" in the element's own font.
+    const chPx = FONTS['inter-400'].advances['48'] * fs;
+    const declared = resolve1(String(rule.width).replace(/([\d.]+)ch/g, (_, n) => `${Number(n) * chPx}px`), vp);
+    const padParts = String(rule.padding ?? '0').split(/\s+/).map((x) => R(x));
+    const padX = padParts[1] ?? padParts[0];
+    const border = R(tokensFor(vp.w)['--bw']) * 2;
+    const content = declared - padX * 2 - border;   // border-box
+    const value = fi.value();
+    const need = textWidth('inter-400', value, fs);
+    const ok = content >= need;
+    fixedChecks++;
+    if (!ok) failures++;
+    console.log(`  ${fi.name.padEnd(24)} ${vp.label.padEnd(20)} ${('"' + value + '"').padEnd(10)} ${(need.toFixed(0) + 'px').padStart(7)} ${(content.toFixed(0) + 'px').padStart(8)}  ` +
+      (ok ? c(GREEN, `fits, ${(content - need).toFixed(0)}px spare`) : c(RED, `CLIPS by ${(need - content).toFixed(0)}px`)));
+  }
+}
+if (!fixedChecks) { failures++; console.log(c(RED, '  no fixed-width inputs inspected — this check ran on nothing')); }
+
+/* ── 15. a control group shares one height ──────────────────────────
+   "Deliver to", the postcode and Clear were 22.7px, 51.9px and 39.1px,
+   centred against each other. Three heights centred is three loose parts,
+   not a control. */
+console.log('\n15. CONTROL GROUPS SHARE A HEIGHT');
+const GROUPS = [
+  { name: 'market postcode', parts: ['.market__postcode-label', '.market__postcode-input', '.market__postcode .btn'] },
+];
+let groupChecks = 0;
+for (const g of GROUPS) {
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const heights = g.parts.map((sel) => {
+      const rule = map.get(sel);
+      if (!rule) return null;
+      return rule.height ? resolve1(rule.height, vp) : null;
+    });
+    const missing = g.parts.filter((sel, i) => heights[i] === null);
+    groupChecks++;
+    if (missing.length) {
+      failures++;
+      console.log(`  ${g.name.padEnd(20)} ${vp.label.padEnd(20)} ${c(RED, 'no shared height on ' + missing.join(', '))}`);
+      continue;
+    }
+    const same = heights.every((h) => Math.abs(h - heights[0]) < 0.5);
+    if (!same) failures++;
+    console.log(`  ${g.name.padEnd(20)} ${vp.label.padEnd(20)} ${heights.map((h) => h.toFixed(0) + 'px').join(' / ').padEnd(22)} ` +
+      (same ? c(GREEN, 'one control') : c(RED, 'MISMATCHED')));
+  }
+}
+if (!groupChecks) { failures++; console.log(c(RED, '  no control groups inspected')); }
+
 
 console.log('\n─────────────────────────────────────────────────────────────────────');
 console.log(failures === 0 ? c(GREEN, 'ALL LAYOUT CHECKS PASS') : c(RED, `${failures} LAYOUT FAILURE(S)`));

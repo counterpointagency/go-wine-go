@@ -168,6 +168,9 @@
   --w-max: 1280px;
   --w-narrow: 980px;
   --header-h: 76px;
+  /* One height for controls that sit side by side. 44px is also the touch
+     target minimum, so a control group is never below it. */
+  --control-h: 44px;
 
   /* ── Icons ───────────────────────────────────────────────────── */
   --icon: 24px;
@@ -487,14 +490,26 @@ a, button, input, select, textarea, summary, [tabindex] {
 /* Territory control. Persisted, and it removes listings rather than
    greying them, so a customer cannot tell which winery excluded them. */
 .market__postcode { display: flex; align-items: center; gap: var(--sp-3); }
-.market__postcode-label { font-size: var(--fs-sm); color: var(--ink-soft); white-space: nowrap; }
+.market__postcode-label {
+  font-size: var(--fs-sm); color: var(--ink-soft); white-space: nowrap;
+  display: flex; align-items: center; height: var(--control-h);
+}
 .market__postcode-input {
-  width: 7ch; min-width: 0;
+  /* box-sizing is border-box globally, so a declared width has to carry the
+     padding and the border as well as the text. `width: 7ch` left a 3.63ch
+     content box, and a four-digit postcode needs four — which is why "6285"
+     clipped by 2.4px. Written as content + padding + border so the intent is
+     legible and the arithmetic cannot drift. */
+  width: calc(5ch + var(--sp-4) * 2 + var(--bw) * 2);
+  min-width: 0; height: var(--control-h);
   background: var(--surface); color: var(--ink);
   border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
-  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-body); text-align: center;
+  padding: 0 var(--sp-4); font-size: var(--fs-body); text-align: center;
 }
 .market__postcode-input::placeholder { color: var(--ink-soft); }
+/* The three parts share one height, so the group reads as one control
+   rather than a label, a box and a button that happen to sit together. */
+.market__postcode .btn { height: var(--control-h); padding-block: 0; }
 
 .market__state, .market__excluded {
   display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap;

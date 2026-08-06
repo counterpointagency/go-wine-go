@@ -352,7 +352,17 @@ from `tools/font-metrics.json`, and asserts:
    one that broke in Round 2
 11. **the producer licence number against its credentials track**, measured
     from the real data so a longer licence fails here rather than on the page
-12. search input width vs. its own placeholder
+12. **every input against the VALUE it holds, not only its placeholder.** A
+    bounded value — a postcode, a vintage, a CVC — must render outright. Free
+    text is measured and reported but does not fail: a wine name has no
+    maximum and a text input scrolling its own content is correct behaviour
+13. **inputs whose width is DECLARED rather than inherited.** `box-sizing` is
+    border-box globally, so a declared width carries the padding and the
+    border too. `width: 7ch` on the market postcode left a 3.63ch content box
+    for a four-character value
+14. **control groups share one height.** Three heights centred against each
+    other is three loose parts, not a control
+15. search input width vs. its own placeholder
 
 Widths in the overlay and form checks are **read from the stylesheet, never
 hardcoded in the tool**. An audit carrying its own copy of the numbers cannot
@@ -535,6 +545,13 @@ serving.
   flagged rather than substituted silently.
 
   Archived at `archive/index-v5.html`, `archive/supplier-v2.html`.
+- **Round 4C** — design fixes. The market postcode clipped its own value:
+  `width: 7ch` with global `box-sizing: border-box` left a 3.63ch content box
+  once 32px of padding and 2px of border came out of it, and "6285" needs
+  four. Not the age gate's mechanism — that was a grid track minimum — but
+  the same family: a declared width that does not accommodate what it holds.
+  Widths are now written as content + padding + border so the intent is
+  legible. `--control-h` gives the label, the input and Clear one height.
 - **Round 4A** — every flow completed on fake data. Search moved off the home
   page into the header and drawer; territory exclusion enforced by postcode;
   everything persisted under `gwg.v1.*`; tender, offer, Go Deal and order
