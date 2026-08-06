@@ -11,6 +11,10 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@100,600,0,0&family=Inter:wght@400;500&display=swap">
 <link rel="stylesheet" href="/assets/css/main.css">
+<!-- Age gate, spec 8. Synchronous and before first paint on purpose: if this
+     ran with the rest of the JS at the end of body, an unverified visitor
+     would see the market flash behind the gate. Sets a class only. -->
+<script>try{if(!sessionStorage.getItem("gwg-age-verified"))document.documentElement.classList.add("age-gate-open")}catch(e){document.documentElement.classList.add("age-gate-open")}</script>
 </head>
 <body data-hero>
 

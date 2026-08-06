@@ -283,6 +283,15 @@ across **all thirteen pages**: no hex outside `:root`, no `rgba()` literals outs
 emoji, no "escrow", no "auction"/"bid" in shipped copy, no display type under
 32px or under weight 500, and no display rule that fails to pin `opsz`.
 
+It also asserts the **age gate open-script is present in every page head**.
+That script adds `.age-gate-open` before first paint; without it the gate
+never opens and `main.js` removes it as already-verified, so the site is
+reachable with no age check at all. Round 3C shipped exactly that to
+production on all thirteen pages, because the edit that added the script ran
+before the paths were made root-relative and its anchor silently never
+matched. A missing script is an absence, and absences need their own
+assertion.
+
 It also asserts that **no Go Deal floor appears in any buyer-facing data
 file**. The floor is the winery's private auto-accept threshold and lives only
 in `data/supplier.json`. In the live product that is an authenticated endpoint

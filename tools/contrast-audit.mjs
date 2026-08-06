@@ -304,6 +304,20 @@ function guards() {
     return !m || m[1].trim() !== policy.responsible_service.trim();
   }).map((f) => `${f} footer line differs from policy.responsible_service`);
 
+  /* The age gate is opened by a synchronous <head> script that adds
+     .age-gate-open to <html> before first paint. Without it the gate never
+     opens AND assets/js/main.js removes it as already-verified, so the site
+     is reachable with no age check at all — silently, on whichever pages
+     happen to be missing the line.
+
+     Round 3C shipped exactly that to production on all thirteen pages: the
+     edit that added the script ran before the paths were made root-relative,
+     so its anchor never matched and the replacement was a no-op. Nothing
+     caught it, because a missing script is an absence and every present
+     thing was correct. This is the assertion for the absence. */
+  const gateScriptMissing = HTML_FILES.filter(
+    (f) => !/classList\.add\("age-gate-open"\)/.test(HTML[f]));
+
   const sharedDrift = [];
   const BLOCKS = [
     ['header',  '<!-- ═══ SECTION: SITE HEADER', '</header>\n'],
@@ -364,6 +378,8 @@ function guards() {
       `${refs.size} references`],
     ['Sprite symbols defined but never referenced', unusedSymbols.length, 0, unusedSymbols,
       `${symbols.length} symbols`],
+    ['Age gate open-script on every page', gateScriptMissing.length, 0, gateScriptMissing,
+      `${HTML_FILES.length} page heads`],
     ['Go Deal floor in buyer-facing data', floorLeaks.length, 0, floorLeaks,
       `${BUYER_DATA.length} buyer-facing data files`],
     ['Footer responsible-service line matches policy.json', rsDrift.length, 0, rsDrift,
