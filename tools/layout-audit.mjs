@@ -686,6 +686,12 @@ for (const vp of VIEWPORTS) {
   // the nav and the role switcher can be absent at a given width.
   const navHidden = (map.get('.site-header__nav')?.display || 'flex') === 'none';
   const rolesHidden = (map.get('.site-header__roles')?.display || 'flex') === 'none';
+  // The COLLAPSED search control is a real button in the bar and takes real
+  // width. Only the expanded panel is absolutely positioned and free.
+  const searchBtn = map.get('.site-header__search-btn');
+  if (!searchBtn) { failures++; console.log(c(RED, '  .site-header__search-btn not found in the stylesheet')); }
+  const searchShown = (searchBtn?.display || 'none') !== 'none';
+  const searchW = searchShown ? R(searchBtn.width) + R(TOKENS['--sp-3']) : 0;
 
   const logo = R(TOKENS['--icon']) + R(TOKENS['--sp-2'])
              + textWidth(DISPLAY_FACE, wordmark, R(TOKENS['--fs-mark']),
@@ -701,7 +707,7 @@ for (const vp of VIEWPORTS) {
   const gaps = R(TOKENS['--sp-5']) * (navHidden ? 1 : 2)
              + (rolesHidden ? 0 : R(TOKENS['--sp-3']));
 
-  const need = logo + nav + roles + login + gaps;
+  const need = logo + nav + roles + login + gaps + searchW;
   const have = Math.min(vp.w, R(TOKENS['--w-max'])) - R(TOKENS['--sp-5']) * 2;
   const ok = have >= need;
   if (!ok) failures++;
@@ -710,6 +716,7 @@ for (const vp of VIEWPORTS) {
     navHidden ? 'nav hidden' : `nav: ${navLabels.join(' / ')}`,
     rolesHidden ? 'roles hidden' : roleLabels.join('/'),
     loginLabel,
+    searchShown ? 'search' : 'search in drawer',
   ].join(', ');
   console.log(`  ${vp.label.padEnd(20)} ${(need.toFixed(0) + 'px').padStart(8)} ${(have.toFixed(0) + 'px').padStart(8)} ${(ok ? c(GREEN, s.padStart(8)) : c(RED, s.padStart(8)))}  ${parts}`);
 }
