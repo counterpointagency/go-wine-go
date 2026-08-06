@@ -76,6 +76,107 @@ const PLATES = [
    Rounds 3A and 3B shipping with no mobile menu. */
 const MOBILE_NAV_WIDTHS = [390, 760];
 
+
+/* ── FORM CONTEXTS ──────────────────────────────────────────────────
+   Every input on the site that is NOT inside an overlay. Round 2 shipped
+   a search placeholder that clipped to "subregior"; that was fixed for one
+   input, and then two more forms were added in 3B and 3C that nothing
+   measured. `chain` is resolved from the stylesheet: start at the page
+   container's max-width, subtract each nested horizontal padding.        */
+const FORM_CONTEXTS = [
+  {
+    name: 'supplier, list a wine', page: 'supplier.html',
+    chain: ['.supplier', '.supplier__form'],
+    grid: '.supplier__form-grid', gap: '--sp-4', cols: 2,
+    fields: [
+      { ph: 'e.g. Wilyabrup, Margaret River', fs: '--fs-body', padX: '--sp-4' },
+      { ph: 'e.g. Ridge Block Cabernet',      fs: '--fs-body', padX: '--sp-4' },
+    ],
+  },
+  {
+    name: 'tenders, post a tender', page: 'tenders.html',
+    chain: ['.tenders', '.tenders__form-wrap'],
+    // The form sits in the 5fr column of .tenders__layout above 900.
+    columnOf: { grid: '.tenders__layout', gap: '--sp-8', ratios: [5, 7], index: 0, collapseAt: 900 },
+    grid: '.tenders__row', gap: '--sp-4', cols: 2,
+    fields: [
+      { ph: '2021', fs: '--fs-body', padX: '--sp-4' },
+      { ph: '300',  fs: '--fs-body', padX: '--sp-4' },
+    ],
+  },
+  {
+    name: 'for wineries, register', page: 'for-wineries.html',
+    chain: ['.fw-register', '.fw-register__wrap'],
+    grid: '.fw-register__row', gap: '--sp-4', cols: 2,
+    fields: [{ ph: 'Producer licence number', fs: '--fs-body', padX: '--sp-4' }],
+  },
+];
+
+/* ── OVERLAYS ───────────────────────────────────────────────────────
+   Everything positioned outside normal page flow. Round 3D found the age
+   gate's Year field unreachable: its grid used bare `1fr` tracks, which are
+   minmax(AUTO, 1fr), and that auto minimum is the <input>'s intrinsic
+   size=20 width of ~236px. Three of them demanded 708px inside 400px of
+   plate. None of these overlays had ever been measured, because every
+   earlier check walked page flow and none of these are in it.
+
+   Every width below is READ FROM THE STYLESHEET, never hardcoded here. An
+   audit that carries its own copy of the numbers cannot fail when the CSS
+   changes underneath it, which is worse than no audit at all.             */
+const OVERLAYS = [
+  {
+    name: 'age gate',
+    // .age-gate is the padded fixed layer; .age-gate__plate sits inside it.
+    outer: '.age-gate', box: '.age-gate__plate',
+    rows: [{
+      ratios: [1, 1, 1.4], gap: '--sp-3',
+      fields: [
+        { ph: 'DD',   fs: '--fs-body', padX: '--sp-4' },
+        { ph: 'MM',   fs: '--fs-body', padX: '--sp-4' },
+        { ph: 'YYYY', fs: '--fs-body', padX: '--sp-4' },
+      ],
+    }],
+    buttons: [{ label: 'Enter the market', fs: '--fs-sm', padX: '--sp-5', icon: true }],
+  },
+  {
+    name: 'buy modal',
+    outer: '.modal-overlay', box: '.modal', inner: '.modal__body',
+    rows: [
+      { ratios: [1], gap: '--sp-4',
+        fields: [{ ph: '1234 5678 9012 3456', fs: '--fs-body', padX: '--sp-4' }] },
+      { ratios: [1, 1], gap: '--sp-4', collapse: '.modal__grid-2',
+        fields: [
+          { ph: 'MM / YY', fs: '--fs-body', padX: '--sp-4' },
+          { ph: '123',     fs: '--fs-body', padX: '--sp-4' },
+        ] },
+      { ratios: [1], gap: '--sp-4',
+        fields: [{ ph: '6285', fs: '--fs-body', padX: '--sp-4' }] },
+    ],
+    buttons: [{ label: 'Pay and place order, $340.00', fs: '--fs-sm', padX: '--sp-5', icon: false }],
+  },
+  {
+    name: 'offer modal',
+    outer: '.modal-overlay', box: '.modal', inner: '.modal__body',
+    rows: [{ ratios: [1], gap: '--sp-4',
+             fields: [{ ph: '0', fs: '--fs-h3', padX: '--sp-4', prefix: true }] }],
+    buttons: [{ label: 'Submit offer', fs: '--fs-sm', padX: '--sp-5', icon: true }],
+  },
+  {
+    name: 'mobile menu',
+    box: '.mobile-menu__panel',
+    rows: [], buttons: [],
+    // Link labels wrap, so only the longest unbreakable WORD has to fit.
+    words: ['Responsible', 'dashboard', 'Supplier'], wordFs: '--fs-body',
+  },
+  {
+    name: 'toast',
+    box: '.toast', widthProp: 'max-width',
+    rows: [], buttons: [],
+    words: ['CCF4471902AU', 'counteroffer', 'Equalisation'], wordFs: '--fs-sm',
+  },
+];
+
+
 /* Sticky elements are allowed to sit under the fixed header ONLY when
    they scroll inside their own container rather than the page. Each
    exemption has to name that container, so "it is fine" is never the
@@ -255,6 +356,74 @@ function heroCopy() {
   };
 }
 
+
+/** Resolve a length whose percentages are relative to `basis`, not the
+    viewport — the case for anything nested inside a padded overlay. */
+function resolveIn(expr, vp, basis) {
+  if (expr == null) return NaN;
+  const substituted = String(expr).replace(/([\d.]+)%/g, (_, n) => `${(Number(n) / 100) * basis}px`);
+  return resolve1(substituted, vp);
+}
+
+/** Horizontal padding from a shorthand: second value, or the first if single. */
+function padXOf(map, sel, vp) {
+  const decl = map.get(sel)?.padding;
+  if (!decl) return 0;
+  const parts = decl.trim().split(/\s+/);
+  return resolve1(parts[1] ?? parts[0], vp);
+}
+
+
+/** Resolve a nested container chain from the stylesheet: the outermost
+    max-width, then each level's horizontal padding subtracted in turn. */
+function chainInner(ctx, map, vp) {
+  const first = map.get(ctx.chain[0]);
+  if (!first) { ctx._missing = ctx.chain[0]; return NaN; }
+  let w = Math.min(vp.w, resolve1(first['max-width'] || '99999px', vp));
+  for (const sel of ctx.chain) {
+    if (!map.has(sel)) { ctx._missing = sel; return NaN; }
+    w -= padXOf(map, sel, vp) * 2;
+  }
+  if (ctx.columnOf) {
+    const co = ctx.columnOf;
+    if (!map.has(co.grid)) { ctx._missing = co.grid; return NaN; }
+    const collapsed = vp.w <= co.collapseAt;
+    if (!collapsed) {
+      const sum = co.ratios.reduce((a, b) => a + b, 0);
+      // The chain already removed the wrap padding; add it back, split the
+      // row, then take it off again for the column we actually sit in.
+      const wrapPad = padXOf(map, ctx.chain[1], vp) * 2;
+      const row = w + wrapPad - resolve1(tokensFor(vp.w)[co.gap], vp);
+      w = row * (co.ratios[co.index] / sum) - wrapPad;
+    }
+  }
+  ctx._missing = null;
+  return w;
+}
+
+/** The usable content width inside an overlay, read from the stylesheet. */
+function overlayInner(o, map, vp) {
+  // A selector that no longer exists must FAIL, not silently fall back to
+  // the viewport width — that would make every item "fit" inside a
+  // container that is not there. Renaming a class is exactly when this
+  // check most needs to speak up.
+  for (const sel of [o.outer, o.box, o.inner].filter(Boolean)) {
+    if (!map.has(sel)) { o._missing = sel; return NaN; }
+  }
+  o._missing = null;
+  let basis = vp.w;
+  if (o.outer) basis -= padXOf(map, o.outer, vp) * 2;
+  const props = map.get(o.box) || {};
+  const declared = props[o.widthProp || 'width'] ?? props['max-width'];
+  let w = declared !== undefined ? resolveIn(declared, vp, basis) : basis;
+  const cap = props['max-width'];
+  if (cap !== undefined && !o.widthProp) w = Math.min(w, resolveIn(cap, vp, basis));
+  w = Math.min(w, basis);
+  w -= padXOf(map, o.box, vp) * 2;
+  if (o.inner) w -= padXOf(map, o.inner, vp) * 2;
+  return w;
+}
+
 /* ── the audit ──────────────────────────────────────────────────── */
 const CAP_W_VW = 34, CAP_H_VH = 60;
 let failures = 0;
@@ -320,6 +489,11 @@ for (const vp of VIEWPORTS) {
   const fsDisp = R(get('.hero__title', 'font-size'));
   const trackDisp = parseFloat(TOKENS['--tracking-display']) || 0;
   const titleLines = lineCount(DISPLAY_FACE, COPY.title, fsDisp, avail, trackDisp);
+  // Greedy line breaking puts an over-long word on its own line and lets it
+  // overflow. Measure the widest single word against the usable plate width
+  // so a headline can never break mid-word or spill past the plate edge.
+  const widestWord = COPY.title.split(/\s+/)
+    .reduce((w, word) => Math.max(w, textWidth(DISPLAY_FACE, word, fsDisp, trackDisp)), 0);
   const titleH = titleLines * fsDisp * (parseFloat(TOKENS['--lh-tight']) || 1.06);
 
   const fsLead = R(get('.hero__text', 'font-size'));
@@ -360,7 +534,7 @@ for (const vp of VIEWPORTS) {
   }
 
   rows.push({ vp, headerH, model, plateW, capW, plateH, capH, contentH, clearance,
-              titleLines, subLines, eyebrowLines, avail, searchInPlate });
+              titleLines, subLines, eyebrowLines, avail, searchInPlate, widestWord });
 }
 
 console.log('1. HEADER vs HERO CONTENT — clearance must not be negative');
@@ -387,6 +561,11 @@ for (const r of rows) {
   // Round 2. It is a failure in its own right, not a note: the plate can
   // still be under its cap and the arrangement still be the banned one.
   if (r.searchInPlate) failures++;
+  // A word wider than the plate breaks mid-word or spills past the edge.
+  if (r.widestWord > r.avail + 0.5) {
+    failures++;
+    console.log(`  ${''.padEnd(20)} ${c(RED, `widest headline word ${r.widestWord.toFixed(0)}px exceeds ${r.avail.toFixed(0)}px of usable plate`)}`);
+  }
   const wS = `${r.plateW.toFixed(0)}px`, hS = `${r.plateH.toFixed(0)}px`;
   console.log(`  ${r.vp.label.padEnd(20)} ${(wOk ? c(GREEN, wS.padStart(8)) : c(RED, wS.padStart(8)))} ${(r.capW.toFixed(0) + 'px').padStart(8)}  ${(hOk ? c(GREEN, hS.padStart(8)) : c(RED, hS.padStart(8)))} ${(r.capH.toFixed(0) + 'px').padStart(8)}  ${r.eyebrowLines}/${r.titleLines}/${r.subLines}${r.searchInPlate ? c(YEL, '  [search back on the plate]') : ''}`);
 }
@@ -565,7 +744,149 @@ if (!menuHrefs.length) {
   console.log(`  ${'(menu)'.padStart(6)}  reaches all ${PAGES.length} pages ${c(GREEN, 'ok')}`);
 }
 
-console.log('\n8. SEARCH INPUT vs ITS PLACEHOLDER');
+
+/* ── 9. overlays fit their own containers ───────────────────────────── */
+console.log('\n9. OVERLAY CONTENT vs ITS OWN CONTAINER');
+console.log(`  ${'OVERLAY'.padEnd(13)} ${'VIEWPORT'.padEnd(20)} ${'ITEM'.padEnd(26)} ${'NEEDS'.padStart(7)} ${'HAS'.padStart(7)}  RESULT`);
+let overlayChecks = 0;
+for (const o of OVERLAYS) {
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const T = (t) => resolve1(tokensFor(vp.w)[t] ?? t, vp);
+    const inner = overlayInner(o, map, vp);
+    if (!Number.isFinite(inner)) {
+      failures++;
+      console.log(`  ${o.name.padEnd(13)} ${c(RED, `could not resolve ${o._missing || o.box} from the stylesheet`)}`);
+      continue;
+    }
+
+    for (const row of o.rows) {
+      // A grid that collapses to one column at this width is one track.
+      const collapsed = row.collapse &&
+        (map.get(row.collapse)?.['grid-template-columns'] || '').replace(/minmax\([^)]*\)/g, 'M').trim() === 'M';
+      const ratios = collapsed ? [1] : row.ratios;
+      const fields = collapsed ? row.fields.slice(0, 1) : row.fields;
+      const avail = inner - T(row.gap) * (ratios.length - 1);
+      const sum = ratios.reduce((a, b) => a + b, 0);
+      fields.forEach((f, i) => {
+        const track = avail * (ratios[i] / sum);
+        const prefix = f.prefix ? T('--sp-3') * 2 + 12 : 0;
+        const need = textWidth('inter-400', f.ph, T(f.fs)) + T(f.padX) * 2 + 2 + prefix;
+        const ok = track >= need;
+        overlayChecks++;
+        if (!ok) failures++;
+        console.log(`  ${o.name.padEnd(13)} ${vp.label.padEnd(20)} ${('input "' + f.ph + '"').slice(0, 26).padEnd(26)} ${(need.toFixed(0) + 'px').padStart(7)} ${(track.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPPED')));
+      });
+    }
+
+    for (const b of o.buttons) {
+      const need = textWidth('inter-500', b.label, T(b.fs)) + T(b.padX) * 2 + 2
+                 + (b.icon ? T('--icon-sm') + T('--sp-2') : 0);
+      const ok = inner >= need;
+      overlayChecks++;
+      if (!ok) failures++;
+      console.log(`  ${o.name.padEnd(13)} ${vp.label.padEnd(20)} ${('button "' + b.label + '"').slice(0, 26).padEnd(26)} ${(need.toFixed(0) + 'px').padStart(7)} ${(inner.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPPED')));
+    }
+
+    for (const w of (o.words || [])) {
+      const need = textWidth('inter-400', w, T(o.wordFs));
+      const ok = inner >= need;
+      overlayChecks++;
+      if (!ok) failures++;
+      console.log(`  ${o.name.padEnd(13)} ${vp.label.padEnd(20)} ${('word "' + w + '"').slice(0, 26).padEnd(26)} ${(need.toFixed(0) + 'px').padStart(7)} ${(inner.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPPED')));
+    }
+  }
+}
+if (!overlayChecks) { failures++; console.log(c(RED, '  no overlay items inspected — this check ran on nothing')); }
+
+/* ── 10. no grid track with an implicit auto minimum ─────────────────
+   `1fr` is minmax(auto, 1fr). Where the item is a form control that auto
+   minimum is the control's intrinsic width, and the track refuses to shrink
+   below it — exactly how the age gate lost its Year field. Every flexible
+   track must state its own minimum. */
+console.log('\n10. GRID TRACKS DECLARE THEIR MINIMUM');
+const bareFr = [];
+let trackDecls = 0;
+for (const [, sel, decl] of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+  const m = decl.match(/grid-template-columns:\s*([^;]+);/);
+  if (!m) continue;
+  trackDecls++;
+  const stripped = m[1].replace(/minmax\([^)]*\)/g, 'MINMAX');
+  if (/(^|[\s,(])\d*\.?\d+fr/.test(stripped)) {
+    bareFr.push(`${sel.trim().split('\n').pop().trim()} → ${m[1].trim()}`);
+  }
+}
+if (bareFr.length) {
+  failures += bareFr.length;
+  bareFr.forEach((b) => console.log(`  ${c(RED, 'bare fr')} ${b}`));
+} else {
+  console.log(`  ${c(GREEN, 'every flexible track states an explicit minimum')}  (${trackDecls} declarations inspected)`);
+}
+
+
+/* ── 11. every placeholder outside an overlay fits its input ────────── */
+console.log('\n11. FORM PLACEHOLDERS vs THEIR INPUTS');
+console.log(`  ${'FORM'.padEnd(24)} ${'VIEWPORT'.padEnd(20)} ${'PLACEHOLDER'.padEnd(32)} ${'NEEDS'.padStart(7)} ${'HAS'.padStart(7)}  RESULT`);
+let formChecks = 0;
+for (const ctx of FORM_CONTEXTS) {
+  for (const vp of VIEWPORTS) {
+    const map = declMap(rulesFor(vp.w));
+    const T = (t) => resolve1(tokensFor(vp.w)[t] ?? t, vp);
+    const inner = chainInner(ctx, map, vp);
+    if (!Number.isFinite(inner)) {
+      failures++;
+      console.log(`  ${ctx.name.padEnd(24)} ${c(RED, `could not resolve ${ctx._missing} from the stylesheet`)}`);
+      continue;
+    }
+    const gridDecl = (map.get(ctx.grid)?.['grid-template-columns'] || '')
+      .replace(/minmax\([^)]*\)/g, 'M').trim();
+    const cols = gridDecl === 'M' ? 1 : ctx.cols;
+    const track = (inner - T(ctx.gap) * (cols - 1)) / cols;
+    for (const f of ctx.fields) {
+      const need = textWidth('inter-400', f.ph, T(f.fs)) + T(f.padX) * 2 + 2;
+      const ok = track >= need;
+      formChecks++;
+      if (!ok) failures++;
+      console.log(`  ${ctx.name.padEnd(24)} ${vp.label.padEnd(20)} ${('"' + f.ph + '"').slice(0, 32).padEnd(32)} ${(need.toFixed(0) + 'px').padStart(7)} ${(track.toFixed(0) + 'px').padStart(7)}  ` + (ok ? c(GREEN, 'fits') : c(RED, 'CLIPS')));
+    }
+  }
+}
+if (!formChecks) { failures++; console.log(c(RED, '  no form fields inspected — this check ran on nothing')); }
+
+
+/* ── 12. the producer licence number reads as one token ─────────────
+   It is the Model A trust signal, rendered at --fs-h3 in an auto-fit grid.
+   At a 180px track it broke across two lines at its own hyphens from 834
+   up. Measured against the REAL licence numbers in data/wineries.json, so
+   a longer one added later fails here rather than on the page. */
+console.log('\n12. PRODUCER LICENCE NUMBER vs ITS CREDENTIALS TRACK');
+const wineriesData = JSON.parse(readFileSync(resolve(ROOT, 'data/wineries.json'), 'utf8'));
+const longestLicence = wineriesData.wineries
+  .map((w) => w.licence_number)
+  .reduce((a, b) => (b.length > a.length ? b : a), '');
+let licenceChecks = 0;
+for (const vp of VIEWPORTS) {
+  const map = declMap(rulesFor(vp.w));
+  const R = (v) => resolve1(v, vp);
+  const grid = map.get('.credentials__grid');
+  const outer = map.get('.credentials');
+  if (!grid || !outer) { failures++; console.log(c(RED, '  .credentials__grid not found in the stylesheet')); break; }
+  const container = Math.min(vp.w, R(TOKENS['--w-max'])) - padXOf(map, '.credentials', vp) * 2;
+  const gap = R(grid.gap);
+  const min = R((grid['grid-template-columns'].match(/minmax\((\d+px)/) || [, '0'])[1]);
+  const fit = Math.max(1, Math.floor((container + gap) / (min + gap)));
+  const cols = Math.min(fit, wineriesData.wineries.length ? 4 : 1);   // four credential items
+  const track = (container - gap * (cols - 1)) / cols;
+  const need = textWidth('inter-500', longestLicence, R(TOKENS['--fs-h3']));
+  const ok = track >= need;
+  licenceChecks++;
+  if (!ok) failures++;
+  console.log(`  ${vp.label.padEnd(20)} ${cols} cols  track ${(track.toFixed(0) + 'px').padStart(7)}  "${longestLicence}" needs ${(need.toFixed(0) + 'px').padStart(7)}  ` +
+    (ok ? c(GREEN, 'one line') : c(RED, 'BREAKS AT ITS HYPHENS')));
+}
+if (!licenceChecks) { failures++; console.log(c(RED, '  licence check ran on nothing')); }
+
+console.log('\n13. SEARCH INPUT vs ITS PLACEHOLDER');
 for (const vp of VIEWPORTS) {
   const map = declMap(rulesFor(vp.w));
   const R = (v) => resolve1(v, vp);

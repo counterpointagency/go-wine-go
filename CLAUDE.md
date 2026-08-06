@@ -255,7 +255,23 @@ from `tools/font-metrics.json`, and asserts:
    nav hidden below 760 and nothing in its place, so the footer was the only
    route on a phone. Nothing measured it, because every element was correctly
    sized — the failure was an ABSENCE, and absences need their own assertion
-8. search input width vs. its own placeholder
+8. **every overlay's content against its own container** — the age gate,
+   both modals, the mobile menu and the toast. All are positioned outside
+   page flow, so every earlier check walked straight past them
+9. **every grid track declares its own minimum.** `1fr` is `minmax(auto,
+   1fr)`, and where the item is a form control that auto minimum is the
+   control's intrinsic width, so the track refuses to shrink. This is a lint,
+   not a measurement, and it catches the whole class in one line
+10. **every form placeholder against its input**, on every page, not just the
+   one that broke in Round 2
+11. **the producer licence number against its credentials track**, measured
+    from the real data so a longer licence fails here rather than on the page
+12. search input width vs. its own placeholder
+
+Widths in the overlay and form checks are **read from the stylesheet, never
+hardcoded in the tool**. An audit carrying its own copy of the numbers cannot
+fail when the CSS changes underneath it, which is worse than no audit. A
+selector the audit cannot find is a failure, not a fallback to the viewport.
 
 `tools/font-metrics.json` is extracted with fontTools from the exact Google
 Fonts woff2 files the pages request, with variable axes instanced at the values
@@ -433,3 +449,27 @@ serving.
   flagged rather than substituted silently.
 
   Archived at `archive/index-v5.html`, `archive/supplier-v2.html`.
+- **Round 3D** — legibility and overflow. No new features.
+
+  **The age gate's Year field was unreachable and the form could not be
+  completed.** Root cause was not a width but a grid track minimum: `1fr` is
+  `minmax(auto, 1fr)`, and the auto minimum resolves to the grid item's
+  min-content. The items are `<input>` elements with no `size` attribute, so
+  they default to `size=20` — an intrinsic 236px each at 16px Inter. Three
+  tracks demanded 708px inside 400px of plate. `.age-gate__plate` also sets
+  `overflow-y: auto`, and a non-visible overflow on one axis forces `auto` on
+  the other, so the field was scrolled out of reach rather than merely
+  spilling. Fixed at the grid with `minmax(0, …)` plus `min-width: 0` on the
+  item; the same fix applied to every other grid holding a form control.
+
+  Also fixed: `.age-gate__plate` at `92vw` inside a `--sp-5` padded layer
+  overflowed its own container by 17px at 390; three mobile plates used
+  `width: 100vw`, which counts the scrollbar and causes horizontal page
+  scroll; the producer licence number broke across two lines at its own
+  hyphens from 834 up; the supplier tables needed their scroll rail from
+  1100 rather than 760 once territory exclusions made eight columns.
+
+  Legibility floor applied: every running-prose and compliance selector is
+  now 16px or above, nothing is under 13px, `.btn--sm` and the filter chips
+  reach 44px at 390, and three prose blocks that ran the full container width
+  gained a max-width.

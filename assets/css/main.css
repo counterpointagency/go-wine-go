@@ -240,7 +240,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   color: var(--brass-text);
 }
 
-.field { display: block; margin-bottom: var(--sp-4); }
+.field { display: block; margin-bottom: var(--sp-4); min-width: 0; }
 .field__label {
   display: block; font-size: var(--fs-xs); font-weight: 500;
   color: var(--ink-soft); margin-bottom: var(--sp-2);
@@ -411,11 +411,11 @@ a, button, input, select, textarea, summary, [tabindex] {
 .trust__inner {
   max-width: var(--w-max); margin: 0 auto;
   padding: var(--sp-5);
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-5);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-5);
 }
 .trust__item {
   display: flex; align-items: center; gap: var(--sp-3);
-  font-size: var(--fs-sm); color: var(--ink);
+  font-size: var(--fs-body); color: var(--ink);
 }
 .trust__item .icon { color: var(--eucalypt); }
 
@@ -540,7 +540,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   width: 100%; height: auto; aspect-ratio: 4 / 5;
   object-fit: cover; border-radius: var(--r-md);
 }
-.editorial__caption { font-size: var(--fs-micro); color: var(--ink-soft); margin-top: var(--sp-3); }
+.editorial__caption { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); }
 .editorial__title {
   font-family: var(--font-display); font-weight: var(--display-weight);
   font-variation-settings: var(--display-axes);
@@ -570,7 +570,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
   margin-top: var(--sp-3);
 }
-.godeals__note { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--sp-2); max-width: 64ch; }
+.godeals__note { font-size: var(--fs-body); color: var(--ink-soft); margin-top: var(--sp-2); max-width: 64ch; }
 .godeals__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-5); }
 .godeal {
   border: var(--bw) solid var(--stone); border-radius: var(--r-md);
@@ -604,7 +604,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 .godeal__stats { display: flex; justify-content: space-between; gap: var(--sp-4); font-size: var(--fs-xs); color: var(--ink-soft); }
 .godeal__stats b { color: var(--ink); font-weight: 500; }
 .godeal__next {
-  font-size: var(--fs-sm); color: var(--ink-soft);
+  font-size: var(--fs-body); color: var(--ink-soft);
   border-top: var(--bw) solid var(--stone);
   margin-top: var(--sp-4); padding-top: var(--sp-4);
 }
@@ -722,7 +722,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   margin-top: var(--sp-2); display: inline-flex; align-items: center; gap: var(--sp-2);
 }
 .account__counter b { font-weight: 500; }
-.account__panel-note { font-size: var(--fs-sm); color: var(--ink-soft); margin-bottom: var(--sp-5); max-width: 68ch; }
+.account__panel-note { font-size: var(--fs-body); color: var(--ink-soft); margin-bottom: var(--sp-5); max-width: 68ch; }
 .account__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr)); gap: var(--sp-5); }
 
 /* Orders carry a dispatch timeline and a tracking reference (spec 4.9). */
@@ -767,7 +767,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   font-size: var(--fs-body); font-weight: 500; color: var(--maroon);
   margin-bottom: var(--sp-3);
 }
-.account__address-lines { font-size: var(--fs-sm); color: var(--ink); font-style: normal; }
+.account__address-lines { font-size: var(--fs-body); color: var(--ink); font-style: normal; }
 .account__address-note { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -833,12 +833,12 @@ a, button, input, select, textarea, summary, [tabindex] {
   font-family: var(--font-body); font-size: var(--fs-body); font-weight: 500;
   color: var(--maroon); margin-bottom: var(--sp-4);
 }
-.supplier__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-4); }
+.supplier__form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 var(--sp-4); }
 .supplier__form-actions { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-3); }
 .supplier__check { display: inline-flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-xs); color: var(--ink-soft); cursor: pointer; }
 .supplier__check input { accent-color: var(--maroon); width: 16px; height: 16px; }
 .supplier__toggle-state { margin-left: auto; }
-.supplier__godeal-note { font-size: var(--fs-sm); color: var(--ink-soft); margin-bottom: var(--sp-5); max-width: 62ch; }
+.supplier__godeal-note { font-size: var(--fs-body); color: var(--ink-soft); margin-bottom: var(--sp-5); max-width: 62ch; }
 .supplier__toggle-row {
   grid-column: 1 / -1; display: flex; align-items: center; gap: var(--sp-3);
   background: var(--surface); border: var(--bw) solid var(--stone);
@@ -851,7 +851,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 }
 .supplier__drop:hover { border-color: var(--eucalypt); }
 .supplier__drop .icon { margin: 0 auto var(--sp-3); color: var(--brass-text); }
-.supplier__drop-text { font-size: var(--fs-sm); color: var(--ink-soft); }
+.supplier__drop-text { font-size: var(--fs-body); color: var(--ink-soft); }
 .supplier__drop-text b { color: var(--maroon); font-weight: 500; }
 .supplier__drop-note { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-2); }
 .supplier__result { background: var(--surface); border: var(--bw) solid var(--stone); border-radius: var(--r-md); padding: var(--sp-5); }
@@ -875,7 +875,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 }
 .supplier__offer:last-child { border-bottom: none; padding-bottom: 0; }
 .supplier__offer-name { font-size: var(--fs-body); font-weight: 500; color: var(--ink); }
-.supplier__offer-meta { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); }
+.supplier__offer-meta { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-1); max-width: 70ch; }
 .supplier__offer-meta b { color: var(--ink); font-weight: 500; }
 /* An offer at or above the floor would auto-accept, so it is marked. The
    floor itself is never rendered on a buyer-facing surface. */
@@ -907,7 +907,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 .supplier__tier-state { font-size: var(--fs-xs); color: var(--eucalypt); }
 
 /* ── payouts ── */
-.supplier__payouts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+.supplier__payouts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-5); }
 .supplier__payout-col-title {
   font-size: var(--fs-micro); font-weight: 500;
   letter-spacing: var(--tracking-label); text-transform: uppercase;
@@ -985,7 +985,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 .wine__stock b { font-weight: 500; }
 .wine__actions { display: grid; gap: var(--sp-3); margin-top: var(--sp-5); }
 .wine__seller {
-  font-size: var(--fs-xs); color: var(--ink-soft);
+  font-size: var(--fs-body); color: var(--ink-soft);
   border-top: var(--bw) solid var(--stone);
   margin-top: var(--sp-5); padding-top: var(--sp-4);
 }
@@ -1012,7 +1012,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
   color: var(--maroon); line-height: var(--lh-snug);
 }
-.winery-strip__text { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--sp-3); max-width: 66ch; }
+.winery-strip__text { font-size: var(--fs-body); color: var(--ink-soft); margin-top: var(--sp-3); max-width: 66ch; }
 .winery-strip__licence {
   display: inline-flex; align-items: center; gap: var(--sp-2);
   font-size: var(--fs-xs); color: var(--ink);
@@ -1042,7 +1042,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 .panel__list { list-style: none; }
 .panel__item {
   display: flex; gap: var(--sp-3); align-items: flex-start;
-  font-size: var(--fs-sm); color: var(--ink);
+  font-size: var(--fs-body); color: var(--ink);
   padding: var(--sp-3) 0; border-bottom: var(--bw) solid var(--stone);
 }
 .panel__item:last-child { border-bottom: none; padding-bottom: 0; }
@@ -1137,7 +1137,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   width: 100%; height: auto; aspect-ratio: 4 / 5;
   object-fit: cover; border-radius: var(--r-md);
 }
-.winery-story__caption { font-size: var(--fs-micro); color: var(--ink-soft); margin-top: var(--sp-3); }
+.winery-story__caption { font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); }
 .winery-story__title {
   font-family: var(--font-display); font-weight: var(--display-weight);
   font-variation-settings: var(--display-axes);
@@ -1150,7 +1150,11 @@ a, button, input, select, textarea, summary, [tabindex] {
 
 .credentials { max-width: var(--w-max); margin: 0 auto; padding: 0 var(--sp-5) var(--sp-7); }
 .credentials__grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-5);
+  /* 180px tracks broke "WA-PRD-SAMPLE-001" across two lines at its own
+     hyphens from 834 up. The licence number is the Model A trust signal and
+     has to read as one token; 260px is the width it measures at --fs-h3.
+     tools/layout-audit.mjs checks this against the real data. */
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--sp-5);
   border-top: var(--bw) solid var(--stone); padding-top: var(--sp-5);
 }
 .credentials__item { border-left: var(--bw-thick) solid var(--brass-text); padding-left: var(--sp-4); }
@@ -1171,7 +1175,7 @@ a, button, input, select, textarea, summary, [tabindex] {
   display: flex; gap: var(--sp-4); align-items: flex-start;
   border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--maroon);
   border-radius: var(--r-md); background: var(--surface);
-  padding: var(--sp-5); font-size: var(--fs-sm); color: var(--ink);
+  padding: var(--sp-5); font-size: var(--fs-body); color: var(--ink);
 }
 .compliance__inner .icon { color: var(--maroon); }
 
@@ -1187,7 +1191,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 .tenders__step { border-top: var(--bw-thick) solid var(--brass-text); padding-top: var(--sp-4); }
 .tenders__step-num { font-size: var(--fs-h3); font-weight: 500; color: var(--maroon); line-height: 1; }
 .tenders__step-name { font-size: var(--fs-body); font-weight: 500; color: var(--ink); margin: var(--sp-3) 0 var(--sp-2); }
-.tenders__step-text { font-size: var(--fs-sm); color: var(--ink-soft); }
+.tenders__step-text { font-size: var(--fs-body); color: var(--ink-soft); }
 .tenders__layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-8); align-items: start; }
 .tenders__form-wrap {
   border: var(--bw) solid var(--stone); border-radius: var(--r-md);
@@ -1197,8 +1201,8 @@ a, button, input, select, textarea, summary, [tabindex] {
   font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
   color: var(--maroon); margin-bottom: var(--sp-2);
 }
-.tenders__form-note { font-size: var(--fs-xs); color: var(--ink-soft); margin-bottom: var(--sp-5); }
-.tenders__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-4); }
+.tenders__form-note { font-size: var(--fs-body); color: var(--ink-soft); margin-bottom: var(--sp-5); }
+.tenders__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 var(--sp-4); }
 .tenders__list-title {
   font-family: var(--font-body); font-size: var(--fs-h3); font-weight: 500;
   color: var(--maroon); margin-bottom: var(--sp-4);
@@ -1252,7 +1256,7 @@ a, button, input, select, textarea, summary, [tabindex] {
 }
 .hiw__lines { list-style: none; }
 .hiw__line {
-  font-size: var(--fs-sm); color: var(--ink-soft);
+  font-size: var(--fs-body); color: var(--ink-soft);
   padding-left: var(--sp-5); position: relative; margin-bottom: var(--sp-3);
 }
 .hiw__line::before {
@@ -1353,7 +1357,7 @@ html.age-gate-open body { overflow: hidden; }
 .age-gate__media img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
 .age-gate__plate {
   background: var(--bone); color: var(--maroon);
-  width: min(92vw, 520px); max-height: 92vh; overflow-y: auto;
+  width: min(100%, 520px); max-height: 92vh; overflow-y: auto;
   padding: var(--sp-7);
   box-shadow: inset 0 0 0 var(--bw) var(--brass);
 }
@@ -1364,16 +1368,30 @@ html.age-gate-open body { overflow: hidden; }
   font-size: var(--fs-h2); color: var(--maroon);
   line-height: var(--lh-snug); letter-spacing: var(--tracking-display);
 }
-.age-gate__note { color: var(--ink-soft); font-size: var(--fs-sm); margin-top: var(--sp-4); }
+.age-gate__note { color: var(--ink-soft); font-size: var(--fs-body); margin-top: var(--sp-4); }
 .age-gate__fields { border: none; margin-top: var(--sp-5); }
 .age-gate__legend {
   font-size: var(--fs-xs); font-weight: 500; color: var(--ink-soft);
   margin-bottom: var(--sp-3); padding: 0;
 }
-.age-gate__row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: var(--sp-3); }
-.age-gate__field { display: flex; flex-direction: column; gap: var(--sp-2); }
+/* minmax(0, …) is load bearing, not decoration.
+   A bare `1fr` track is minmax(AUTO, 1fr), and that auto minimum resolves to
+   the grid item's min-content width. These items are <input> elements with no
+   size attribute, so they default to size=20 — an intrinsic 236px each at
+   16px Inter. Three such tracks demanded 708px inside 400px of plate and
+   pushed the Year field past the right edge, where .age-gate__plate's
+   overflow-y:auto (which forces overflow-x:auto) scrolled it out of reach.
+   minmax(0, …) lets the track shrink; min-width:0 does the same for the flex
+   item inside it. See FORM GRIDS in tools/layout-audit.mjs. */
+.age-gate__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--sp-3);
+}
+.age-gate__field { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
 .age-gate__field label { font-size: var(--fs-micro); color: var(--ink-soft); }
 .age-gate__field input {
+  width: 100%; min-width: 0;
   background: var(--surface); color: var(--ink);
   border: var(--bw) solid var(--stone); border-radius: var(--r-sm);
   padding: var(--sp-3) var(--sp-4); font-size: var(--fs-body);
@@ -1414,7 +1432,7 @@ html.age-gate-open body { overflow: hidden; }
 .fw-maths { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-7) var(--sp-5); }
 .fw-maths__note {
   display: inline-flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--fs-xs); color: var(--ink);
+  font-size: var(--fs-body); color: var(--ink);
   border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--brass-text);
   border-radius: var(--r-sm); background: var(--surface);
   padding: var(--sp-3) var(--sp-4); margin: var(--sp-4) 0 var(--sp-5); max-width: 70ch;
@@ -1433,7 +1451,7 @@ html.age-gate-open body { overflow: hidden; }
   border-top: var(--bw-thick) solid var(--maroon);
   font-size: var(--fs-body); font-weight: 500; color: var(--maroon);
 }
-.fw-maths__foot { font-size: var(--fs-sm); color: var(--ink-soft); margin-top: var(--sp-5); max-width: 68ch; }
+.fw-maths__foot { font-size: var(--fs-body); color: var(--ink-soft); margin-top: var(--sp-5); max-width: 68ch; }
 
 .fw-territory { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-7) var(--sp-5); }
 .fw-territory__grid {
@@ -1469,7 +1487,7 @@ html.age-gate-open body { overflow: hidden; }
   font-family: var(--font-body); font-size: var(--fs-body); font-weight: 500;
   color: var(--maroon); margin-bottom: var(--sp-2);
 }
-.fw-paid__text { font-size: var(--fs-sm); color: var(--ink-soft); }
+.fw-paid__text { font-size: var(--fs-body); color: var(--ink-soft); }
 
 .fw-cost { background: var(--maroon); color: var(--on-maroon); padding: var(--sp-9) var(--sp-5); }
 .fw-cost__inner { max-width: var(--w-max); margin: 0 auto; }
@@ -1484,7 +1502,7 @@ html.age-gate-open body { overflow: hidden; }
 .fw-cost__item { border-top: var(--bw-thick) solid var(--brass); padding-top: var(--sp-4); }
 .fw-cost__val { font-size: var(--fs-num); font-weight: 500; color: var(--on-maroon); line-height: 1; }
 .fw-cost__lbl { font-size: var(--fs-sm); color: var(--on-maroon-soft); margin-top: var(--sp-3); }
-.fw-cost__note { font-size: var(--fs-sm); color: var(--on-maroon); margin-top: var(--sp-7); max-width: 64ch; }
+.fw-cost__note { font-size: var(--fs-body); color: var(--on-maroon); margin-top: var(--sp-7); max-width: 64ch; }
 
 .fw-winescape { max-width: var(--w-max); margin: 0 auto; padding: var(--sp-8) var(--sp-5); }
 .fw-winescape__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-8); align-items: start; }
@@ -1507,7 +1525,7 @@ html.age-gate-open body { overflow: hidden; }
 .fw-req__item {
   display: flex; gap: var(--sp-3); align-items: flex-start;
   border: var(--bw) solid var(--stone); border-radius: var(--r-md);
-  padding: var(--sp-4); font-size: var(--fs-sm); color: var(--ink);
+  padding: var(--sp-4); font-size: var(--fs-body); color: var(--ink);
 }
 .fw-req__item .icon { color: var(--eucalypt); }
 
@@ -1516,8 +1534,8 @@ html.age-gate-open body { overflow: hidden; }
   border: var(--bw) solid var(--stone); border-top: var(--bw-thick) solid var(--maroon);
   border-radius: var(--r-md); background: var(--surface); padding: var(--sp-7);
 }
-.fw-register__note { font-size: var(--fs-xs); color: var(--ink-soft); margin: var(--sp-3) 0 var(--sp-5); }
-.fw-register__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-4); }
+.fw-register__note { font-size: var(--fs-body); color: var(--ink-soft); margin: var(--sp-3) 0 var(--sp-5); }
+.fw-register__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 var(--sp-4); }
 
 /* ═══════════════════════════════════════════════════════════════
    SECTION: LEGAL  (legal/*.html)
@@ -1530,8 +1548,10 @@ html.age-gate-open body { overflow: hidden; }
   border: var(--bw) solid var(--stone); border-left: var(--bw-thick) solid var(--clay);
   border-radius: var(--r-md); background: var(--surface);
   padding: var(--sp-5); margin-bottom: var(--sp-7);
-  font-size: var(--fs-sm); color: var(--ink);
+  font-size: var(--fs-body); color: var(--ink);
 }
+/* Sits in a 980px column; at 16px that is ~93 characters a line without a cap. */
+.legal__draft span { max-width: 70ch; }
 .legal__draft .icon { color: var(--clay); }
 .legal__draft b { font-weight: 500; }
 .legal__section { border-top: var(--bw) solid var(--stone); padding: var(--sp-6) 0 0; margin-bottom: var(--sp-6); }
@@ -1575,7 +1595,7 @@ html.age-gate-open body { overflow: hidden; }
 }
 .site-footer__nav a:hover { border-bottom-color: var(--brass); }
 .site-footer__rule { margin-bottom: var(--sp-5); }
-.site-footer__meta { font-size: var(--fs-xs); line-height: var(--lh-body); }
+.site-footer__meta { font-size: var(--fs-body); line-height: var(--lh-body); max-width: 72ch; }
 .site-footer__meta p + p { margin-top: var(--sp-2); }
 .site-footer__credit a { color: var(--on-maroon); text-decoration: none; border-bottom: var(--bw-thick) solid var(--brass); }
 
@@ -1621,8 +1641,8 @@ html.age-gate-open body { overflow: hidden; }
 .modal__dl-row dt { color: var(--ink-soft); }
 .modal__dl-row dd { font-weight: 500; text-align: right; }
 .modal__dl-row--hl dd { color: var(--maroon); font-size: var(--fs-body); }
-.modal__grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--sp-4); }
-.modal__note { text-align: center; font-size: var(--fs-xs); color: var(--ink-soft); margin-top: var(--sp-3); }
+.modal__grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 var(--sp-4); }
+.modal__note { text-align: center; font-size: var(--fs-body); color: var(--ink-soft); margin-top: var(--sp-3); }
 .modal__success { text-align: center; padding: var(--sp-4) 0 var(--sp-2); }
 .modal__success .icon { width: 44px; height: 44px; margin: 0 auto var(--sp-4); color: var(--eucalypt); }
 .modal__success h3 { font-family: var(--font-body); font-weight: 500; font-size: var(--fs-h3); color: var(--maroon); margin-bottom: var(--sp-2); }
@@ -1662,7 +1682,12 @@ html.age-gate-open body { overflow: hidden; }
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 1100px) {
-  .trust__inner { grid-template-columns: repeat(2, 1fr); }
+  .trust__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* The listings table carries eight columns since territory exclusions were
+     added, so it needs its own horizontal rail well before the phone
+     breakpoint. The rail scrolls the TABLE, never the page. */
+  .supplier__panel-body--scroll { overflow-x: auto; }
+  .supplier__table { min-width: 860px; }
   /* The header is a fixed 76px bar that cannot wrap, so it has to shed
      content rather than reflow it. The role switcher goes first: it is
      the only control that duplicates a destination reachable elsewhere,
@@ -1671,21 +1696,26 @@ html.age-gate-open body { overflow: hidden; }
   .site-header__roles { display: none; }
 }
 @media (max-width: 900px) {
-  .editorial__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .editorial__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
   .editorial__figure img { aspect-ratio: 4 / 3; }
   .closing__plate { width: 60vw; }
-  .winery-story__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .winery-story__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
   .winery-story__figure img { aspect-ratio: 4 / 3; }
   /* Single column: the aside stops being a parallel column, so sticking it
      would pin a block of the page while the reader scrolls past it. */
-  .wine__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  .wine__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
   .wine__aside { position: static; }
-  .tenders__layout { grid-template-columns: 1fr; gap: var(--sp-7); }
-  .fw-territory__grid, .fw-winescape__grid { grid-template-columns: 1fr; gap: var(--sp-6); }
-  .supplier__payouts { grid-template-columns: 1fr; }
+  .tenders__layout { grid-template-columns: minmax(0, 1fr); gap: var(--sp-7); }
+  .fw-territory__grid, .fw-winescape__grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+  .supplier__payouts { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 760px) {
   :root { --header-h: 64px; }
+  /* 44px minimum on anything tappable. .btn--sm and the filter chips
+     measured 39px at their desktop padding, which is under the target on
+     a phone even though it reads fine on a pointer device. */
+  .btn--sm { padding: var(--sp-3) var(--sp-4); }
+  .market__filter { padding: var(--sp-3) var(--sp-4); }
   /* The bar cannot wrap, so below 760 it sheds the nav and the account
      link and shows the menu button instead. The drawer carries every
      destination, which is why shedding them here is safe.
@@ -1708,29 +1738,29 @@ html.age-gate-open body { overflow: hidden; }
     max-width: none; padding: 0; justify-items: stretch;
   }
   .hero__plate {
-    width: 100vw; max-height: none;
+    width: 100%; max-height: none;
     padding: var(--sp-6) var(--sp-5);
     box-shadow: none;
     border-bottom: var(--bw) solid var(--stone);
   }
-  .trust__inner { grid-template-columns: 1fr; gap: var(--sp-3); }
+  .trust__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sp-3); }
   .finder__search { flex-direction: column; max-width: none; }
   .market__head { flex-direction: column; align-items: flex-start; }
-  .market__grid { grid-template-columns: 1fr; }
-  .godeals__grid { grid-template-columns: 1fr; }
-  .regions__grid { grid-template-columns: 1fr 1fr; }
+  .market__grid { grid-template-columns: minmax(0, 1fr); }
+  .godeals__grid { grid-template-columns: minmax(0, 1fr); }
+  .regions__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   /* Same treatment as the hero: photograph first, plate below it,
      full width, so nothing sits over an untinted image on a small screen. */
   .closing__media { position: relative; }
   .closing__media img { height: 38vh; }
   .closing__inner { max-width: none; padding: 0; min-height: 0; display: block; }
   .closing__plate {
-    width: 100vw; padding: var(--sp-6) var(--sp-5);
+    width: 100%; padding: var(--sp-6) var(--sp-5);
     box-shadow: none; border-bottom: var(--bw) solid var(--stone);
   }
-  .supplier__form-grid, .modal__grid-2, .tenders__row, .fw-register__row { grid-template-columns: 1fr; }
+  .supplier__form-grid, .modal__grid-2, .tenders__row, .fw-register__row { grid-template-columns: minmax(0, 1fr); }
   .account__row { flex-direction: column; align-items: flex-start; }
-  .account__grid { grid-template-columns: 1fr; }
+  .account__grid { grid-template-columns: minmax(0, 1fr); }
   /* Same treatment as the home hero: photograph first, plate below it,
      full width, so no copy sits over an untinted image on a small screen. */
   .winery-hero { padding-top: 0; min-height: 0; display: block; }
@@ -1738,17 +1768,16 @@ html.age-gate-open body { overflow: hidden; }
   .winery-hero__media img { height: 34vh; }
   .winery-hero__inner { max-width: none; padding: 0; justify-items: stretch; }
   .winery-hero__plate {
-    width: 100vw; max-height: none;
+    width: 100%; max-height: none;
     padding: var(--sp-6) var(--sp-5);
     box-shadow: none; border-bottom: var(--bw) solid var(--stone);
   }
-  .winery-strip__inner { grid-template-columns: 1fr; gap: var(--sp-5); }
+  .winery-strip__inner { grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
   .winery-strip__figure img { aspect-ratio: 16 / 9; }
   .fw-maths__table { font-size: var(--fs-xs); }
   .age-gate__plate { padding: var(--sp-5); }
   .supplier__counter { flex-direction: column; align-items: stretch; }
   .supplier__panel-body--scroll { overflow-x: auto; }
-  .supplier__table { min-width: 640px; }
   .modal__actions { flex-direction: column; }
 }
 /* Every transition in this file reads --t-fast / --t-med, so collapsing
